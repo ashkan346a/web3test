@@ -9,6 +9,10 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', os.getenv('SECRET_KEY', 'django-inse
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = [
+    'medpharmaweb.shop',
+    'www.medpharmaweb.shop',
+    'www.medpharmaweb.com',
+    'medpharmaweb.com',
     'apppweb.railway.internal',  # Keep for Railway internal
     'pharmaweb.up.railway.app',  # Railway public domain for testing
     '127.0.0.1',
@@ -18,7 +22,10 @@ ALLOWED_HOSTS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-
+    'https://medpharmaweb.shop',
+    'https://www.medpharmaweb.shop',
+    'https://www.medpharmaweb.com',
+    'https://medpharmaweb.com',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
     # Remove old Railway domain completely
