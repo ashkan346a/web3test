@@ -376,7 +376,7 @@
                 <div class="usd-equivalent">
                   معادل $<span id="usd-amount">{{ total_amount|floatformat:2 }}</span>
                 </div>
-                <button class="copy-btn" id="copy-irr-amount" onclick="copyIRRAmount()" type="button" title="کپی مبلغ تومان">
+                <button class="copy-btn" id="copy-irr-amount" onclick="copyAmount()" type="button" title="کپی مبلغ تومان">
                   <i class="fas fa-copy"></i>
                   کپی مبلغ
                 </button>
@@ -391,7 +391,7 @@
                   <label>شماره کارت:</label>
                   <div class="card-number-display">
                     <span id="card-number">{% if irr_card_details %}{{ irr_card_details.card_number }}{% endif %}</span>
-                    <button class="copy-btn small" onclick="copyCardNumber()" type="button" title="کپی شماره کارت">
+                    <button class="copy-btn small" onclick="copyCard()" type="button" title="کپی شماره کارت">
                       <i class="fas fa-copy"></i>
                       کپی
                     </button>
@@ -3683,5 +3683,112 @@ document.head.appendChild(style);
 })();
 </script>
 {% endif %}
+
+<!-- راه‌حل قطعی برای کپی در کارت به کارت -->
+<script>
+// توابع ساده و مطمئن برای کپی
+function copyAmount() {
+  try {
+    // پیدا کردن عنصر مبلغ
+    var amountEl = document.getElementById('irr-amount');
+    if (!amountEl) {
+      alert('❌ عنصر مبلغ یافت نشد');
+      return;
+    }
+    
+    // گرفتن متن
+    var text = amountEl.textContent || amountEl.innerText || '';
+    if (!text) {
+      alert('❌ مبلغ خالی است');
+      return;
+    }
+    
+    // حذف همه چیز به جز اعداد
+    var numbers = text.replace(/[^0-9]/g, '');
+    if (!numbers) {
+      alert('❌ مبلغ نامعتبر');
+      return;
+    }
+    
+    // کپی کردن
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(numbers).then(function() {
+        alert('✅ مبلغ کپی شد: ' + numbers + ' تومان');
+      }).catch(function() {
+        copyToClipboardFallback(numbers);
+      });
+    } else {
+      copyToClipboardFallback(numbers);
+    }
+    
+  } catch (e) {
+    alert('❌ خطا: ' + e.message);
+  }
+}
+
+function copyCard() {
+  try {
+    // پیدا کردن عنصر شماره کارت
+    var cardEl = document.getElementById('card-number');
+    if (!cardEl) {
+      alert('❌ عنصر شماره کارت یافت نشد');
+      return;
+    }
+    
+    // گرفتن متن
+    var text = cardEl.textContent || cardEl.innerText || '';
+    if (!text) {
+      alert('❌ شماره کارت خالی است');
+      return;
+    }
+    
+    // حذف فاصله و کاراکترهای اضافی
+    var cardNumber = text.replace(/[^0-9]/g, '');
+    if (!cardNumber || cardNumber.length < 16) {
+      alert('❌ شماره کارت نامعتبر');
+      return;
+    }
+    
+    // کپی کردن
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(cardNumber).then(function() {
+        alert('✅ شماره کارت کپی شد: ' + cardNumber);
+      }).catch(function() {
+        copyToClipboardFallback(cardNumber);
+      });
+    } else {
+      copyToClipboardFallback(cardNumber);
+    }
+    
+  } catch (e) {
+    alert('❌ خطا: ' + e.message);
+  }
+}
+
+// روش جایگزین برای مرورگرهای قدیمی
+function copyToClipboardFallback(text) {
+  try {
+    var textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    var successful = document.execCommand('copy');
+    document.body.removeChild(textArea);
+    
+    if (successful) {
+      alert('✅ کپی شد: ' + text);
+    } else {
+      alert('❌ کپی نشد. لطفاً دستی کپی کنید: ' + text);
+    }
+  } catch (e) {
+    alert('❌ خطا در کپی: ' + text);
+  }
+}
+</script>
 
 {% endblock %}
