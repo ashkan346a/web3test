@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <title>تست تنظیمات سایت</title>
+    <style>
+        body { font-family: Tahoma; direction: rtl; padding: 20px; }
+        .box { margin: 10px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .enabled { background: #d4edda; color: #155724; }
+        .disabled { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+
+<h1>🔧 تست تنظیمات سایت</h1>
+
+<div class="box">
+    <h3>وضعیت فعلی تنظیمات:</h3>
+    <p><strong>کارت به کارت:</strong> 
+        <span id="card-status">{{ card_to_card_enabled|yesno:"فعال,غیرفعال" }}</span>
+    </p>
+</div>
+
+<div class="box">
+    <h3>شرایط نمایش:</h3>
+    {% if card_to_card_enabled %}
+        <div class="enabled">
+            ✅ بخش پرداخت کارت به کارت نمایش داده می‌شود
+        </div>
+    {% else %}
+        <div class="disabled">
+            ❌ بخش پرداخت کارت به کارت مخفی است
+        </div>
+    {% endif %}
+</div>
+
+<div class="box">
+    <h3>تست Context Variables:</h3>
+    <p><strong>site_settings:</strong> {{ site_settings }}</p>
+    <p><strong>card_to_card_enabled:</strong> {{ card_to_card_enabled }}</p>
+</div>
+
+<script>
+// تست JavaScript
+console.log('Card to Card Status:', {{ card_to_card_enabled|yesno:"true,false" }});
+
+// تغییر کلاس بر اساس وضعیت
+document.addEventListener('DOMContentLoaded', function() {
+    const statusEl = document.getElementById('card-status');
+    const isEnabled = {{ card_to_card_enabled|yesno:"true,false" }};
+    
+    if (isEnabled) {
+        statusEl.className = 'enabled';
+    } else {
+        statusEl.className = 'disabled';
+    }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تست بخش کارت به کارت</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; direction: rtl; background: #f0f2f5; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        
+        .irr-amount-section { background: #e8f5e8; padding: 20px; border-radius: 10px; margin: 20px 0; }
+        .amount-label { font-weight: bold; color: #2c5530; margin-bottom: 10px; }
+        .irr-amount-display { font-size: 24px; font-weight: bold; color: #1565c0; margin: 10px 0; }
+        #irr-amount { background: #fff; padding: 10px 15px; border-radius: 5px; display: inline-block; }
+        .currency { margin-right: 10px; font-size: 18px; }
+        
+        .card-info-grid { margin: 20px 0; }
+        .card-info-item { margin: 15px 0; padding: 10px; background: #f8f9fa; border-radius: 8px; }
+        .card-number-display { display: flex; align-items: center; gap: 10px; margin-top: 5px; }
+        #card-number { background: #fff; padding: 8px 12px; border-radius: 5px; font-family: 'Courier New', monospace; flex: 1; }
+        
+        .copy-btn { background: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; transition: all 0.3s; }
+        .copy-btn:hover { background: #0056b3; transform: translateY(-1px); }
+        .copy-btn.small { padding: 8px 12px; font-size: 14px; }
+        
+        .test-info { background: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107; }
+        .debug-section { background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0; font-family: 'Courier New', monospace; font-size: 12px; }
+        .success { background-color: #28a745 !important; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 تست مستقیم بخش کارت به کارت</h1>
+        
+        <div class="test-info">
+            <strong>📋 این تست شبیه‌سازی دقیق بخش کارت به کارت است:</strong><br>
+            - مبلغ: 2,986,500 تومان<br>
+            - شماره کارت: 6037-9918-1234-5678<br>
+            روی دکمه‌های کپی کلیک کنید و در notepad paste کنید.
+        </div>
+
+        <!-- شبیه‌سازی دقیق بخش کارت به کارت -->
+        <div class="irr-amount-section">
+            <div class="amount-label">مبلغ قابل پرداخت:</div>
+            <div class="irr-amount-display">
+                <span id="irr-amount">2,986,500</span>
+                <span class="currency">تومان</span>
+            </div>
+            <div style="margin: 10px 0; font-size: 14px; color: #666;">
+                معادل $<span id="usd-amount">25.50</span>
+            </div>
+            <button class="copy-btn" id="copy-irr-amount" onclick="copyIRRAmount()" type="button" title="کپی مبلغ تومان">
+                <i class="fas fa-copy"></i>
+                کپی مبلغ
+            </button>
+        </div>
+
+        <div style="background: #f0f8ff; padding: 20px; border-radius: 10px; margin: 20px 0;">
+            <h4><i class="fas fa-credit-card"></i> مشخصات کارت مقصد:</h4>
+            
+            <div class="card-info-grid">
+                <div class="card-info-item">
+                    <label><strong>شماره کارت:</strong></label>
+                    <div class="card-number-display">
+                        <span id="card-number">6037-9918-1234-5678</span>
+                        <button class="copy-btn small" onclick="copyCardNumber()" type="button" title="کپی شماره کارت">
+                            <i class="fas fa-copy"></i>
+                            کپی
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="card-info-item">
+                    <label><strong>بانک:</strong></label>
+                    <span style="margin-right: 10px;">بانک کشاورزی</span>
+                </div>
+                
+                <div class="card-info-item">
+                    <label><strong>صاحب حساب:</strong></label>
+                    <span style="margin-right: 10px;">احمد احمدی</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="debug-section">
+            <strong>🔍 Debug Console:</strong><br>
+            <div id="debug-log">F12 کنید و console tab را باز کنید...</div>
+        </div>
+    </div>
+
+    <script>
+        // تابع copyIRRAmount - کپی دقیق از checkout.html
+        function copyIRRAmount() {
+            try {
+                console.log('=== copyIRRAmount شروع ===');
+                
+                // پیدا کردن عنصر مبلغ
+                const amountElement = document.querySelector('#irr-amount') || document.getElementById('irr-amount');
+                console.log('عنصر مبلغ یافت شد:', !!amountElement);
+                
+                if (!amountElement) {
+                    alert('❌ عنصر مبلغ یافت نشد');
+                    return;
+                }
+                
+                // گرفتن متن
+                const originalText = amountElement.textContent || amountElement.innerText || '';
+                console.log('متن اصلی:', originalText);
+                
+                if (!originalText.trim()) {
+                    alert('❌ مبلغ خالی است');
+                    return;
+                }
+
+                // پاک کردن همه چیز به جز اعداد
+                const cleanAmount = originalText.replace(/[^0-9]/g, '');
+                console.log('مبلغ پاک شده:', cleanAmount);
+                
+                if (!cleanAmount) {
+                    alert('❌ مبلغ معتبر نیست');
+                    return;
+                }
+                
+                // کپی کردن
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    console.log('استفاده از clipboard API مدرن');
+                    navigator.clipboard.writeText(cleanAmount)
+                        .then(() => {
+                            console.log('✅ کپی موفق');
+                            alert(`✅ مبلغ کپی شد: ${cleanAmount} تومان`);
+                            showSuccess('#copy-irr-amount');
+                        })
+                        .catch((error) => {
+                            console.log('❌ خطا در clipboard، استفاده از fallback:', error);
+                            fallbackCopy(cleanAmount, 'مبلغ');
+                        });
+                } else {
+                    console.log('استفاده از روش fallback');
+                    fallbackCopy(cleanAmount, 'مبلغ');
+                }
+                
+            } catch (error) {
+                console.error('خطا در copyIRRAmount:', error);
+                alert('❌ خطا: ' + error.message);
+            }
+        }
+
+        // تابع copyCardNumber - کپی دقیق از checkout.html  
+        function copyCardNumber() {
+            try {
+                console.log('=== copyCardNumber شروع ===');
+                
+                // پیدا کردن عنصر شماره کارت
+                const cardElement = document.querySelector('#card-number') || document.getElementById('card-number');
+                console.log('عنصر شماره کارت یافت شد:', !!cardElement);
+                
+                if (!cardElement) {
+                    alert('❌ عنصر شماره کارت یافت نشد');
+                    return;
+                }
+                
+                // گرفتن متن
+                const originalCard = cardElement.textContent || cardElement.innerText || '';
+                console.log('شماره کارت اصلی:', originalCard);
+                
+                if (!originalCard.trim()) {
+                    alert('❌ شماره کارت خالی است');
+                    return;
+                }
+
+                // پاک کردن خط تیره و فاصله‌ها
+                const cleanCard = originalCard.replace(/[^0-9]/g, '');
+                console.log('شماره کارت پاک شده:', cleanCard);
+                
+                if (!cleanCard || cleanCard.length < 13) {
+                    alert('❌ شماره کارت معتبر نیست');
+                    return;
+                }
+                
+                // کپی کردن
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    console.log('استفاده از clipboard API مدرن');
+                    navigator.clipboard.writeText(cleanCard)
+                        .then(() => {
+                            console.log('✅ کپی موفق');
+                            alert(`✅ شماره کارت کپی شد: ${cleanCard}`);
+                            showSuccess('button[onclick="copyCardNumber()"]');
+                        })
+                        .catch((error) => {
+                            console.log('❌ خطا در clipboard، استفاده از fallback:', error);
+                            fallbackCopy(cleanCard, 'شماره کارت');
+                        });
+                } else {
+                    console.log('استفاده از روش fallback');
+                    fallbackCopy(cleanCard, 'شماره کارت');
+                }
+                
+            } catch (error) {
+                console.error('خطا در copyCardNumber:', error);
+                alert('❌ خطا: ' + error.message);
+            }
+        }
+
+        // تابع fallback برای کپی
+        function fallbackCopy(text, type) {
+            try {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'absolute';
+                textarea.style.left = '-9999px';
+                textarea.style.top = '-9999px';
+                
+                document.body.appendChild(textarea);
+                textarea.select();
+                textarea.setSelectionRange(0, 99999);
+                
+                const success = document.execCommand('copy');
+                document.body.removeChild(textarea);
+                
+                if (success) {
+                    console.log('✅ Fallback کپی موفق');
+                    alert(`✅ ${type} کپی شد: ${text}`);
+                } else {
+                    console.log('❌ Fallback کپی ناموفق');
+                    alert(`❌ خطا در کپی ${type}: ${text}`);
+                }
+            } catch (error) {
+                console.error('خطا در fallback:', error);
+                alert(`❌ خطا در کپی ${type}: ${text}`);
+            }
+        }
+
+        // نمایش موفقیت روی دکمه
+        function showSuccess(selector) {
+            try {
+                const btn = document.querySelector(selector);
+                if (btn) {
+                    const original = btn.innerHTML;
+                    btn.innerHTML = '✅ کپی شد';
+                    btn.style.backgroundColor = '#28a745';
+                    btn.style.color = 'white';
+                    
+                    setTimeout(() => {
+                        btn.innerHTML = original;
+                        btn.style.backgroundColor = '';
+                        btn.style.color = '';
+                    }, 3000);
+                }
+            } catch (error) {
+                console.log('خطا در نمایش موفقیت:', error);
+            }
+        }
+
+        // تست اولیه
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔍 صفحه بارگذاری شد - تست عناصر:');
+            console.log('عنصر مبلغ:', document.querySelector('#irr-amount'));
+            console.log('عنصر شماره کارت:', document.querySelector('#card-number'));
+            console.log('متن مبلغ:', document.querySelector('#irr-amount')?.textContent);
+            console.log('متن شماره کارت:', document.querySelector('#card-number')?.textContent);
+        });
+    </script>
+</body>
+</html>

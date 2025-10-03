@@ -16,6 +16,60 @@ from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 
 
+class SiteSettings(models.Model):
+    """تنظیمات کلی سایت"""
+    name = models.CharField(max_length=100, default="تنظیمات سایت", help_text="نام تنظیمات")
+    
+    # تنظیمات پرداخت
+    card_to_card_enabled = models.BooleanField(
+        default=True, 
+        verbose_name="فعال‌سازی پرداخت کارت به کارت",
+        help_text="آیا پرداخت کارت به کارت در صفحه checkout نمایش داده شود؟"
+    )
+    
+    # سایر تنظیمات آینده
+    maintenance_mode = models.BooleanField(
+        default=False, 
+        verbose_name="حالت نگهداری",
+        help_text="فعال‌سازی حالت نگهداری سایت"
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "تنظیمات سایت"
+        verbose_name_plural = "تنظیمات سایت"
+    
+    def __str__(self):
+        return f"تنظیمات سایت - {self.name}"
+    
+    def save(self, *args, **kwargs):
+        # اطمینان از وجود تنها یک رکورد تنظیمات
+        if not self.pk and SiteSettings.objects.exists():
+            # اگر رکورد جدید است و قبلاً رکوردی وجود دارد، آن را به‌روزرسانی کن
+            existing = SiteSettings.objects.first()
+            existing.card_to_card_enabled = self.card_to_card_enabled
+            existing.maintenance_mode = self.maintenance_mode
+            existing.name = self.name
+            existing.save()
+            return existing
+        return super().save(*args, **kwargs)
+    
+    @classmethod
+    def get_settings(cls):
+        """گرفتن تنظیمات فعلی (یا ایجاد پیش‌فرض)"""
+        settings, created = cls.objects.get_or_create(
+            pk=1,
+            defaults={
+                'name': 'تنظیمات اصلی سایت',
+                'card_to_card_enabled': True,
+                'maintenance_mode': False,
+            }
+        )
+        return settings
+
+
 class Cart(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.CASCADE)
     session_key = models.CharField(max_length=40, null=True, blank=True)  # اضافه

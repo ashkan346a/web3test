@@ -87,6 +87,8 @@ if 'core.context_processors.user_has_address' not in TEMPLATES[0]['OPTIONS']['co
     TEMPLATES[0]['OPTIONS']['context_processors'].append('core.context_processors.user_has_address')
 if 'core.context_processors.seo_settings' not in TEMPLATES[0]['OPTIONS']['context_processors']:
     TEMPLATES[0]['OPTIONS']['context_processors'].append('core.context_processors.seo_settings')
+if 'core.context_processors.site_settings' not in TEMPLATES[0]['OPTIONS']['context_processors']:
+    TEMPLATES[0]['OPTIONS']['context_processors'].append('core.context_processors.site_settings')
 
 WSGI_APPLICATION = 'pharma_web.wsgi.application'
 ASGI_APPLICATION = 'pharma_web.asgi.application'

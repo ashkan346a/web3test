@@ -6,7 +6,7 @@ from django.utils.html import format_html
 from django.urls import reverse
 from django.utils import timezone
 import re
-from .models import CustomUser, Order, OrderItem, Customer, SupportTicket
+from .models import CustomUser, Order, OrderItem, Customer, SupportTicket, SiteSettings
 
 # unregister اگر قبلاً ثبت شده
 try:
@@ -179,3 +179,47 @@ class SupportTicketAdmin(admin.ModelAdmin):
         updated = queryset.update(status='CLOSED', resolved_at=timezone.now())
         self.message_user(request, f'{updated} تیکت بسته شد.')
     mark_as_closed.short_description = 'بستن تیکت'
+
+
+@admin.register(SiteSettings)
+class SiteSettingsAdmin(admin.ModelAdmin):
+    """مدیریت تنظیمات سایت"""
+    
+    list_display = ('name', 'card_to_card_enabled', 'maintenance_mode', 'updated_at')
+    list_filter = ('card_to_card_enabled', 'maintenance_mode')
+    search_fields = ('name',)
+    readonly_fields = ('created_at', 'updated_at')
+    
+    fieldsets = (
+        ('اطلاعات کلی', {
+            'fields': ('name',)
+        }),
+        ('تنظیمات پرداخت', {
+            'fields': ('card_to_card_enabled',),
+            'description': 'تنظیمات مربوط به روش‌های پرداخت'
+        }),
+        ('تنظیمات سیستم', {
+            'fields': ('maintenance_mode',),
+            'description': 'تنظیمات کلی سیستم'
+        }),
+        ('اطلاعات زمانی', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def has_add_permission(self, request):
+        # فقط یک رکورد تنظیمات مجاز است
+        if SiteSettings.objects.exists():
+            return False
+        return True
+    
+    def has_delete_permission(self, request, obj=None):
+        # حذف تنظیمات مجاز نیست
+        return False
+    
+    def changelist_view(self, request, extra_context=None):
+        # اگر تنظیمات وجود ندارد، یکی ایجاد کن
+        if not SiteSettings.objects.exists():
+            SiteSettings.get_settings()
+        return super().changelist_view(request, extra_context)

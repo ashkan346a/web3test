@@ -255,6 +255,7 @@
           </div>
           
           <!-- IRR Card-to-Card Payment Section -->
+          {% if card_to_card_enabled %}
           <div class="payment-methods irr-section" style="margin-top: 20px;">
             <div class="methods-title">
               <i class="fas fa-credit-card"></i>
@@ -275,6 +276,7 @@
               </button>
             </div>
           </div>
+          {% endif %}
 
           <!-- Wallet Details (Initially Hidden) -->
           <div id="wallet-placeholder" class="payment-placeholder">
@@ -351,6 +353,7 @@
           </div>
 
           <!-- IRR Card-to-Card Payment Details -->
+          {% if card_to_card_enabled %}
           <div id="irr-payment-details" class="irr-payment-details" style="display:none">
             <div class="payment-header">
               <div class="payment-method-info">
@@ -430,6 +433,7 @@
               </button>
             </div>
           </div>
+          {% endif %}
         </div>
       </div>
     </div>

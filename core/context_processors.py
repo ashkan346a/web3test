@@ -14,6 +14,23 @@ def crypto_conversions(request):
     return {'crypto_conversions': conversions}
 
 
+def site_settings(request):
+    """Context processor برای تنظیمات سایت"""
+    try:
+        from .models import SiteSettings
+        settings = SiteSettings.get_settings()
+        return {
+            'site_settings': settings,
+            'card_to_card_enabled': settings.card_to_card_enabled
+        }
+    except Exception:
+        # در صورت بروز خطا، مقدار پیش‌فرض برگردان
+        return {
+            'site_settings': None,
+            'card_to_card_enabled': True  # پیش‌فرض فعال
+        }
+
+
 def user_has_address(request):
     """Return True if the authenticated user appears to have an address on file.
     This is permissive and checks common attribute names on a related profile

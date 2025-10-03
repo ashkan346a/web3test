@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تست نهایی کپی</title>
+    <style>
+        body { font-family: Tahoma; direction: rtl; padding: 20px; }
+        .test-section { margin: 20px; padding: 15px; border: 2px solid #007cba; border-radius: 5px; }
+        .copy-btn { background: #007cba; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin: 5px; }
+        .copy-btn:hover { background: #005a87; }
+        #irr-amount, #card-number { font-weight: bold; color: #333; }
+    </style>
+</head>
+<body>
+
+<h1>🧪 تست نهایی دکمه‌های کپی - کارت به کارت</h1>
+
+<div class="test-section">
+    <h3>مبلغ قابل پرداخت:</h3>
+    <div>
+        <span id="irr-amount">6,323,000</span>
+        <span>تومان</span>
+        <br>
+        معادل $54
+    </div>
+    <button class="copy-btn" onclick="copyAmount()" type="button">
+        کپی مبلغ
+    </button>
+</div>
+
+<div class="test-section">
+    <h3>شماره کارت:</h3>
+    <div>
+        <span id="card-number">6274-1219-8765-4321</span>
+    </div>
+    <button class="copy-btn" onclick="copyCard()" type="button">
+        کپی شماره کارت
+    </button>
+</div>
+
+<div class="test-section">
+    <h3>📋 نتایج تست:</h3>
+    <ul>
+        <li>✅ کلیک روی "کپی مبلغ" باید عدد 6323000 را کپی کند</li>
+        <li>✅ کلیک روی "کپی شماره کارت" باید عدد 62741219876554321 را کپی کند</li>
+        <li>✅ هر کدام باید پیغام موفقیت نشان دهند</li>
+    </ul>
+</div>
+
+<script>
+// توابع ساده و مطمئن برای کپی - همان کدی که در checkout.html اضافه شده
+function copyAmount() {
+  try {
+    // پیدا کردن عنصر مبلغ
+    var amountEl = document.getElementById('irr-amount');
+    if (!amountEl) {
+      alert('❌ عنصر مبلغ یافت نشد');
+      return;
+    }
+    
+    // گرفتن متن
+    var text = amountEl.textContent || amountEl.innerText || '';
+    if (!text) {
+      alert('❌ مبلغ خالی است');
+      return;
+    }
+    
+    // حذف همه چیز به جز اعداد
+    var numbers = text.replace(/[^0-9]/g, '');
+    if (!numbers) {
+      alert('❌ مبلغ نامعتبر');
+      return;
+    }
+    
+    // کپی کردن
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(numbers).then(function() {
+        alert('✅ مبلغ کپی شد: ' + numbers + ' تومان');
+      }).catch(function() {
+        copyToClipboardFallback(numbers);
+      });
+    } else {
+      copyToClipboardFallback(numbers);
+    }
+    
+  } catch (e) {
+    alert('❌ خطا: ' + e.message);
+  }
+}
+
+function copyCard() {
+  try {
+    // پیدا کردن عنصر شماره کارت
+    var cardEl = document.getElementById('card-number');
+    if (!cardEl) {
+      alert('❌ عنصر شماره کارت یافت نشد');
+      return;
+    }
+    
+    // گرفتن متن
+    var text = cardEl.textContent || cardEl.innerText || '';
+    if (!text) {
+      alert('❌ شماره کارت خالی است');
+      return;
+    }
+    
+    // حذف فاصله و کاراکترهای اضافی
+    var cardNumber = text.replace(/[^0-9]/g, '');
+    if (!cardNumber || cardNumber.length < 16) {
+      alert('❌ شماره کارت نامعتبر');
+      return;
+    }
+    
+    // کپی کردن
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(cardNumber).then(function() {
+        alert('✅ شماره کارت کپی شد: ' + cardNumber);
+      }).catch(function() {
+        copyToClipboardFallback(cardNumber);
+      });
+    } else {
+      copyToClipboardFallback(cardNumber);
+    }
+    
+  } catch (e) {
+    alert('❌ خطا: ' + e.message);
+  }
+}
+
+// روش جایگزین برای مرورگرهای قدیمی
+function copyToClipboardFallback(text) {
+  try {
+    var textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    var successful = document.execCommand('copy');
+    document.body.removeChild(textArea);
+    
+    if (successful) {
+      alert('✅ کپی شد: ' + text);
+    } else {
+      alert('❌ کپی نشد. لطفاً دستی کپی کنید: ' + text);
+    }
+  } catch (e) {
+    alert('❌ خطا در کپی: ' + text);
+  }
+}
+
+// تست خودکار هنگام بارگذاری صفحه
+window.onload = function() {
+    console.log('🔧 Testing copy functions...');
+    console.log('IRR Amount element:', document.getElementById('irr-amount'));
+    console.log('Card Number element:', document.getElementById('card-number'));
+    console.log('Copy functions loaded:', typeof copyAmount === 'function', typeof copyCard === 'function');
+}
+</script>
+
+</body>
+</html>
