@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تست ساده کپی</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; direction: rtl; }
+        .test-box { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        button { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .amount { font-family: monospace; background: #f8f9fa; padding: 5px 10px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>تست ساده قابلیت کپی</h1>
+    
+    <div class="test-box">
+        <h3>مبلغ ریال:</h3>
+        <span id="irr-amount" class="amount">2,986,500</span>
+        <button id="copy-irr-amount" onclick="copyIRRAmount()">
+            <i class="fas fa-copy"></i> کپی مبلغ ریال
+        </button>
+    </div>
+
+    <div class="test-box">
+        <h3>شماره کارت:</h3>
+        <span id="card-number" class="amount">6037-9918-1234-5678</span>
+        <button onclick="copyCardNumber()">
+            <i class="fas fa-copy"></i> کپی شماره کارت
+        </button>
+    </div>
+
+    <div class="test-box">
+        <h3>مبلغ کریپتو:</h3>
+        <span id="selectedCryptoAmount" class="amount">0.00025 BTC</span>
+        <button class="copy-amount-btn" onclick="copySelectedAmount()">
+            <i class="fas fa-copy"></i> کپی مبلغ کریپتو
+        </button>
+    </div>
+
+    <script>
+        // Simple copy functions - exactly like in checkout.html
+        function copyIRRAmount() {
+            const amountElement = document.querySelector('#irr-amount');
+            if (!amountElement || !amountElement.textContent.trim()) {
+                alert('مبلغ موجود نیست');
+                return;
+            }
+
+            // Get clean amount (remove commas)
+            const amount = amountElement.textContent.replace(/,/g, '').trim();
+            
+            // Copy to clipboard
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(amount).then(() => {
+                    alert(`مبلغ کپی شد: ${amountElement.textContent} ریال`);
+                    // Visual feedback
+                    const btn = document.querySelector('#copy-irr-amount');
+                    if (btn) {
+                        const originalText = btn.innerHTML;
+                        btn.innerHTML = '<i class="fas fa-check"></i> کپی شد';
+                        btn.style.background = '#28a745';
+                        setTimeout(() => {
+                            btn.innerHTML = originalText;
+                            btn.style.background = '';
+                        }, 2000);
+                    }
+                }).catch(() => {
+                    copyFallback(amount, 'مبلغ ریال');
+                });
+            } else {
+                copyFallback(amount, 'مبلغ ریال');
+            }
+        }
+
+        function copyCardNumber() {
+            const cardElement = document.querySelector('#card-number');
+            if (!cardElement || !cardElement.textContent.trim()) {
+                alert('شماره کارت موجود نیست');
+                return;
+            }
+
+            // Get clean card number (remove dashes and spaces)
+            const cardNumber = cardElement.textContent.trim();
+            const cleanCardNumber = cardNumber.replace(/[-\s]/g, '');
+            
+            // Copy to clipboard
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(cleanCardNumber).then(() => {
+                    alert(`شماره کارت کپی شد: ${cardNumber}`);
+                    // Visual feedback
+                    const btn = document.querySelector('button[onclick="copyCardNumber()"]');
+                    if (btn) {
+                        const originalText = btn.innerHTML;
+                        btn.innerHTML = '<i class="fas fa-check"></i> کپی شد';
+                        btn.style.background = '#28a745';
+                        setTimeout(() => {
+                            btn.innerHTML = originalText;
+                            btn.style.background = '';
+                        }, 2000);
+                    }
+                }).catch(() => {
+                    copyFallback(cleanCardNumber, 'شماره کارت');
+                });
+            } else {
+                copyFallback(cleanCardNumber, 'شماره کارت');
+            }
+        }
+
+        function copySelectedAmount() {
+            const amountElement = document.querySelector('#selectedCryptoAmount');
+            if (!amountElement || !amountElement.textContent || amountElement.textContent.trim() === '-') {
+                alert('مبلغ معادل موجود نیست');
+                return;
+            }
+            
+            const amount = amountElement.textContent.trim();
+            
+            // Copy to clipboard
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(amount).then(() => {
+                    alert(`مبلغ معادل کپی شد: ${amount}`);
+                    // Visual feedback
+                    const btn = document.querySelector('.copy-amount-btn');
+                    if (btn) {
+                        const originalText = btn.innerHTML;
+                        btn.innerHTML = '<i class="fas fa-check"></i> کپی شد';
+                        btn.style.background = '#28a745';
+                        setTimeout(() => {
+                            btn.innerHTML = originalText;
+                            btn.style.background = '';
+                        }, 2000);
+                    }
+                }).catch(() => {
+                    copyFallback(amount, 'مبلغ معادل');
+                });
+            } else {
+                copyFallback(amount, 'مبلغ معادل');
+            }
+        }
+
+        // Simple fallback copy function
+        function copyFallback(text, description) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-999999px';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            
+            try {
+                textarea.select();
+                textarea.setSelectionRange(0, 99999);
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    alert(`${description} کپی شد: ${text}`);
+                } else {
+                    alert('خطا در کپی کردن. لطفاً دستی کپی کنید');
+                }
+            } catch (err) {
+                alert('خطا در کپی کردن. لطفاً دستی کپی کنید');
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        }
+    </script>
+</body>
+</html>

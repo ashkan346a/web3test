@@ -2497,14 +2497,35 @@
   }
 
   function copySelectedAmount() {
-    const amountElement = qs('#selectedCryptoAmount');
+    const amountElement = document.querySelector('#selectedCryptoAmount');
     if (!amountElement || !amountElement.textContent || amountElement.textContent.trim() === '-') {
-      showNotification('مبلغ معادل موجود نیست', 'error');
+      alert('مبلغ معادل موجود نیست');
       return;
     }
     
     const amount = amountElement.textContent.trim();
-    copyToClipboardWithFallback(amount, 'مبلغ معادل کپی شد', '.copy-amount-btn');
+    
+    // Copy to clipboard
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(amount).then(() => {
+        alert(`مبلغ معادل کپی شد: ${amount}`);
+        // Visual feedback
+        const btn = document.querySelector('.copy-amount-btn');
+        if (btn) {
+          const originalText = btn.innerHTML;
+          btn.innerHTML = '<i class="fas fa-check"></i> کپی شد';
+          btn.style.background = '#28a745';
+          setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = '';
+          }, 2000);
+        }
+      }).catch(() => {
+        copyFallback(amount, 'مبلغ معادل');
+      });
+    } else {
+      copyFallback(amount, 'مبلغ معادل');
+    }
   }
 
   function copyToClipboard(text, successMessage) {
@@ -2954,94 +2975,94 @@
     document.body.removeChild(textarea);
   }
 
-  // IRR Copy Functions
+  // IRR Copy Functions - Simple and Direct Approach
   function copyIRRAmount() {
-    const amountElement = qs('#irr-amount');
-    if (!amountElement || !amountElement.textContent) {
-      showNotification('مبلغ موجود نیست', 'error');
+    const amountElement = document.querySelector('#irr-amount');
+    if (!amountElement || !amountElement.textContent.trim()) {
+      alert('مبلغ موجود نیست');
       return;
     }
 
+    // Get clean amount (remove commas)
     const amount = amountElement.textContent.replace(/,/g, '').trim();
-    const formattedAmount = formatNumber(parseFloat(amount) || 0);
     
-    // Use the modern clipboard API with fallback
-    copyToClipboardWithFallback(amount, `مبلغ کپی شد: ${formattedAmount} تومان`, '#copy-irr-amount');
+    // Copy to clipboard
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(amount).then(() => {
+        alert(`مبلغ کپی شد: ${amountElement.textContent} ریال`);
+        // Visual feedback
+        const btn = document.querySelector('#copy-irr-amount');
+        if (btn) {
+          const originalText = btn.innerHTML;
+          btn.innerHTML = '<i class="fas fa-check"></i> کپی شد';
+          btn.style.background = '#28a745';
+          setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = '';
+          }, 2000);
+        }
+      }).catch(() => {
+        copyFallback(amount, 'مبلغ ریال');
+      });
+    } else {
+      copyFallback(amount, 'مبلغ ریال');
+    }
   }
 
   function copyCardNumber() {
-    const cardElement = qs('#card-number');
-    if (!cardElement || !cardElement.textContent) {
-      showNotification('شماره کارت موجود نیست', 'error');
+    const cardElement = document.querySelector('#card-number');
+    if (!cardElement || !cardElement.textContent.trim()) {
+      alert('شماره کارت موجود نیست');
       return;
     }
 
+    // Get clean card number (remove dashes and spaces)
     const cardNumber = cardElement.textContent.trim();
-    // Remove dashes and spaces for cleaner copy
     const cleanCardNumber = cardNumber.replace(/[-\s]/g, '');
     
-    // Use the modern clipboard API with fallback
-    copyToClipboardWithFallback(cleanCardNumber, `شماره کارت کپی شد: ${cardNumber}`, 'button[onclick="copyCardNumber()"]');
-  }
-
-  // Enhanced copy function with better error handling and visual feedback
-  function copyToClipboardWithFallback(text, successMessage, buttonSelector) {
-    if (!text || text.trim() === '') {
-      showNotification('متن برای کپی کردن موجود نیست', 'error');
-      return;
-    }
-
-    const btn = qs(buttonSelector);
-    let originalHTML = '';
-    let originalStyle = '';
-    
-    if (btn) {
-      originalHTML = btn.innerHTML;
-      originalStyle = btn.style.cssText;
-    }
-
-    // Try modern clipboard API first
+    // Copy to clipboard
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text.toString())
-        .then(() => {
-          showNotification(successMessage, 'success');
-          showCopySuccess(btn, originalHTML, originalStyle);
-        })
-        .catch(() => {
-          // Fallback to older method
-          fallbackCopyMethod(text, successMessage, btn, originalHTML, originalStyle);
-        });
+      navigator.clipboard.writeText(cleanCardNumber).then(() => {
+        alert(`شماره کارت کپی شد: ${cardNumber}`);
+        // Visual feedback
+        const btn = document.querySelector('button[onclick="copyCardNumber()"]');
+        if (btn) {
+          const originalText = btn.innerHTML;
+          btn.innerHTML = '<i class="fas fa-check"></i> کپی شد';
+          btn.style.background = '#28a745';
+          setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = '';
+          }, 2000);
+        }
+      }).catch(() => {
+        copyFallback(cleanCardNumber, 'شماره کارت');
+      });
     } else {
-      // Direct fallback for older browsers
-      fallbackCopyMethod(text, successMessage, btn, originalHTML, originalStyle);
+      copyFallback(cleanCardNumber, 'شماره کارت');
     }
   }
 
-  // Fallback copy method for older browsers
-  function fallbackCopyMethod(text, successMessage, btn, originalHTML, originalStyle) {
+  // Simple fallback copy function
+  function copyFallback(text, description) {
     const textarea = document.createElement('textarea');
     textarea.value = text;
     textarea.style.position = 'fixed';
     textarea.style.left = '-999999px';
-    textarea.style.top = '-999999px';
     textarea.style.opacity = '0';
     document.body.appendChild(textarea);
     
     try {
-      textarea.focus();
       textarea.select();
-      textarea.setSelectionRange(0, 99999); // For mobile devices
-      
+      textarea.setSelectionRange(0, 99999);
       const successful = document.execCommand('copy');
       if (successful) {
-        showNotification(successMessage, 'success');
-        showCopySuccess(btn, originalHTML, originalStyle);
+        alert(`${description} کپی شد: ${text}`);
       } else {
-        showNotification('خطا در کپی کردن. لطفاً دستی کپی کنید', 'error');
+        alert('خطا در کپی کردن. لطفاً دستی کپی کنید');
       }
     } catch (err) {
-      console.error('Copy failed:', err);
-      showNotification('خطا در کپی کردن. لطفاً دستی کپی کنید', 'error');
+      alert('خطا در کپی کردن. لطفاً دستی کپی کنید');
     } finally {
       document.body.removeChild(textarea);
     }
@@ -3263,71 +3284,80 @@ function closeQRModal() {
 function copyModalAddress() {
   const addrElement = document.querySelector('#qrModalAddress');
   if (!addrElement || !addrElement.textContent) {
-    showSimpleNotification('آدرس موجود نیست', 'error');
+    alert('آدرس موجود نیست');
     return;
   }
   const addr = addrElement.textContent.trim();
-  copyToClipboardGlobal(addr, 'آدرس کیف پول کپی شد');
+  
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(addr).then(() => {
+      alert('آدرس کیف پول کپی شد');
+    }).catch(() => {
+      copyWithFallback(addr, 'آدرس کیف پول');
+    });
+  } else {
+    copyWithFallback(addr, 'آدرس کیف پول');
+  }
 }
 
 function copyModalAmount() {
   const amountElement = document.querySelector('#qrModalAmount');
   if (!amountElement || !amountElement.textContent) {
-    showSimpleNotification('مبلغ موجود نیست', 'error');
+    alert('مبلغ موجود نیست');
     return;
   }
   const amount = amountElement.textContent.trim();
-  copyToClipboardGlobal(amount, 'مبلغ کپی شد');
+  
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(amount).then(() => {
+      alert('مبلغ کپی شد');
+    }).catch(() => {
+      copyWithFallback(amount, 'مبلغ');
+    });
+  } else {
+    copyWithFallback(amount, 'مبلغ');
+  }
 }
 
+// This function is for global use (duplicate but simpler)
 function copySelectedAmount() {
   const amountElement = document.querySelector('#selectedCryptoAmount');
   if (!amountElement || !amountElement.textContent || amountElement.textContent.trim() === '-') {
-    showSimpleNotification('مبلغ معادل موجود نیست', 'error');
+    alert('مبلغ معادل موجود نیست');
     return;
   }
   const amount = amountElement.textContent.trim();
-  copyToClipboardGlobal(amount, 'مبلغ معادل کپی شد');
-}
-
-function copyToClipboardGlobal(text, successMessage) {
-  if (!text || text.trim() === '') {
-    showSimpleNotification('متن برای کپی کردن موجود نیست', 'error');
-    return;
-  }
-
+  
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text)
-      .then(() => showSimpleNotification(successMessage, 'success'))
-      .catch(() => fallbackCopyGlobal(text, successMessage));
+    navigator.clipboard.writeText(amount).then(() => {
+      alert(`مبلغ معادل کپی شد: ${amount}`);
+    }).catch(() => {
+      copyWithFallback(amount, 'مبلغ معادل');
+    });
   } else {
-    fallbackCopyGlobal(text, successMessage);
+    copyWithFallback(amount, 'مبلغ معادل');
   }
 }
 
-function fallbackCopyGlobal(text, successMessage) {
+function copyWithFallback(text, description) {
   const textarea = document.createElement('textarea');
   textarea.value = text;
   textarea.style.position = 'fixed';
   textarea.style.left = '-999999px';
-  textarea.style.top = '-999999px';
   textarea.style.opacity = '0';
   document.body.appendChild(textarea);
   
   try {
-    textarea.focus();
     textarea.select();
-    textarea.setSelectionRange(0, 99999); // For mobile devices
-    
+    textarea.setSelectionRange(0, 99999);
     const successful = document.execCommand('copy');
     if (successful) {
-      showSimpleNotification(successMessage, 'success');
+      alert(`${description} کپی شد: ${text}`);
     } else {
-      showSimpleNotification('خطا در کپی کردن. لطفاً دستی کپی کنید', 'error');
+      alert('خطا در کپی کردن. لطفاً دستی کپی کنید');
     }
   } catch (err) {
-    console.error('Copy failed:', err);
-    showSimpleNotification('خطا در کپی کردن. لطفاً دستی کپی کنید', 'error');
+    alert('خطا در کپی کردن. لطفاً دستی کپی کنید');
   } finally {
     document.body.removeChild(textarea);
   }
