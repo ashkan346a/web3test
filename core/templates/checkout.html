@@ -2977,92 +2977,160 @@
 
   // IRR Copy Functions - Simple and Direct Approach
   function copyIRRAmount() {
+    console.log('copyIRRAmount called'); // Debug log
     const amountElement = document.querySelector('#irr-amount');
-    if (!amountElement || !amountElement.textContent.trim()) {
+    console.log('Amount element:', amountElement); // Debug log
+    
+    if (!amountElement) {
+      alert('عنصر مبلغ یافت نشد');
+      return;
+    }
+    
+    const originalText = amountElement.textContent || amountElement.innerText || '';
+    console.log('Original text:', originalText); // Debug log
+    
+    if (!originalText.trim()) {
       alert('مبلغ موجود نیست');
       return;
     }
 
-    // Get clean amount (remove commas)
-    const amount = amountElement.textContent.replace(/,/g, '').trim();
+    // Get clean amount (remove all commas, spaces, and non-numeric chars except digits)
+    const cleanAmount = originalText.replace(/[^0-9]/g, '').trim();
+    console.log('Clean amount:', cleanAmount); // Debug log
+    
+    if (!cleanAmount) {
+      alert('مبلغ معتبر نیست');
+      return;
+    }
     
     // Copy to clipboard
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(amount).then(() => {
-        alert(`مبلغ کپی شد: ${amountElement.textContent} ریال`);
+      navigator.clipboard.writeText(cleanAmount).then(() => {
+        alert(`مبلغ بدون کاما کپی شد: ${cleanAmount} ریال`);
         // Visual feedback
         const btn = document.querySelector('#copy-irr-amount');
         if (btn) {
-          const originalText = btn.innerHTML;
+          const originalBtnText = btn.innerHTML;
           btn.innerHTML = '<i class="fas fa-check"></i> کپی شد';
           btn.style.background = '#28a745';
+          btn.style.color = '#fff';
           setTimeout(() => {
-            btn.innerHTML = originalText;
+            btn.innerHTML = originalBtnText;
             btn.style.background = '';
+            btn.style.color = '';
           }, 2000);
         }
-      }).catch(() => {
-        copyFallback(amount, 'مبلغ ریال');
+      }).catch((err) => {
+        console.error('Clipboard error:', err);
+        copyFallbackIRR(cleanAmount);
       });
     } else {
-      copyFallback(amount, 'مبلغ ریال');
+      copyFallbackIRR(cleanAmount);
     }
   }
 
   function copyCardNumber() {
+    console.log('copyCardNumber called'); // Debug log
     const cardElement = document.querySelector('#card-number');
-    if (!cardElement || !cardElement.textContent.trim()) {
+    console.log('Card element:', cardElement); // Debug log
+    
+    if (!cardElement) {
+      alert('عنصر شماره کارت یافت نشد');
+      return;
+    }
+    
+    const originalCardNumber = cardElement.textContent || cardElement.innerText || '';
+    console.log('Original card number:', originalCardNumber); // Debug log
+    
+    if (!originalCardNumber.trim()) {
       alert('شماره کارت موجود نیست');
       return;
     }
 
-    // Get clean card number (remove dashes and spaces)
-    const cardNumber = cardElement.textContent.trim();
-    const cleanCardNumber = cardNumber.replace(/[-\s]/g, '');
+    // Get clean card number (remove dashes, spaces and keep only digits)
+    const cleanCardNumber = originalCardNumber.replace(/[^0-9]/g, '');
+    console.log('Clean card number:', cleanCardNumber); // Debug log
+    
+    if (!cleanCardNumber || cleanCardNumber.length < 13) {
+      alert('شماره کارت معتبر نیست');
+      return;
+    }
     
     // Copy to clipboard
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(cleanCardNumber).then(() => {
-        alert(`شماره کارت کپی شد: ${cardNumber}`);
+        alert(`شماره کارت بدون خط تیره کپی شد: ${cleanCardNumber}`);
         // Visual feedback
         const btn = document.querySelector('button[onclick="copyCardNumber()"]');
         if (btn) {
-          const originalText = btn.innerHTML;
+          const originalBtnText = btn.innerHTML;
           btn.innerHTML = '<i class="fas fa-check"></i> کپی شد';
           btn.style.background = '#28a745';
+          btn.style.color = '#fff';
           setTimeout(() => {
-            btn.innerHTML = originalText;
+            btn.innerHTML = originalBtnText;
             btn.style.background = '';
+            btn.style.color = '';
           }, 2000);
         }
-      }).catch(() => {
-        copyFallback(cleanCardNumber, 'شماره کارت');
+      }).catch((err) => {
+        console.error('Clipboard error:', err);
+        copyFallbackCard(cleanCardNumber);
       });
     } else {
-      copyFallback(cleanCardNumber, 'شماره کارت');
+      copyFallbackCard(cleanCardNumber);
     }
   }
 
-  // Simple fallback copy function
-  function copyFallback(text, description) {
+  // Fallback copy function for IRR amount
+  function copyFallbackIRR(text) {
     const textarea = document.createElement('textarea');
     textarea.value = text;
     textarea.style.position = 'fixed';
     textarea.style.left = '-999999px';
+    textarea.style.top = '-999999px';
     textarea.style.opacity = '0';
     document.body.appendChild(textarea);
     
     try {
+      textarea.focus();
       textarea.select();
       textarea.setSelectionRange(0, 99999);
       const successful = document.execCommand('copy');
       if (successful) {
-        alert(`${description} کپی شد: ${text}`);
+        alert(`مبلغ بدون کاما کپی شد: ${text} ریال`);
       } else {
-        alert('خطا در کپی کردن. لطفاً دستی کپی کنید');
+        alert(`خطا در کپی کردن. مبلغ: ${text}`);
       }
     } catch (err) {
-      alert('خطا در کپی کردن. لطفاً دستی کپی کنید');
+      alert(`خطا در کپی کردن. مبلغ: ${text}`);
+    } finally {
+      document.body.removeChild(textarea);
+    }
+  }
+
+  // Fallback copy function for card number
+  function copyFallbackCard(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-999999px';
+    textarea.style.top = '-999999px';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    
+    try {
+      textarea.focus();
+      textarea.select();
+      textarea.setSelectionRange(0, 99999);
+      const successful = document.execCommand('copy');
+      if (successful) {
+        alert(`شماره کارت بدون خط تیره کپی شد: ${text}`);
+      } else {
+        alert(`خطا در کپی کردن. شماره کارت: ${text}`);
+      }
+    } catch (err) {
+      alert(`خطا در کپی کردن. شماره کارت: ${text}`);
     } finally {
       document.body.removeChild(textarea);
     }

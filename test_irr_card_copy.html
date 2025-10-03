@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تست کپی کارت به کارت</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            direction: rtl; 
+            background: #f5f5f5;
+        }
+        .card-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .amount-display {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .card-number-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .copy-btn { 
+            padding: 8px 15px; 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .copy-btn:hover { 
+            background: #0056b3; 
+            transform: translateY(-1px);
+        }
+        .copy-btn.small {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        .amount { 
+            font-family: 'Courier New', monospace; 
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c5530;
+        }
+        .card-number {
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            flex: 1;
+        }
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .test-info {
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ffc107;
+        }
+        .success-msg {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            border-left: 4px solid #28a745;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 تست کپی کارت به کارت</h1>
+    
+    <div class="test-info">
+        <strong>📝 راهنمای تست:</strong><br>
+        1. روی دکمه‌های کپی کلیک کنید<br>
+        2. در Notepad یا هر text editor متن را Paste کنید<br>
+        3. مطمئن شوید که اعداد بدون کاما و خط تیره کپی شده‌اند
+    </div>
+
+    <div class="card-section">
+        <h2>💰 مبلغ قابل پرداخت</h2>
+        <div class="amount-display">
+            <span id="irr-amount" class="amount">2,986,500</span>
+            <span style="margin: 0 10px;">تومان</span>
+            <button class="copy-btn" id="copy-irr-amount" onclick="copyIRRAmount()" type="button" title="کپی مبلغ تومان">
+                <i class="fas fa-copy"></i>
+                کپی مبلغ
+            </button>
+        </div>
+        <div class="success-msg" style="display:none;" id="amount-success">
+            ✅ مبلغ بدون کاما کپی شد
+        </div>
+    </div>
+
+    <div class="card-section">
+        <h2>💳 مشخصات کارت مقصد</h2>
+        
+        <div style="margin: 15px 0;">
+            <label><strong>شماره کارت:</strong></label>
+            <div class="card-number-display">
+                <span id="card-number" class="card-number">6037-9918-7654-3210</span>
+                <button class="copy-btn small" onclick="copyCardNumber()" type="button" title="کپی شماره کارت">
+                    <i class="fas fa-copy"></i>
+                    کپی
+                </button>
+            </div>
+        </div>
+        
+        <div style="margin: 15px 0;">
+            <label><strong>بانک:</strong></label>
+            <span style="margin-right: 10px;">بانک کشاورزی</span>
+        </div>
+        
+        <div style="margin: 15px 0;">
+            <label><strong>صاحب حساب:</strong></label>
+            <span style="margin-right: 10px;">احمد احمدی</span>
+        </div>
+
+        <div class="success-msg" style="display:none;" id="card-success">
+            ✅ شماره کارت بدون خط تیره کپی شد
+        </div>
+    </div>
+
+    <script>
+        // نسخه کاملاً مشابه با checkout.html
+        function copyIRRAmount() {
+            console.log('copyIRRAmount called'); // Debug log
+            const amountElement = document.querySelector('#irr-amount');
+            console.log('Amount element:', amountElement); // Debug log
+            
+            if (!amountElement) {
+                alert('عنصر مبلغ یافت نشد');
+                return;
+            }
+            
+            const originalText = amountElement.textContent || amountElement.innerText || '';
+            console.log('Original text:', originalText); // Debug log
+            
+            if (!originalText.trim()) {
+                alert('مبلغ موجود نیست');
+                return;
+            }
+
+            // Get clean amount (remove all commas, spaces, and non-numeric chars except digits)
+            const cleanAmount = originalText.replace(/[^0-9]/g, '').trim();
+            console.log('Clean amount:', cleanAmount); // Debug log
+            
+            if (!cleanAmount) {
+                alert('مبلغ معتبر نیست');
+                return;
+            }
+            
+            // Copy to clipboard
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(cleanAmount).then(() => {
+                    alert(`مبلغ بدون کاما کپی شد: ${cleanAmount} تومان`);
+                    // Visual feedback
+                    const btn = document.querySelector('#copy-irr-amount');
+                    const successDiv = document.querySelector('#amount-success');
+                    if (btn) {
+                        const originalBtnText = btn.innerHTML;
+                        btn.innerHTML = '<i class="fas fa-check"></i> کپی شد';
+                        btn.style.background = '#28a745';
+                        btn.style.color = '#fff';
+                        
+                        if (successDiv) successDiv.style.display = 'block';
+                        
+                        setTimeout(() => {
+                            btn.innerHTML = originalBtnText;
+                            btn.style.background = '';
+                            btn.style.color = '';
+                            if (successDiv) successDiv.style.display = 'none';
+                        }, 3000);
+                    }
+                }).catch((err) => {
+                    console.error('Clipboard error:', err);
+                    copyFallbackIRR(cleanAmount);
+                });
+            } else {
+                copyFallbackIRR(cleanAmount);
+            }
+        }
+
+        function copyCardNumber() {
+            console.log('copyCardNumber called'); // Debug log
+            const cardElement = document.querySelector('#card-number');
+            console.log('Card element:', cardElement); // Debug log
+            
+            if (!cardElement) {
+                alert('عنصر شماره کارت یافت نشد');
+                return;
+            }
+            
+            const originalCardNumber = cardElement.textContent || cardElement.innerText || '';
+            console.log('Original card number:', originalCardNumber); // Debug log
+            
+            if (!originalCardNumber.trim()) {
+                alert('شماره کارت موجود نیست');
+                return;
+            }
+
+            // Get clean card number (remove dashes, spaces and keep only digits)
+            const cleanCardNumber = originalCardNumber.replace(/[^0-9]/g, '');
+            console.log('Clean card number:', cleanCardNumber); // Debug log
+            
+            if (!cleanCardNumber || cleanCardNumber.length < 13) {
+                alert('شماره کارت معتبر نیست');
+                return;
+            }
+            
+            // Copy to clipboard
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(cleanCardNumber).then(() => {
+                    alert(`شماره کارت بدون خط تیره کپی شد: ${cleanCardNumber}`);
+                    // Visual feedback
+                    const btn = document.querySelector('button[onclick="copyCardNumber()"]');
+                    const successDiv = document.querySelector('#card-success');
+                    if (btn) {
+                        const originalBtnText = btn.innerHTML;
+                        btn.innerHTML = '<i class="fas fa-check"></i> کپی شد';
+                        btn.style.background = '#28a745';
+                        btn.style.color = '#fff';
+                        
+                        if (successDiv) successDiv.style.display = 'block';
+                        
+                        setTimeout(() => {
+                            btn.innerHTML = originalBtnText;
+                            btn.style.background = '';
+                            btn.style.color = '';
+                            if (successDiv) successDiv.style.display = 'none';
+                        }, 3000);
+                    }
+                }).catch((err) => {
+                    console.error('Clipboard error:', err);
+                    copyFallbackCard(cleanCardNumber);
+                });
+            } else {
+                copyFallbackCard(cleanCardNumber);
+            }
+        }
+
+        // Fallback copy function for IRR amount
+        function copyFallbackIRR(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-999999px';
+            textarea.style.top = '-999999px';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            
+            try {
+                textarea.focus();
+                textarea.select();
+                textarea.setSelectionRange(0, 99999);
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    alert(`مبلغ بدون کاما کپی شد: ${text} تومان`);
+                } else {
+                    alert(`خطا در کپی کردن. مبلغ: ${text}`);
+                }
+            } catch (err) {
+                alert(`خطا در کپی کردن. مبلغ: ${text}`);
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        }
+
+        // Fallback copy function for card number
+        function copyFallbackCard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-999999px';
+            textarea.style.top = '-999999px';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            
+            try {
+                textarea.focus();
+                textarea.select();
+                textarea.setSelectionRange(0, 99999);
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    alert(`شماره کارت بدون خط تیره کپی شد: ${text}`);
+                } else {
+                    alert(`خطا در کپی کردن. شماره کارت: ${text}`);
+                }
+            } catch (err) {
+                alert(`خطا در کپی کردن. شماره کارت: ${text}`);
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        }
+
+        // Test on load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded, testing elements...');
+            console.log('IRR Amount element:', document.querySelector('#irr-amount'));
+            console.log('Card Number element:', document.querySelector('#card-number'));
+        });
+    </script>
+</body>
+</html>
