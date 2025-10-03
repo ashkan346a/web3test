@@ -23,3 +23,14 @@ def cart_total(context):
         price = float(item.get('price', 0) or 0)
         total += price * qty
     return total
+
+@register.filter
+def irr_format(value):
+    """Format IRR amounts with thousand separators for better readability."""
+    try:
+        # Convert to integer to remove decimal places for IRR
+        num = int(float(value))
+        # Add thousand separators
+        return f"{num:,}"
+    except (ValueError, TypeError):
+        return "0"

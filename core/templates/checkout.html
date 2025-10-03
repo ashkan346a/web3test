@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load cart_extras %}
 
 <!-- Add Font Awesome for icons -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -368,7 +369,7 @@
                 <div class="amount-label">مبلغ قابل پرداخت:</div>
                 <div class="irr-amount-display">
                   <span id="irr-amount">
-                    {% if irr_conversion %}{{ irr_conversion.irr_amount|floatformat:0 }}{% else %}0{% endif %}
+                    {% if irr_conversion %}{{ irr_conversion.irr_amount|irr_format }}{% else %}0{% endif %}
                   </span>
                   <span class="currency">ریال</span>
                 </div>
@@ -2609,7 +2610,16 @@
   }
 
   function formatNumber(v, decimals = 6) { 
-    return Number(v).toFixed(decimals).replace(/\.0+$/, '');
+    if (v == null || v === undefined || isNaN(v)) return '0';
+    
+    const num = Number(v);
+    let result = num.toFixed(decimals).replace(/\.0+$/, '');
+    
+    // Add thousand separators for better readability
+    const parts = result.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    
+    return parts.join('.');
   }
 
   function showNotification(message, type = 'info') {

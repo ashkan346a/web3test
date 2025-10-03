@@ -88,21 +88,24 @@ def convert_usd_to_irr(amount_usd):
     
     try:
         amount_decimal = Decimal(str(amount_usd))
-        return _convert_usd_to_irr(amount_decimal)
+        result = _convert_usd_to_irr(amount_decimal)
+        if result:
+            return result
     except Exception as e:
-        # Fallback to a reasonable default rate if conversion fails
+        # Log the error but continue to fallback
         import logging
         logger = logging.getLogger(__name__)
-        logger.error(f"USD to IRR conversion failed: {e}")
-        
-        # Use a fallback rate (approximately 42,000 IRR per USD as of 2025)
-        fallback_rate = 42000
-        irr_amount = int(round(float(amount_usd) * fallback_rate / 1000) * 1000)
-        
-        return {
-            'irr_amount': irr_amount,
-            'usd_amount': float(amount_usd),
-            'rate': fallback_rate,
-            'provider': 'fallback',
-            'fetched_at': None
-        }
+        logger.warning(f"USD to IRR conversion failed, using fallback: {e}")
+    
+    # Fallback to a reasonable default rate if conversion fails
+    # Use updated rate based on current market (around 117,000 IRR per USD as of 2025)
+    fallback_rate = 117000
+    irr_amount = int(round(float(amount_usd) * fallback_rate / 1000) * 1000)
+    
+    return {
+        'irr_amount': irr_amount,
+        'usd_amount': float(amount_usd),
+        'rate': fallback_rate,
+        'provider': 'fallback',
+        'fetched_at': None
+    }
