@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تست قابلیت کپی</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            direction: rtl;
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .test-item {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .test-item label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #333;
+        }
+        .copy-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .copy-text {
+            flex: 1;
+            background: #fff;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+        }
+        .copy-btn {
+            background: rgba(0, 123, 255, 0.8);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .copy-btn:hover {
+            background: rgba(0, 123, 255, 1);
+            transform: translateY(-1px);
+        }
+        .copy-btn.small {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+        .copy-amount-btn {
+            background: rgba(40, 167, 69, 0.8);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .copy-amount-btn:hover {
+            background: rgba(40, 167, 69, 1);
+            transform: translateY(-1px);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        @keyframes slideInFromRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutToRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>تست قابلیت کپی کردن</h1>
+        
+        <div class="test-item">
+            <label>مبلغ ریال:</label>
+            <div class="copy-display">
+                <span id="irr-amount" class="copy-text">2,986,000</span>
+                <button class="copy-btn" id="copy-irr-amount" onclick="copyIRRAmount()" type="button" title="کپی مبلغ ریال">
+                    <i class="fas fa-copy"></i>
+                    کپی مبلغ
+                </button>
+            </div>
+        </div>
+
+        <div class="test-item">
+            <label>شماره کارت:</label>
+            <div class="copy-display">
+                <span id="card-number" class="copy-text">6037-9918-7654-3210</span>
+                <button class="copy-btn small" onclick="copyCardNumber()" type="button" title="کپی شماره کارت">
+                    <i class="fas fa-copy"></i>
+                    کپی
+                </button>
+            </div>
+        </div>
+
+        <div class="test-item">
+            <label>مبلغ معادل کریپتو:</label>
+            <div class="copy-display">
+                <span id="selectedCryptoAmount" class="copy-text">0.00042 BTC</span>
+                <button class="copy-amount-btn" onclick="copySelectedAmount()" type="button" title="کپی مبلغ معادل">
+                    <i class="fas fa-copy"></i>
+                    کپی مبلغ
+                </button>
+            </div>
+        </div>
+
+        <div class="test-item">
+            <label>آدرس کیف پول:</label>
+            <div class="copy-display">
+                <span id="qrModalAddress" class="copy-text">bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh</span>
+                <button class="copy-btn" onclick="copyModalAddress()" type="button" title="کپی آدرس">
+                    <i class="fas fa-copy"></i>
+                    کپی آدرس
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Helper function to select elements
+        function qs(selector) {
+            return document.querySelector(selector);
+        }
+
+        // Format number with commas
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        // IRR Copy Functions
+        function copyIRRAmount() {
+            const amountElement = qs('#irr-amount');
+            if (!amountElement || !amountElement.textContent) {
+                showSimpleNotification('مبلغ موجود نیست', 'error');
+                return;
+            }
+
+            const amount = amountElement.textContent.replace(/,/g, '').trim();
+            const formattedAmount = formatNumber(parseFloat(amount) || 0);
+            
+            // Use the modern clipboard API with fallback
+            copyToClipboardWithFallback(amount, `مبلغ کپی شد: ${formattedAmount} ریال`, '#copy-irr-amount');
+        }
+
+        function copyCardNumber() {
+            const cardElement = qs('#card-number');
+            if (!cardElement || !cardElement.textContent) {
+                showSimpleNotification('شماره کارت موجود نیست', 'error');
+                return;
+            }
+
+            const cardNumber = cardElement.textContent.trim();
+            // Remove dashes and spaces for cleaner copy
+            const cleanCardNumber = cardNumber.replace(/[-\s]/g, '');
+            
+            // Use the modern clipboard API with fallback
+            copyToClipboardWithFallback(cleanCardNumber, `شماره کارت کپی شد: ${cardNumber}`, 'button[onclick="copyCardNumber()"]');
+        }
+
+        function copySelectedAmount() {
+            const amountElement = qs('#selectedCryptoAmount');
+            if (!amountElement || !amountElement.textContent || amountElement.textContent.trim() === '-') {
+                showSimpleNotification('مبلغ معادل موجود نیست', 'error');
+                return;
+            }
+            
+            const amount = amountElement.textContent.trim();
+            copyToClipboardWithFallback(amount, 'مبلغ معادل کپی شد', '.copy-amount-btn');
+        }
+
+        function copyModalAddress() {
+            const addrElement = qs('#qrModalAddress');
+            if (!addrElement || !addrElement.textContent) {
+                showSimpleNotification('آدرس موجود نیست', 'error');
+                return;
+            }
+            const addr = addrElement.textContent.trim();
+            copyToClipboardWithFallback(addr, 'آدرس کیف پول کپی شد', 'button[onclick="copyModalAddress()"]');
+        }
+
+        // Enhanced copy function with better error handling and visual feedback
+        function copyToClipboardWithFallback(text, successMessage, buttonSelector) {
+            if (!text || text.trim() === '') {
+                showSimpleNotification('متن برای کپی کردن موجود نیست', 'error');
+                return;
+            }
+
+            const btn = qs(buttonSelector);
+            let originalHTML = '';
+            let originalStyle = '';
+            
+            if (btn) {
+                originalHTML = btn.innerHTML;
+                originalStyle = btn.style.cssText;
+            }
+
+            // Try modern clipboard API first
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text.toString())
+                    .then(() => {
+                        showSimpleNotification(successMessage, 'success');
+                        showCopySuccess(btn, originalHTML, originalStyle);
+                    })
+                    .catch(() => {
+                        // Fallback to older method
+                        fallbackCopyMethod(text, successMessage, btn, originalHTML, originalStyle);
+                    });
+            } else {
+                // Direct fallback for older browsers
+                fallbackCopyMethod(text, successMessage, btn, originalHTML, originalStyle);
+            }
+        }
+
+        // Fallback copy method for older browsers
+        function fallbackCopyMethod(text, successMessage, btn, originalHTML, originalStyle) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-999999px';
+            textarea.style.top = '-999999px';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            
+            try {
+                textarea.focus();
+                textarea.select();
+                textarea.setSelectionRange(0, 99999); // For mobile devices
+                
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showSimpleNotification(successMessage, 'success');
+                    showCopySuccess(btn, originalHTML, originalStyle);
+                } else {
+                    showSimpleNotification('خطا در کپی کردن. لطفاً دستی کپی کنید', 'error');
+                }
+            } catch (err) {
+                console.error('Copy failed:', err);
+                showSimpleNotification('خطا در کپی کردن. لطفاً دستی کپی کنید', 'error');
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        }
+
+        // Show visual feedback for successful copy
+        function showCopySuccess(btn, originalHTML, originalStyle) {
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-check"></i> کپی شد';
+                btn.style.background = 'rgba(76, 175, 80, 0.8)';
+                btn.style.color = '#fff';
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.style.cssText = originalStyle;
+                }, 2000);
+            }
+        }
+
+        function showSimpleNotification(message, type = 'success') {
+            const typeColors = {
+                'success': '#28a745',
+                'error': '#dc3545',
+                'warning': '#ffc107',
+                'info': '#17a2b8'
+            };
+            
+            const typeIcons = {
+                'success': 'fas fa-check-circle',
+                'error': 'fas fa-exclamation-circle',
+                'warning': 'fas fa-exclamation-triangle',
+                'info': 'fas fa-info-circle'
+            };
+            
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${typeColors[type] || typeColors.success};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 10px;
+                z-index: 10001;
+                font-size: 14px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                animation: slideInFromRight 0.3s ease;
+                max-width: 350px;
+                word-wrap: break-word;
+                font-family: 'Vazirmatn', sans-serif;
+            `;
+            notification.innerHTML = `
+                <i class="${typeIcons[type] || typeIcons.success}" style="margin-left: 8px;"></i>
+                ${message}
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOutToRight 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
