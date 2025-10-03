@@ -84,26 +84,43 @@ class IRRExchangeProvider:
                 
                 data = response.json()
                 
-                # Navasan API returns rates based on USD, look for IRR or Rial
-                if isinstance(data, dict) and ('usd' in data or 'USD' in data):
-                    # Try different possible keys for IRR
+                # Navasan API returns different formats, try various approaches
+                if isinstance(data, dict):
                     irr_rate = None
+                    
+                    # Try nested structure first (original format)
                     if 'usd' in data and isinstance(data['usd'], dict):
                         irr_rate = data['usd'].get('irr') or data['usd'].get('IRR')
                     elif 'USD' in data and isinstance(data['USD'], dict):
                         irr_rate = data['USD'].get('irr') or data['USD'].get('IRR')
                     
+                    # Try direct keys (current format from logs)
+                    if not irr_rate:
+                        # Look for usd_sell or usd_buy rates
+                        if 'usd_sell' in data and isinstance(data['usd_sell'], dict):
+                            irr_rate = data['usd_sell'].get('value')
+                        elif 'usd_buy' in data and isinstance(data['usd_buy'], dict):
+                            irr_rate = data['usd_buy'].get('value')
+                        elif 'usd' in data and isinstance(data['usd'], dict):
+                            irr_rate = data['usd'].get('value')
+                    
+                    # Convert to float if we found a rate
                     if irr_rate:
-                        self.current_navasan_key_index = key_index
-                        
-                        return {
-                            'rate': float(irr_rate),
-                            'provider': 'navasan',
-                            'fetched_at': timezone.now().isoformat(),
-                            'success': True
-                        }
-                    else:
-                        logger.warning(f"Navasan API no IRR rate found: {data}")
+                        try:
+                            rate_float = float(irr_rate)
+                            self.current_navasan_key_index = key_index
+                            
+                            return {
+                                'rate': rate_float,
+                                'provider': 'navasan',
+                                'fetched_at': timezone.now().isoformat(),
+                                'success': True
+                            }
+                        except (ValueError, TypeError):
+                            logger.warning(f"Invalid IRR rate value: {irr_rate}")
+                    
+                    # If no rate found, log for debugging
+                    logger.warning(f"Navasan API no IRR rate found in expected format")
                         
             except Exception as e:
                 logger.warning(f"Navasan API key {key_index} failed: {e}")

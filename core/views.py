@@ -2070,8 +2070,8 @@ def checkout(request):
     # Card details for IRR payment
     irr_card_details = {
         "card_number": "5054-1610-0412-1429",
-        "bank": "Gardeshgari",
-        "account_holder": "Omid Ahmadi"
+        "bank": "گردشگری",
+        "account_holder": " امید احمدی "
     }
 
     try:
