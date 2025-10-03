@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل پشتیبانی چت | مدیریت پیام‌ها</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            height: 100vh;
+            overflow: hidden;
+            direction: rtl;
+        }
+
+        .chat-container {
+            display: flex;
+            height: 100vh;
+            background: #fff;
+        }
+
+        /* Sidebar - لیست چت‌ها */
+        .chat-sidebar {
+            width: 380px;
+            background: #fff;
+            border-left: 1px solid #e5e5e5;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background: #6366f1;
+            color: white;
+            position: relative;
+        }
+
+        .sidebar-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-subtitle {
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        .search-container {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 40px 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 14px;
+            background: #fff;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 16px;
+        }
+
+        .chat-list {
+            flex: 1;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #ccc transparent;
+        }
+
+        .chat-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-list::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 3px;
+        }
+
+        .chat-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            animation: slideInRight 0.3s ease;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .chat-item:hover {
+            background: #f8f9fa;
+        }
+
+        .chat-item.active {
+            background: #e8f2ff;
+            border-left: 3px solid #6366f1;
+        }
+
+        .chat-item.unread {
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.05), transparent);
+        }
+
+        .simple-chat-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            float: right;
+            margin-left: 15px;
+            opacity: 0.8;
+        }
+
+        .chat-info {
+            overflow: hidden;
+        }
+
+        .chat-name {
+            font-weight: 600;
+            font-size: 15px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .chat-preview {
+            font-size: 13px;
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 5px;
+        }
+
+        .chat-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .unread-badge {
+            background: #ff4757;
+            color: white;
+            border-radius: 10px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            animation: bounce 0.5s ease;
+        }
+
+        @keyframes slideOutRight {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 60%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            80% { transform: translateY(-5px); }
+        }
+
+        /* Chat Area - محیط چت */
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+        }
+
+        .chat-header {
+            padding: 20px;
+            background: #fff;
+            border-bottom: 1px solid #e5e5e5;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .simple-chat-title {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .simple-chat-title h3 {
+            font-size: 18px;
+            color: #333;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .simple-status {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .typing-indicator {
+            font-size: 13px;
+            color: #6366f1;
+            display: none;
+            animation: fade 1.5s infinite;
+        }
+
+        @keyframes fade {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .chat-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: #f8f9fa;
+            border-color: #6366f1;
+            color: #6366f1;
+        }
+
+        .messages-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: linear-gradient(180deg, #f8f9fa 0%, #fff 100%);
+            scroll-behavior: smooth;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            animation: fadeInUp 0.3s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.agent {
+            text-align: left;
+        }
+
+        .message.user {
+            text-align: right;
+        }
+
+        .message-bubble {
+            display: inline-block;
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.4;
+            word-wrap: break-word;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .message.agent .message-bubble {
+            background: #f1f3f4;
+            color: #333;
+            border-bottom-right-radius: 6px;
+        }
+
+        .message.user .message-bubble {
+            background: #6366f1;
+            color: white;
+            border-bottom-left-radius: 6px;
+        }
+
+        .message-time {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        .message-input-container {
+            padding: 20px;
+            background: #fff;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            max-width: 100%;
+        }
+
+        .message-input {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            padding: 12px 20px;
+            font-size: 14px;
+            resize: none;
+            max-height: 120px;
+            min-height: 45px;
+            overflow-y: auto;
+            transition: all 0.2s ease;
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .send-btn {
+            width: 45px;
+            height: 45px;
+            border: none;
+            background: #6366f1;
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            font-size: 16px;
+        }
+
+        .send-btn:hover {
+            background: #5856eb;
+            transform: scale(1.05);
+        }
+
+        .send-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Empty State */
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            text-align: center;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .empty-desc {
+            font-size: 14px;
+            max-width: 300px;
+            line-height: 1.5;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .chat-sidebar {
+                width: 100%;
+                position: absolute;
+                z-index: 1000;
+                transform: translateX(-100%);
+            }
+            
+            .chat-sidebar.mobile-open {
+                transform: translateX(0);
+            }
+        }
+
+        /* Loading animations */
+        .loading-dots {
+            display: inline-block;
+        }
+
+        .loading-dots::after {
+            content: "...";
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: "."; }
+            40% { content: ".."; }
+            60%, 100% { content: "..."; }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <!-- Sidebar - لیست چت‌ها -->
+        <div class="chat-sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">پنل پشتیبانی چت</div>
+                <div class="sidebar-subtitle">مدیریت گفتگوهای آنلاین</div>
+            </div>
+
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" class="search-input" id="searchInput" placeholder="جستجو در چت‌ها...">
+                    <i class="search-icon">🔍</i>
+                </div>
+            </div>
+
+            <div class="chat-list" id="chatList">
+                <!-- Loading state -->
+                <div class="empty-state" id="loadingState">
+                    <div class="empty-icon">💬</div>
+                    <div class="empty-title">در حال بارگذاری<span class="loading-dots"></span></div>
+                    <div class="empty-desc">لطفا صبر کنید</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Area - محیط چت -->
+        <div class="chat-main">
+            <div class="empty-state" id="emptyState">
+                <div class="empty-icon">💬</div>
+                <div class="empty-title">گفتگویی انتخاب نشده</div>
+                <div class="empty-desc">برای شروع پاسخ‌دهی، یکی از چت‌های سمت راست را انتخاب کنید</div>
+            </div>
+
+            <!-- Chat header - نمایش داده می‌شود وقتی چت انتخاب شود -->
+            <div class="chat-header" id="chatHeader" style="display: none;">
+                <div class="simple-chat-title">
+                    <h3 id="currentUserName">چت پشتیبانی</h3>
+                    <div class="simple-status">
+                        <span id="userStatus">آنلاین</span>
+                        <div class="typing-indicator" id="typingIndicator">در حال تایپ<span class="loading-dots"></span></div>
+                    </div>
+                </div>
+                <div class="chat-actions">
+                    <button class="action-btn" onclick="deleteChat()">حذف چت</button>
+                    <button class="action-btn" onclick="clearMessages()">پاک کردن پیام‌ها</button>
+                    <button class="action-btn" onclick="closeChat()">بستن</button>
+                </div>
+            </div>
+
+            <!-- Messages container -->
+            <div class="messages-container" id="messagesContainer" style="display: none;">
+                <!-- پیام‌ها به صورت داینامیک اضافه می‌شوند -->
+            </div>
+
+            <!-- Message input -->
+            <div class="message-input-container" id="messageInputContainer" style="display: none;">
+                <div class="input-wrapper">
+                    <textarea class="message-input" id="messageInput" placeholder="پیام خود را بنویسید..." rows="1"></textarea>
+                    <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CSRF Token برای Django
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        // Global variables
+        let currentRoom = null;
+        let socket = null;
+        let agentSocket = null;
+        let rooms = [];
+        let isTyping = false;
+        let typingTimeout = null;
+
+        // Initialize chat system
+        document.addEventListener('DOMContentLoaded', function() {
+            loadRooms();
+            setupWebSockets();
+            setupEventListeners();
+        });
+
+        // Setup WebSocket connections
+        function setupWebSockets() {
+            // Agent feed socket - برای دریافت اطلاعات کلی
+            const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const feedSocket = new WebSocket(`${proto}//${window.location.host}/ws/chat/agent-feed/`);
+            
+            feedSocket.onopen = function() {
+                console.log('Agent feed connected');
+            };
+
+            feedSocket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                console.log('Feed socket received:', data);
+                
+                if (data.type === 'notify') {
+                    // New message notification from agent feed
+                    handleNewMessageNotification(data);
+                } else if (data.type === 'rooms') {
+                    // Initial rooms data
+                    console.log('Initial rooms received:', data.rooms?.length);
+                } else if (data.type === 'chat_deleted') {
+                    // A chat has been deleted
+                    handleChatDeletion(data);
+                }
+            };
+
+            feedSocket.onerror = function(error) {
+                console.error('Feed socket error:', error);
+            };
+
+            feedSocket.onclose = function() {
+                console.log('Agent feed disconnected');
+                setTimeout(setupWebSockets, 3000); // Reconnect
+            };
+        }
+
+        // Load chat rooms
+        function loadRooms() {
+            // بارگذاری از API
+            fetch('/api/chat/rooms/')
+                .then(response => response.json())
+                .then(data => {
+                    rooms = data.rooms || [];
+                    renderRooms();
+                })
+                .catch(error => {
+                    console.error('Error loading rooms:', error);
+                    // Fallback to demo data
+                    rooms = [
+                        {
+                            id: 1,
+                            user_name: 'محمد احمدی',
+                            user_type: 'guest',
+                            last_message: 'سلام، میخوام دارو سفارش بدم',
+                            unread_count: 3,
+                            updated_at: '2 دقیقه پیش',
+                            online: true
+                        }
+                    ];
+                    renderRooms();
+                });
+        }
+
+        // Render chat rooms list
+        function renderRooms() {
+            const chatList = document.getElementById('chatList');
+            chatList.innerHTML = '';
+
+            rooms.forEach(room => {
+                const roomElement = createRoomElement(room);
+                chatList.appendChild(roomElement);
+            });
+            
+            // Note: Auto-selection removed for normal operation
+        }
+
+        // Create room element
+        function createRoomElement(room) {
+            const roomDiv = document.createElement('div');
+            roomDiv.className = `chat-item ${room.unread_count > 0 ? 'unread' : ''}`;
+            roomDiv.onclick = (event) => selectRoom(room.id, event);
+            
+            roomDiv.innerHTML = `
+                <div class="simple-chat-icon">💬</div>
+                <div class="chat-info">
+                    <div class="chat-name">${room.user_name}</div>
+                    <div class="chat-preview">${room.last_message}</div>
+                    <div class="chat-meta">
+                        <span class="chat-time">${room.updated_at}</span>
+                        ${room.unread_count > 0 ? `<span class="unread-badge">${room.unread_count}</span>` : ''}
+                    </div>
+                </div>
+            `;
+            
+            return roomDiv;
+        }
+
+        // Select room
+        function selectRoom(roomId, clickEvent = null) {
+            // Remove active class from all rooms
+            document.querySelectorAll('.chat-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Add active class to selected room
+            if (clickEvent && clickEvent.target) {
+                clickEvent.target.closest('.chat-item').classList.add('active');
+            } else {
+                // Find room element by room ID when no event (auto-select)
+                const roomElement = document.querySelector(`[onclick*="${roomId}"]`);
+                if (roomElement) {
+                    roomElement.classList.add('active');
+                }
+            }
+
+            currentRoom = rooms.find(r => r.id === roomId);
+            
+            // Show chat interface
+            showChatInterface();
+            
+            // Setup room socket
+            setupRoomSocket(roomId);
+            
+            // Load messages
+            loadMessages(roomId);
+        }
+
+        // Show chat interface
+        function showChatInterface() {
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('chatHeader').style.display = 'flex';
+            document.getElementById('messagesContainer').style.display = 'flex';
+            document.getElementById('messageInputContainer').style.display = 'block';
+            
+            // Update header info - simple title
+            document.getElementById('currentUserName').textContent = `چت با ${currentRoom.user_name}`;
+            document.getElementById('userStatus').textContent = currentRoom.online ? 'آنلاین' : 'آفلاین';
+        }
+
+        // Setup room WebSocket
+        function setupRoomSocket(roomId) {
+            if (agentSocket) {
+                agentSocket.close();
+            }
+
+            const proto2 = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            agentSocket = new WebSocket(`${proto2}//${window.location.host}/ws/chat/agent/${roomId}/`);
+            
+            agentSocket.onopen = function() {
+                console.log(`Connected to room ${roomId}`);
+            };
+
+            agentSocket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                console.log('Agent socket received:', data);
+                
+                if (data.type === 'message' && data.message) {
+                    // New message from user received via WebSocket
+                    const messageData = {
+                        message: data.message.content,
+                        content: data.message.content,
+                        sender: data.message.role,
+                        timestamp: new Date(data.message.created_at).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }),
+                        created_at: data.message.created_at
+                    };
+                    addMessageToChat(messageData, data.message.role);
+                } else if (data.type === 'history') {
+                    // Initial history load - handle via loadMessages instead
+                    console.log('History received via WebSocket');
+                } else if (data.type === 'clear') {
+                    // Clear messages received from server
+                    document.getElementById('messagesContainer').innerHTML = '';
+                    showNotification('پیام‌ها توسط ادمین پاک شدند');
+                } else if (data.type === 'chat_deleted') {
+                    // Chat has been deleted
+                    showNotification(data.message || 'چت حذف شد');
+                    closeChat();
+                    // Reload rooms list
+                    setTimeout(() => {
+                        loadRooms();
+                    }, 1000);
+                } else if (data.type === 'typing' && data.status === 'start') {
+                    showTypingIndicator();
+                } else if (data.type === 'typing' && data.status === 'stop') {
+                    hideTypingIndicator();
+                }
+            };
+
+            agentSocket.onerror = function(error) {
+                console.error('WebSocket error:', error);
+            };
+
+            agentSocket.onclose = function(e) {
+                console.log('WebSocket closed:', e.code, e.reason);
+                if (e.code !== 1000) {
+                    // Attempt reconnection after 3 seconds if not normal closure
+                    setTimeout(() => {
+                        console.log('Attempting to reconnect...');
+                        setupRoomSocket(roomId);
+                    }, 3000);
+                }
+            };
+        }
+
+        // Load messages
+        function loadMessages(roomId) {
+            const container = document.getElementById('messagesContainer');
+            container.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">در حال بارگذاری پیام‌ها...</div>';
+            
+            // بارگذاری از API
+            fetch(`/api/chat/messages/${roomId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    container.innerHTML = '';
+                    const messages = data.messages || [];
+                    
+                    if (messages.length === 0) {
+                        container.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">هنوز پیامی وجود ندارد</div>';
+                        return;
+                    }
+                    
+                    messages.forEach((msg, index) => {
+                        addMessageToChat(msg, msg.sender);
+                    });
+                    
+                    scrollToBottom();
+                })
+                .catch(error => {
+                    console.error('Error loading messages:', error);
+                    container.innerHTML = '<div style="text-align: center; padding: 20px; color: #ff4757;">خطا در بارگذاری پیام‌ها</div>';
+                });
+        }
+
+        // Add message to chat
+        function addMessageToChat(messageData, sender) {
+            const container = document.getElementById('messagesContainer');
+            
+            if (!container) {
+                console.error('Messages container not found!');
+                return;
+            }
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            messageDiv.innerHTML = `
+                <div class="message-bubble">
+                    ${messageData.message || messageData.content || 'پیام خالی'}
+                </div>
+                <div class="message-time">${messageData.timestamp || new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' })}</div>
+            `;
+            
+            container.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        // Send message
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message || !agentSocket) return;
+            
+            // Send via WebSocket
+            agentSocket.send(JSON.stringify({
+                type: 'chat_message',
+                message: message
+            }));
+            
+            // Add to chat immediately
+            addMessageToChat({ message: message }, 'agent');
+            
+            // Clear input
+            input.value = '';
+            adjustTextareaHeight(input);
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            const input = document.getElementById('messageInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const searchInput = document.getElementById('searchInput');
+            
+            // Auto-resize textarea
+            input.addEventListener('input', function() {
+                adjustTextareaHeight(this);
+                handleTyping();
+            });
+            
+            // Send on Enter
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            // Search functionality
+            searchInput.addEventListener('input', function() {
+                filterRooms(this.value);
+            });
+        }
+
+        // Adjust textarea height
+        function adjustTextareaHeight(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        }
+
+        // Handle typing indicator
+        function handleTyping() {
+            if (!isTyping && agentSocket) {
+                isTyping = true;
+                agentSocket.send(JSON.stringify({ type: 'typing_start' }));
+            }
+            
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                if (isTyping && agentSocket) {
+                    isTyping = false;
+                    agentSocket.send(JSON.stringify({ type: 'typing_stop' }));
+                }
+            }, 1000);
+        }
+
+        // Show/hide typing indicator
+        function showTypingIndicator() {
+            document.getElementById('userStatus').style.display = 'none';
+            document.getElementById('typingIndicator').style.display = 'block';
+        }
+
+        function hideTypingIndicator() {
+            document.getElementById('userStatus').style.display = 'block';
+            document.getElementById('typingIndicator').style.display = 'none';
+        }
+
+        // Scroll to bottom
+        function scrollToBottom() {
+            const container = document.getElementById('messagesContainer');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Filter rooms
+        function filterRooms(query) {
+            const items = document.querySelectorAll('.chat-item');
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(query.toLowerCase()) ? 'block' : 'none';
+            });
+        }
+
+        // Update room in list
+        function updateRoomInList(roomData) {
+            const roomIndex = rooms.findIndex(r => r.id === roomData.id);
+            if (roomIndex >= 0) {
+                rooms[roomIndex] = { ...rooms[roomIndex], ...roomData };
+                renderRooms();
+            }
+        }
+
+        // Handle new message from other sources
+        function handleNewMessage(data) {
+            if (currentRoom && data.room_id === currentRoom.id) {
+                addMessageToChat(data, data.sender);
+            }
+            
+            // Update room preview
+            updateRoomInList({
+                id: data.room_id,
+                last_message: data.message,
+                updated_at: 'الان',
+                unread_count: currentRoom && data.room_id === currentRoom.id ? 0 : 1
+            });
+        }
+
+        // Handle new message notifications from feed
+        function handleNewMessageNotification(data) {
+            console.log('New message notification:', data);
+            
+            // If it's a message for the currently active room, show it immediately
+            if (currentRoom && data.room_id === currentRoom.id) {
+                const messageData = {
+                    message: data.message.content,
+                    content: data.message.content,
+                    sender: data.message.role,
+                    timestamp: new Date(data.message.created_at).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }),
+                    created_at: data.message.created_at
+                };
+                addMessageToChat(messageData, data.message.role);
+            }
+            
+            // Update room list with new message info
+            const roomIndex = rooms.findIndex(r => r.id === data.room_id);
+            if (roomIndex !== -1) {
+                rooms[roomIndex].last_message = data.message.content;
+                rooms[roomIndex].updated_at = 'همین حالا';
+                
+                // Only increase unread count for user messages when not in current room
+                if (data.message.role === 'user' && (!currentRoom || data.room_id !== currentRoom.id)) {
+                    rooms[roomIndex].unread_count = (rooms[roomIndex].unread_count || 0) + 1;
+                }
+                
+                renderRooms(); // Re-render room list
+            } else {
+                // Room not in list, reload rooms
+                loadRooms();
+            }
+            
+            // Show notification if not current room
+            if (!currentRoom || data.room_id !== currentRoom.id) {
+                showNotification(`پیام جدید از ${data.message.sender || 'کاربر'}: ${data.message.content.substring(0, 50)}...`);
+            }
+        }
+
+        // Handle chat deletion from feed
+        function handleChatDeletion(data) {
+            const deletedRoomId = data.room_id;
+            console.log('Chat deleted:', deletedRoomId, data.room_info);
+            
+            // If the deleted chat is currently open, close it
+            if (currentRoom && currentRoom.id === deletedRoomId) {
+                showNotification('چت فعلی حذف شد');
+                closeChat();
+            }
+            
+            // Update rooms list with new data from server
+            if (data.rooms && Array.isArray(data.rooms)) {
+                rooms = data.rooms;
+                renderRooms();
+            } else {
+                // Fallback: reload rooms
+                loadRooms();
+            }
+            
+            // Show notification
+            const roomInfo = data.room_info || {};
+            const displayName = roomInfo.guest_name || roomInfo.user_phone || roomInfo.session_key || 'کاربر ناشناس';
+            showNotification(`چت "${displayName}" حذف شد`);
+        }
+        
+        // Simple notification function
+        function showNotification(message) {
+            // Create a simple toast notification
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #4CAF50;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 10000;
+                max-width: 300px;
+                animation: slideInRight 0.3s ease;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 4000);
+        }
+
+        // Utility functions
+        function closeChat() {
+            // Reset UI to empty state
+            document.getElementById('emptyState').style.display = 'flex';
+            document.getElementById('chatHeader').style.display = 'none';
+            document.getElementById('messagesContainer').style.display = 'none';
+            document.getElementById('messageInputContainer').style.display = 'none';
+            
+            // Close WebSocket connection
+            if (agentSocket) {
+                agentSocket.close();
+                agentSocket = null;
+            }
+            
+            // Clear current room reference
+            currentRoom = null;
+            
+            // Remove active class from all chat items
+            document.querySelectorAll('.chat-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Clear messages container
+            document.getElementById('messagesContainer').innerHTML = '';
+            
+            // Hide typing indicator
+            hideTypingIndicator();
+            
+            // Show notification
+            showNotification('چت بسته شد');
+        }
+
+        async function clearMessages() {
+            if (!currentRoom) {
+                alert('لطفاً ابتدا یک چت را انتخاب کنید');
+                return;
+            }
+            
+            if (!confirm('آیا می‌خواهید تمام پیام‌های این چت را پاک کنید؟')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/chat/clear-messages/${currentRoom.id}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Clear UI immediately
+                    document.getElementById('messagesContainer').innerHTML = '';
+                    
+                    // Show success message
+                    showNotification(data.message || 'پیام‌ها با موفقیت حذف شدند');
+                } else {
+                    alert(data.error || 'خطا در حذف پیام‌ها');
+                }
+            } catch (error) {
+                console.error('Error clearing messages:', error);
+                alert('خطا در اتصال به سرور');
+            }
+        }
+
+        async function deleteChat() {
+            if (!currentRoom) {
+                alert('لطفاً ابتدا یک چت را انتخاب کنید');
+                return;
+            }
+            
+            const displayName = currentRoom.guest_name || 
+                               (currentRoom.user ? currentRoom.user.phone : '') || 
+                               currentRoom.session_key || 
+                               'کاربر ناشناس';
+                               
+            if (!confirm(`آیا می‌خواهید چت "${displayName}" را به همراه تمام پیام‌هایش حذف کنید؟\n\nاین عمل قابل بازگشت نیست!`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/chat/delete-chat/${currentRoom.id}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Show success message
+                    showNotification(data.message || 'چت با موفقیت حذف شد');
+                    
+                    // Close the current chat UI
+                    closeChat();
+                    
+                    // Reload the rooms list after a short delay
+                    setTimeout(() => {
+                        loadRooms();
+                    }, 1000);
+                } else {
+                    alert(data.error || 'خطا در حذف چت');
+                }
+            } catch (error) {
+                console.error('Error deleting chat:', error);
+                alert('خطا در اتصال به سرور');
+            }
+        }
+    </script>
+</body>
+</html>

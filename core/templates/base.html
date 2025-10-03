@@ -1,0 +1,1068 @@
+{% load static %}
+
+<!doctype html>
+<html lang="{{ request.session.language|default:'fa' }}"
+      dir="{% if request.session.language|default:'fa' or request.session.language == 'ar' %}rtl{% else %}ltr{% endif %}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>{% block title %}PharmaWeb{% endblock %}</title>
+  
+  {# --- SEO: meta description / keywords / robots --- #}
+  {% block meta_basic %}
+    {% block meta_description %}
+      <meta name="description" content="{% block description %}{{ SITE_DESCRIPTION|default:'فروشگاه آنلاین دارو و تجهیزات پزشکی' }}{% endblock %}">
+    {% endblock %}
+    {% block meta_keywords %}
+      <meta name="keywords" content="{% block keywords %}{{ SITE_KEYWORDS|default:'دارو, تجهیزات پزشکی, فروشگاه آنلاین' }}{% endblock %}">
+    {% endblock %}
+    {% block meta_robots %}
+      <meta name="robots" content="index,follow">
+    {% endblock %}
+  {% endblock %}
+
+  {# --- Canonical URL (force to main domain) --- #}
+  {% block canonical %}
+    <link rel="canonical" href="{% block canonical_url %}{{ SITE_URL }}{{ request.path }}{% endblock %}">
+  {% endblock %}
+
+  {# --- Open Graph & Twitter Cards with sensible defaults, overridable per page --- #}
+  {% block social_cards %}
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+  <meta property="og:title" content="{% block og_title %}{{ SITE_NAME|default:'PharmaWeb' }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{{ SITE_DESCRIPTION|default:'فروشگاه آنلاین دارو و تجهیزات پزشکی' }}{% endblock %}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:site_name" content="{{ SITE_NAME|default:'PharmaWeb' }}">
+    <meta property="og:image" content="{% block og_image %}{{ SITE_URL }}{% static 'pharma-favicon.svg' %}{% endblock %}">
+    <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{% block twitter_title %}{{ SITE_NAME|default:'PharmaWeb' }}{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}{{ SITE_DESCRIPTION|default:'فروشگاه آنلاین دارو و تجهیزات پزشکی' }}{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{{ SITE_URL }}{% static 'pharma-favicon.svg' %}{% endblock %}">
+  {% endblock %}
+  
+  {# --- Search engine verification tags (from settings via context processor) --- #}
+  {% if GOOGLE_SITE_VERIFICATION %}
+    <meta name="google-site-verification" content="{{ GOOGLE_SITE_VERIFICATION }}" />
+  {% endif %}
+  {% if BING_SITE_VERIFICATION %}
+    <meta name="msvalidate.01" content="{{ BING_SITE_VERIFICATION }}" />
+  {% endif %}
+  
+  {# --- Per-page extra head content hook (child templates already use this) --- #}
+  {% block extra_head %}{% endblock %}
+  
+  <!-- Favicon & PWA -->
+  <link rel="icon" type="image/svg+xml" href="{% static 'pharma-favicon.svg' %}">
+  <link rel="manifest" href="{% static 'pharma-manifest.json' %}">
+  <meta name="theme-color" content="#667eea">
+
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" crossorigin="anonymous">
+
+  <!-- Project CSS -->
+  <link href="{% static 'css/pharma-styles.css' %}" rel="stylesheet">
+  <link href="{% static 'css/pharma-icons.css' %}" rel="stylesheet">
+
+  {# --- JSON-LD structured data: allow page to inject its own; else provide Organization/Store --- #}
+  {% block structured_data %}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "{{ SITE_NAME|default:'PharmaWeb' }}",
+      "url": "{{ SITE_URL|default:request.build_absolute_uri|default:'' }}",
+      "logo": "{{ SITE_URL }}{% static 'pharma-favicon.svg' %}"
+    }
+    </script>
+  {% endblock %}
+
+  {# --- Google Analytics (gtag.js) minimal, only if ID is set) --- #}
+  {% if GOOGLE_ANALYTICS_ID %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ GOOGLE_ANALYTICS_ID }}"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);} gtag('js', new Date());
+      gtag('config', '{{ GOOGLE_ANALYTICS_ID }}');
+    </script>
+  {% endif %}
+
+  <style>
+    /* Enhanced Modern Navigation Theme */
+    :root {
+      --primary: #667eea;
+      --primary-dark: #5a67d8;
+      --primary-light: #764ba2;
+      --secondary: #f093fb;
+      --accent: #4facfe;
+      --success: #00f5a0;
+      --warning: #ffd65c;
+      --danger: #ff6b6b;
+      --muted: #8492a6;
+      --card-radius: 16px;
+      --glass: rgba(255,255,255,0.1);
+      --glass-dark: rgba(0,0,0,0.1);
+      --shadow-soft: 0 8px 32px rgba(103, 126, 234, 0.15);
+      --shadow-glow: 0 0 30px rgba(103, 126, 234, 0.3);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --blur: blur(20px);
+    }
+
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      background-attachment: fixed;
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      color: #2d3748;
+      -webkit-font-smoothing: antialiased;
+      font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      min-height: 100vh;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Enhanced Navbar */
+    .site-header {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%) !important;
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1030;
+      transition: var(--transition);
+    }
+
+    .site-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+    }
+
+    /* Enhanced Brand */
+    .navbar-brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      font-size: 1.5rem;
+      background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: var(--transition);
+      position: relative;
+    }
+
+    .navbar-brand::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--secondary));
+      transition: width 0.3s ease;
+    }
+
+    .navbar-brand:hover::after {
+      width: 100%;
+    }
+
+    .navbar-brand i {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--secondary) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 2px 4px rgba(79, 172, 254, 0.3));
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    /* Enhanced Navigation Links */
+    .navbar-nav .nav-link {
+      color: rgba(255, 255, 255, 0.9) !important;
+      font-weight: 500;
+      padding: 0.75rem 1rem !important;
+      border-radius: 12px;
+      margin: 0 0.25rem;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .navbar-nav .nav-link::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .navbar-nav .nav-link:hover {
+      color: white !important;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .navbar-nav .nav-link:hover::before {
+      left: 100%;
+    }
+
+    /* Enhanced Search Bar */
+    .search-container {
+      position: relative;
+      max-width: 420px;
+    }
+
+    .search-container .input-group {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 25px;
+      overflow: hidden;
+      transition: var(--transition);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .search-container .input-group:focus-within {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(255, 255, 255, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .search-container input {
+      background: transparent !important;
+      border: none !important;
+      color: white !important;
+      font-weight: 500;
+      padding: 0.75rem 1.25rem !important;
+    }
+
+    .search-container input::placeholder {
+      color: rgba(255, 255, 255, 0.7) !important;
+    }
+
+    .search-container input:focus {
+      box-shadow: none !important;
+      outline: none !important;
+    }
+
+    .search-container .btn {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--secondary) 100%);
+      border: none;
+      color: white;
+      padding: 0.75rem 1.25rem;
+      transition: var(--transition);
+    }
+
+    .search-container .btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(79, 172, 254, 0.4);
+    }
+
+    /* Enhanced Language Selector */
+    .lang-selector {
+      position: relative;
+    }
+
+    .lang-toggle {
+      background: rgba(255, 255, 255, 0.1) !important;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      color: white !important;
+      border-radius: 12px !important;
+      padding: 0.5rem 1rem !important;
+      font-weight: 600;
+      min-width: 4.5rem;
+      transition: var(--transition);
+    }
+
+    .lang-toggle:hover {
+      background: rgba(255, 255, 255, 0.15) !important;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .lang-list {
+      background: rgba(255, 255, 255, 0.95) !important;
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px !important;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+      overflow: hidden;
+      transform: translateY(8px);
+    }
+
+    .lang-list .btn-lang {
+      color: #2d3748 !important;
+      font-weight: 500;
+      transition: var(--transition);
+      border-radius: 0 !important;
+    }
+
+    .lang-list .btn-lang:hover {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%) !important;
+      color: white !important;
+    }
+
+    .lang-list .btn-lang.active {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--secondary) 100%) !important;
+      color: white !important;
+    }
+
+    /* Enhanced Cart Badge */
+    .cart-link {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      transition: var(--transition);
+      color: white !important;
+      text-decoration: none;
+    }
+
+    .cart-link:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      color: white !important;
+    }
+
+    .cart-link i {
+      font-size: 1.2rem;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    }
+
+    .badge-cart {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      min-width: 24px;
+      height: 24px;
+      line-height: 22px;
+      font-size: 11px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--danger) 0%, #ff8a80 100%);
+      border: 2px solid white;
+      border-radius: 50%;
+      box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+      animation: cartBounce 0.6s ease;
+    }
+
+    @keyframes cartBounce {
+      0%, 20%, 53%, 80%, 100% { transform: translate3d(0,0,0); }
+      40%, 43% { transform: translate3d(0,-8px,0); }
+      70% { transform: translate3d(0,-4px,0); }
+      90% { transform: translate3d(0,-2px,0); }
+    }
+
+    /* Enhanced User Actions */
+    .user-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .btn-auth {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 12px;
+      font-weight: 500;
+      transition: var(--transition);
+      text-decoration: none;
+    }
+
+    .btn-auth:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-logout {
+      background: linear-gradient(135deg, rgba(255, 107, 107, 0.8) 0%, rgba(255, 138, 128, 0.8) 100%);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 12px;
+      font-weight: 500;
+      transition: var(--transition);
+    }
+
+    .btn-logout:hover {
+      background: linear-gradient(135deg, var(--danger) 0%, #ff8a80 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+    }
+
+    /* Enhanced Mobile Menu */
+    .navbar-toggler {
+      border: none;
+      padding: 0.5rem;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      transition: var(--transition);
+    }
+
+    .navbar-toggler:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: scale(1.05);
+    }
+
+    .navbar-toggler-icon {
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.8%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='m4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+    }
+
+    /* Enhanced Responsive Design */
+    @media (max-width: 991px) {
+      .navbar-collapse {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        border-radius: 16px;
+        margin-top: 1rem;
+        padding: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .navbar-nav .nav-link {
+        margin: 0.25rem 0;
+        padding: 0.75rem 1rem !important;
+        border-radius: 12px;
+      }
+
+      .search-container {
+        margin: 1rem 0;
+        max-width: 100%;
+      }
+
+      .user-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .btn-auth, .btn-logout {
+        width: 100%;
+        text-align: center;
+      }
+    }
+
+    /* Toast Enhancements */
+    .toast-container { 
+      position: fixed; 
+      z-index: 1080; 
+      top: 1rem;
+      left: 50%; 
+      transform: translateX(-50%); 
+    }
+
+    .toast {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    /* RTL/LTR Enhancements */
+    [dir="rtl"] .navbar-nav {
+      margin-right: auto;
+      margin-left: 0;
+    }
+    
+    [dir="rtl"] .ms-3 {
+      margin-right: 1rem !important;
+      margin-left: 0 !important;
+    }
+    
+    [dir="rtl"] .me-2 {
+      margin-left: 0.5rem !important;
+      margin-right: 0 !important;
+    }
+
+    [dir="rtl"] .cart-link .badge-cart {
+      right: auto;
+      left: -8px;
+    }
+
+    /* Scrollbar Enhancement */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+    }
+  </style>
+</head>
+<body>
+  {% load pharma_icons %}
+  {% load_pharma_icons %}
+  <!-- Header / Navbar -->
+  <nav class="navbar navbar-expand-lg site-header">
+    <div class="container-fluid">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}">
+        <i class="fa-solid fa-capsules fa-lg"></i>
+        <span>PharmaWeb</span>
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="mainNav">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'buy_medicine' %}">
+              <i class="fas fa-pills me-2"></i>خرید دارو
+            </a>
+          </li>
+          {% if user.is_authenticated %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'cart_view' %}">
+                <i class="fas fa-shopping-cart me-2"></i>سبد خرید
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'profile' %}">
+                <i class="fas fa-user me-2"></i>پروفایل
+              </a>
+            </li>
+          {% endif %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'guide' %}">
+              <i class="fas fa-book me-2"></i>راهنما
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'support' %}">
+              <i class="fas fa-headset me-2"></i>پشتیبانی
+            </a>
+          </li>
+        </ul>
+        
+        <!-- Enhanced Search -->
+        <div class="search-container me-3">
+          <form class="d-flex" method="get" action="{% url 'buy_medicine' %}" role="search" aria-label="جستجو">
+            <div class="input-group">
+              <input name="q" value="{{ request.GET.q|default:'' }}" 
+                     class="form-control" 
+                     placeholder="جستجوی دارو، توضیح یا کد" 
+                     aria-label="جستجو" 
+                     autocomplete="off">
+              <button class="btn" type="submit" title="جستجو">
+                <i class="fa-solid fa-search"></i>
+              </button>
+              {% if request.GET.q %}
+                <a href="{% url 'buy_medicine' %}" class="btn btn-outline-light" title="پاک کردن جستجو">
+                  <i class="fa-solid fa-xmark"></i>
+                </a>
+              {% endif %}
+            </div>
+          </form>
+        </div>
+
+        <!-- Enhanced Language Selector -->
+        {% with current=request.session.language|default:'fa' %}
+        <div class="lang-selector me-3">
+          <form id="langForm" method="post" action="{% url 'set_language' %}">
+            {% csrf_token %}
+            <input type="hidden" name="lang" id="langInput" value="{{ current }}">
+            <div class="position-relative">
+              <button type="button" id="langToggle" class="btn lang-toggle d-flex align-items-center justify-content-between" 
+                      aria-expanded="false" aria-controls="langList" title="تغییر زبان">
+                <span class="fw-bold">{{ current|upper }}</span>
+                <i class="fa-solid fa-caret-down ms-2"></i>
+              </button>
+
+              <ul id="langList" class="lang-list" role="menu"
+                  style="position:absolute; right:0; top:calc(100% + 0.5rem); min-width:10rem; border-radius:16px; padding:0.5rem; margin:0; list-style:none; overflow:hidden; max-height:0; opacity:0; transition: max-height .25s ease, opacity .25s ease; z-index:1020;">
+                <li role="none">
+                  <button type="button" role="menuitem"
+                          class="btn btn-lang w-100 text-start p-2 {% if current == 'fa' %}active{% endif %}"
+                          data-lang="fa" title="فارسی" aria-pressed="{% if current == 'fa' %}true{% else %}false{% endif %}">
+                    <i class="fas fa-flag me-2"></i>
+                    <span>فارسی</span>
+                  </button>
+                </li>
+                <li role="none">
+                  <button type="button" role="menuitem"
+                          class="btn btn-lang w-100 text-start p-2 {% if current == 'en' %}active{% endif %}"
+                          data-lang="en" title="English" aria-pressed="{% if current == 'en' %}true{% else %}false{% endif %}">
+                    <i class="fas fa-flag me-2"></i>
+                    <span>English</span>
+                  </button>
+                </li>
+                <li role="none">
+                  <button type="button" role="menuitem"
+                          class="btn btn-lang w-100 text-start p-2 {% if current == 'tr' %}active{% endif %}"
+                          data-lang="tr" title="Türkçe" aria-pressed="{% if current == 'tr' %}true{% else %}false{% endif %}">
+                    <i class="fas fa-flag me-2"></i>
+                    <span>Türkçe</span>
+                  </button>
+                </li>
+                <li role="none">
+                  <button type="button" role="menuitem"
+                          class="btn btn-lang w-100 text-start p-2 {% if current == 'ar' %}active{% endif %}"
+                          data-lang="ar" title="العربية" aria-pressed="{% if current == 'ar' %}true{% else %}false{% endif %}">
+                    <i class="fas fa-flag me-2"></i>
+                    <span>العربية</span>
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </form>
+        </div>
+        {% endwith %}
+
+        <!-- Enhanced Cart & User Actions -->
+        <div class="user-actions">
+          <a class="cart-link" href="{% url 'cart_view' %}" title="سبد خرید">
+            <i class="fa-solid fa-cart-shopping"></i>
+            {% with cart_count=request.session.cart|length %}
+            {% if cart_count > 0 %}
+            <span class="badge badge-cart">
+              {{ cart_count }}
+            </span>
+            {% endif %}
+            {% endwith %}
+          </a>
+
+          {% if user.is_authenticated %}
+            <form method="post" action="{% url 'logout_view' %}" class="d-inline">
+              {% csrf_token %}
+              <button class="btn btn-logout" type="submit">
+                <i class="fas fa-sign-out-alt me-2"></i>خروج
+              </button>
+            </form>
+          {% else %}
+            <a class="btn-auth" href="{% url 'login_view' %}">
+              <i class="fas fa-sign-in-alt me-2"></i>ورود
+            </a>
+            <a class="btn-auth" href="{% url 'register_view' %}">
+              <i class="fas fa-user-plus me-2"></i>ثبت‌نام
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Enhanced Toasts container -->
+  <div class="toast-container" aria-live="polite" aria-atomic="true">
+    <div id="flashToast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body fw-semibold" id="flashBody">پیام</div>
+        <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="بستن"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Enhanced Toast container for add-to-cart notifications -->
+  <div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 1080;">
+    <div id="cart-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="8000">
+      <div class="toast-header bg-success text-white">
+        <i class="fas fa-check-circle me-2"></i>
+        <strong class="me-auto">سبد خرید</strong>
+        <small class="text-white-50">اکنون</small>
+        <button type="button" class="btn-close btn-close-white ms-2 mb-1" data-bs-dismiss="toast" aria-label="بستن"></button>
+      </div>
+      <div class="toast-body fw-semibold" id="cart-toast-body">
+        محصول به سبد اضافه شد
+      </div>
+    </div>
+  </div>
+
+  <!-- Main content with enhanced spacing -->
+  <main style="min-height: calc(100vh - 200px); background: transparent;">
+      {% for message in messages %}
+        <div class="container">
+          <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show rounded-4 shadow-sm border-0 mb-4" role="alert">
+            <div class="d-flex align-items-center">
+              {% if message.tags == 'success' %}
+                <i class="fas fa-check-circle me-3 text-success"></i>
+              {% elif message.tags == 'error' %}
+                <i class="fas fa-exclamation-triangle me-3 text-danger"></i>
+              {% elif message.tags == 'warning' %}
+                <i class="fas fa-exclamation-circle me-3 text-warning"></i>
+              {% else %}
+                <i class="fas fa-info-circle me-3 text-info"></i>
+              {% endif %}
+              <span class="fw-semibold">{{ message }}</span>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="بستن"></button>
+          </div>
+        </div>
+      {% endfor %}
+      {% block content %}{% endblock %}
+  </main>
+
+  <!-- Enhanced Footer -->
+  <footer class="mt-auto border-top-0" style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 255, 255, 0.1);">
+    <div class="container py-5">
+      <div class="row align-items-center">
+        <div class="col-md-6">
+          <div class="d-flex align-items-center gap-3 mb-3 mb-md-0">
+            <div class="p-3 rounded-circle" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);">
+              <i class="fa-solid fa-capsules text-white fa-lg"></i>
+            </div>
+            <div>
+              <h5 class="text-white mb-1 fw-bold">PharmaWeb</h5>
+              <p class="text-white-50 mb-0 small">مرجع تخصصی دارو و سلامت</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="d-flex justify-content-md-end gap-4">
+            <a class="text-white-50 text-decoration-none fw-semibold transition-hover" href="{% url 'guide' %}" 
+               style="transition: var(--transition);"
+               onmouseover="this.style.color='white'; this.style.transform='translateY(-1px)'"
+               onmouseout="this.style.color='rgba(255,255,255,0.5)'; this.style.transform='translateY(0)'">
+              <i class="fas fa-shield-alt me-2"></i>حریم خصوصی
+            </a>
+            <a class="text-white-50 text-decoration-none fw-semibold transition-hover" href="{% url 'support' %}"
+               style="transition: var(--transition);"
+               onmouseover="this.style.color='white'; this.style.transform='translateY(-1px)'"
+               onmouseout="this.style.color='rgba(255,255,255,0.5)'; this.style.transform='translateY(0)'">
+              <i class="fas fa-envelope me-2"></i>تماس با ما
+            </a>
+          </div>
+        </div>
+      </div>
+      <hr style="border-color: rgba(255, 255, 255, 0.1); margin: 2rem 0 1rem;">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <p class="text-white-50 mb-0 small">
+            © {% now "Y" %} PharmaWeb — تمام حقوق محفوظ است. 
+            <span class="d-none d-md-inline">ساخته شده با ❤️ برای سلامت شما</span>
+          </p>
+        </div>
+        <div class="col-md-4">
+          <div class="d-flex justify-content-md-end gap-3 mt-2 mt-md-0">
+            <div class="p-2 rounded-circle bg-white bg-opacity-10 transition-hover" 
+                 style="transition: var(--transition); cursor: pointer;"
+                 onmouseover="this.style.transform='scale(1.1)'; this.style.backgroundColor='rgba(255,255,255,0.2)'"
+                 onmouseout="this.style.transform='scale(1)'; this.style.backgroundColor='rgba(255,255,255,0.1)'">
+              <i class="fab fa-telegram text-white"></i>
+            </div>
+            <div class="p-2 rounded-circle bg-white bg-opacity-10 transition-hover" 
+                 style="transition: var(--transition); cursor: pointer;"
+                 onmouseover="this.style.transform='scale(1.1)'; this.style.backgroundColor='rgba(255,255,255,0.2)'"
+                 onmouseout="this.style.transform='scale(1)'; this.style.backgroundColor='rgba(255,255,255,0.1)'">
+              <i class="fab fa-whatsapp text-white"></i>
+            </div>
+            <div class="p-2 rounded-circle bg-white bg-opacity-10 transition-hover" 
+                 style="transition: var(--transition); cursor: pointer;"
+                 onmouseover="this.style.transform='scale(1.1)'; this.style.backgroundColor='rgba(255,255,255,0.2)'"
+                 onmouseout="this.style.transform='scale(1)'; this.style.backgroundColor='rgba(255,255,255,0.1)'">
+              <i class="fas fa-phone text-white"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <script>
+    // Enhanced Navigation JavaScript
+    document.addEventListener('DOMContentLoaded', function () {
+      // Enhanced Language Selector
+      const langForm = document.getElementById('langForm');
+      const langToggle = document.getElementById('langToggle');
+      const langList = document.getElementById('langList');
+
+      if (langToggle && langList) {
+        function openLangList() {
+          langList.style.maxHeight = (langList.scrollHeight + 16) + 'px';
+          langList.style.opacity = '1';
+          langList.style.transform = 'translateY(0)';
+          langToggle.setAttribute('aria-expanded', 'true');
+          langToggle.querySelector('i').style.transform = 'rotate(180deg)';
+        }
+
+        function closeLangList() {
+          langList.style.maxHeight = '0';
+          langList.style.opacity = '0';
+          langList.style.transform = 'translateY(-8px)';
+          langToggle.setAttribute('aria-expanded', 'false');
+          langToggle.querySelector('i').style.transform = 'rotate(0deg)';
+        }
+
+        langToggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const expanded = langToggle.getAttribute('aria-expanded') === 'true';
+          if (expanded) closeLangList(); else openLangList();
+        });
+
+        // Close when clicking outside
+        document.addEventListener('click', function(e) {
+          if (!langForm.contains(e.target)) closeLangList();
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') closeLangList();
+        });
+
+        // Handle language selection
+        document.addEventListener('click', function(e) {
+          const btn = e.target.closest('#langForm .btn[data-lang]');
+          if (!btn) return;
+          document.getElementById('langInput').value = btn.getAttribute('data-lang');
+          document.getElementById('langForm').submit();
+        });
+
+        // Initialize closed state
+        closeLangList();
+      }
+
+      // Enhanced Flash Messages
+      const msgs = [
+        {% for message in messages %}
+          { text: "{{ message|escapejs }}", tags: "{{ message.tags }}" }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+      ];
+
+      if (msgs.length > 0) {
+        const last = msgs[msgs.length - 1];
+        const toastEl = document.getElementById('flashToast');
+        const toastBody = document.getElementById('flashBody');
+        
+        if (toastEl && toastBody) {
+          toastBody.innerText = last.text;
+          
+          // Apply theme based on message type
+          toastEl.className = 'toast align-items-center border-0';
+          if (last.tags.includes('success')) {
+            toastEl.classList.add('text-bg-success');
+          } else if (last.tags.includes('error')) {
+            toastEl.classList.add('text-bg-danger');
+          } else if (last.tags.includes('warning')) {
+            toastEl.classList.add('text-bg-warning');
+          } else {
+            toastEl.classList.add('text-bg-info');
+          }
+          
+          const delay = last.tags && last.tags.split(' ').indexOf('logout') !== -1 ? 8000 : 5000;
+          const toast = new bootstrap.Toast(toastEl, { delay: delay });
+          toast.show();
+        }
+      }
+
+      // Enhanced Logout Confirmation
+      const logoutUrl = "{% url 'logout_view' %}";
+      document.querySelectorAll("form[action='" + logoutUrl + "'] button[type='submit']").forEach(function(el) {
+        el.addEventListener('click', function(evt) {
+          evt.preventDefault();
+          
+          // Create enhanced confirmation modal
+          const modal = document.createElement('div');
+          modal.className = 'position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center';
+          modal.style.cssText = `
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+            animation: fadeIn 0.3s ease;
+          `;
+          
+          modal.innerHTML = `
+            <div class="bg-white rounded-4 p-4 shadow-lg text-center" style="max-width: 400px; animation: slideInUp 0.3s ease;">
+              <div class="text-warning fs-1 mb-3">
+                <i class="fas fa-exclamation-triangle"></i>
+              </div>
+              <h5 class="fw-bold mb-3">تأیید خروج</h5>
+              <p class="text-muted mb-4">آیا مطمئن هستید که می‌خواهید از حساب کاربری خود خارج شوید؟</p>
+              <div class="d-flex gap-3 justify-content-center">
+                <button class="btn btn-danger px-4" onclick="confirmLogout()">
+                  <i class="fas fa-sign-out-alt me-2"></i>بله، خروج
+                </button>
+                <button class="btn btn-secondary px-4" onclick="cancelLogout()">
+                  <i class="fas fa-times me-2"></i>انصراف
+                </button>
+              </div>
+            </div>
+          `;
+          
+          document.body.appendChild(modal);
+          
+          window.confirmLogout = function() {
+            const f = el.closest('form');
+            if (f) f.submit();
+            document.body.removeChild(modal);
+          };
+          
+          window.cancelLogout = function() {
+            document.body.removeChild(modal);
+          };
+          
+          // Close on outside click
+          modal.addEventListener('click', function(e) {
+            if (e.target === modal) window.cancelLogout();
+          });
+        });
+      });
+
+      // Enhanced AJAX Add-to-Cart
+      function csrfToken() {
+        const cookieValue = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
+        return cookieValue ? cookieValue.split('=')[1] : '';
+      }
+
+      // Handle add-to-cart buttons
+      document.body.addEventListener('click', function(e) {
+        const el = e.target.closest('.add-to-cart');
+        if (!el) return;
+        e.preventDefault();
+        
+        const url = el.getAttribute('data-url') || el.getAttribute('href');
+        if (!url) return;
+
+        // Add loading state
+        const originalContent = el.innerHTML;
+        el.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>در حال افزودن...';
+        el.disabled = true;
+
+        fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken(),
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: JSON.stringify({})
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.success) {
+            const toastEl = document.getElementById('cart-toast');
+            const toastBody = document.getElementById('cart-toast-body');
+            
+            if (toastEl && toastBody) {
+              toastBody.textContent = data.message || 'محصول به سبد اضافه شد';
+              const bsToast = new bootstrap.Toast(toastEl);
+              bsToast.show();
+            }
+            
+            // Update cart badge with animation
+            const badge = document.querySelector('.badge-cart');
+            if (badge && data.cart_count !== undefined) {
+              badge.textContent = data.cart_count;
+              badge.style.animation = 'cartBounce 0.6s ease';
+              setTimeout(() => {
+                badge.style.animation = '';
+              }, 600);
+            }
+            
+            // Success feedback on button
+            el.innerHTML = '<i class="fas fa-check me-2"></i>اضافه شد!';
+            el.classList.add('btn-success');
+            setTimeout(() => {
+              el.innerHTML = originalContent;
+              el.classList.remove('btn-success');
+              el.disabled = false;
+            }, 2000);
+          }
+        })
+        .catch(err => {
+          console.error('Add to cart failed', err);
+          el.innerHTML = originalContent;
+          el.disabled = false;
+        });
+      });
+
+      // Enhanced Navbar Scroll Effect
+      let lastScrollTop = 0;
+      const navbar = document.querySelector('.site-header');
+      
+      window.addEventListener('scroll', function() {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        
+        if (scrollTop > lastScrollTop && scrollTop > 100) {
+          // Scrolling down
+          navbar.style.transform = 'translateY(-100%)';
+        } else {
+          // Scrolling up
+          navbar.style.transform = 'translateY(0)';
+        }
+        
+        // Add/remove backdrop blur based on scroll
+        if (scrollTop > 50) {
+          navbar.style.backdropFilter = 'blur(20px)';
+          navbar.style.background = 'linear-gradient(135deg, rgba(102, 126, 234, 0.98) 0%, rgba(118, 75, 162, 0.98) 100%)';
+        } else {
+          navbar.style.backdropFilter = 'blur(10px)';
+          navbar.style.background = 'linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%)';
+        }
+        
+        lastScrollTop = scrollTop;
+      }, { passive: true });
+
+      // Add CSS animations
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideInUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .site-header {
+          transition: transform 0.3s ease, backdrop-filter 0.3s ease, background 0.3s ease;
+        }
+      `;
+      document.head.appendChild(style);
+    });
+  </script>
+  
+  {% block scripts %}{% endblock %}
+  {% include 'chat_widget.html' %}
+</body>
+</html>

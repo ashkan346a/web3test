@@ -1,0 +1,518 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}پنل مدیریت — PharmaWeb{% endblock %}
+{% block content %}
+<div class="container my-5" dir="rtl">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold mb-0">پنل مدیریت</h3>
+      <div class="text-muted small">نمای کلی، مدیریت سفارش‌ها، محصولات، کاربران و گزارش‌ها</div>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm">مشاهده سایت</a>
+      <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#quickCreateModal">
+        <i class="fa-solid fa-plus me-1"></i> عملیات سریع
+      </button>
+    </div>
+  </div>
+
+  <!-- Overview Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+      <div class="card shadow-sm rounded-4 p-3">
+        <div class="d-flex align-items-center">
+          <div class="bg-primary text-white rounded-3 p-2 me-3"><i class="fa-solid fa-receipt fa-lg"></i></div>
+          <div>
+            <div class="small text-muted">سفارش‌ها (امروز)</div>
+            <div class="fw-bold fs-5">{{ stats.orders_today|default:0 }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+      <div class="card shadow-sm rounded-4 p-3">
+        <div class="d-flex align-items-center">
+          <div class="bg-success text-white rounded-3 p-2 me-3"><i class="fa-solid fa-dollar-sign fa-lg"></i></div>
+          <div>
+            <div class="small text-muted">فروش (۷ روز)</div>
+            <div class="fw-bold fs-5">{{ stats.sales_7d|default:"0.00" }} $</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+      <div class="card shadow-sm rounded-4 p-3">
+        <div class="d-flex align-items-center">
+          <div class="bg-warning text-dark rounded-3 p-2 me-3"><i class="fa-solid fa-boxes-stacked fa-lg"></i></div>
+          <div>
+            <div class="small text-muted">محصولات</div>
+            <div class="fw-bold fs-5">{{ stats.products_count|default:0 }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+      <div class="card shadow-sm rounded-4 p-3">
+        <div class="d-flex align-items-center">
+          <div class="bg-info text-white rounded-3 p-2 me-3"><i class="fa-solid fa-users fa-lg"></i></div>
+          <div>
+            <div class="small text-muted">کاربران فعال</div>
+            <div class="fw-bold fs-5">{{ stats.active_users|default:0 }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main layout: Left (content) / Right (controls) -->
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <!-- Tabs -->
+      <div class="card shadow-sm rounded-4">
+        <div class="card-body">
+          <ul class="nav nav-tabs mb-3" id="adminTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="tab-dashboard" data-bs-toggle="tab" data-bs-target="#pane-dashboard" type="button" role="tab">داشبورد</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="tab-orders" data-bs-toggle="tab" data-bs-target="#pane-orders" type="button" role="tab">سفارش‌ها</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="tab-products" data-bs-toggle="tab" data-bs-target="#pane-products" type="button" role="tab">محصولات</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="tab-users" data-bs-toggle="tab" data-bs-target="#pane-users" type="button" role="tab">کاربران</button>
+            </li>
+            <li class="nav-item ms-auto" role="presentation">
+              <button class="btn btn-outline-secondary btn-sm" id="refreshBtn" type="button" onclick="location.reload();"><i class="fa-solid fa-arrows-rotate"></i> تازه‌سازی</button>
+            </li>
+          </ul>
+
+          <div class="tab-content">
+            <!-- Dashboard -->
+            <div class="tab-pane fade show active" id="pane-dashboard" role="tabpanel">
+              <div class="row g-3">
+                <div class="col-md-8">
+                  <div class="card p-3 rounded-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <div class="small text-muted">فروش روزانه (۳۰ روز)</div>
+                      <div class="small text-muted">مقدار: <strong>{{ stats.sales_30d|default:"0.00" }} $</strong></div>
+                    </div>
+                    <canvas id="salesChart" height="160"></canvas>
+                  </div>
+                </div>
+
+                <div class="col-md-4">
+                  <div class="card p-3 rounded-4 h-100">
+                    <div class="small text-muted mb-2">آخرین فعالیت‌ها</div>
+                    <ul class="list-unstyled mb-0 small">
+                      {% for act in recent_activities|default:[]|slice:":6" %}
+                        <li class="mb-2">
+                          <div class="fw-semibold">{{ act.title }}</div>
+                          <div class="text-muted">{{ act.time|default:"—" }}</div>
+                        </li>
+                      {% empty %}
+                        <li class="text-muted">فعالیتی وجود ندارد.</li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-3">
+                <h6 class="fw-bold mb-2">نمودار توزیع وضعیت سفارش‌ها</h6>
+                <div class="card p-3 rounded-4">
+                  <canvas id="ordersDonut" height="120"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- Orders -->
+            <div class="tab-pane fade" id="pane-orders" role="tabpanel">
+              <div class="d-flex gap-2 mb-3">
+                <form method="get" class="d-flex gap-2 w-100" id="ordersFilter">
+                  <input name="q" value="{{ request.GET.q|default:'' }}" class="form-control form-control-sm" placeholder="جستجو شماره سفارش یا کاربر">
+                  <select name="status" class="form-select form-select-sm" style="max-width:160px;">
+                    <option value="">همه وضعیت‌ها</option>
+                    <option value="pending">در حال پردازش</option>
+                    <option value="processing">در حال آماده‌سازی</option>
+                    <option value="shipped">ارسال‌شده</option>
+                    <option value="delivered">تحویل‌شده</option>
+                    <option value="cancelled">لغو شده</option>
+                  </select>
+                  <button class="btn btn-primary btn-sm" type="submit">اعمال فیلتر</button>
+                </form>
+              </div>
+
+              <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                  <thead class="table-light">
+                    <tr>
+                      <th><input id="selectAllOrders" type="checkbox"></th>
+                      <th>شماره</th>
+                      <th>کاربر</th>
+                      <th>تاریخ</th>
+                      <th>مبلغ</th>
+                      <th>وضعیت</th>
+                      <th class="text-end">عملیات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for o in orders|default:[] %}
+                      <tr>
+                        <td><input class="rowCheckbox" type="checkbox" value="{{ o.id }}"></td>
+                        <td>#{{ o.id }}</td>
+                        <td>{{ o.user_name|default:o.user_email|default:"مهمان" }}</td>
+                        <td class="small text-muted">{{ o.created_at|date:"Y/m/d H:i" }}</td>
+                        <td class="fw-semibold">${{ o.total|floatformat:2 }}</td>
+                        <td>
+                          {% if o.status == 'delivered' %}<span class="badge bg-success">تحویل‌شده</span>
+                          {% elif o.status == 'shipped' %}<span class="badge bg-info text-dark">ارسال‌شده</span>
+                          {% elif o.status == 'processing' %}<span class="badge bg-warning text-dark">آماده‌سازی</span>
+                          {% elif o.status == 'cancelled' %}<span class="badge bg-danger">لغو</span>
+                          {% else %}<span class="badge bg-secondary">در حال پردازش</span>{% endif %}
+                        </td>
+                        <td class="text-end">
+                          <a href="{% url 'admin:order_detail' o.id %}" class="btn btn-sm btn-outline-primary">جزئیات</a>
+                          <button class="btn btn-sm btn-outline-danger" onclick="bulkActionSingle('cancel', {{ o.id }})">لغو</button>
+                        </td>
+                      </tr>
+                    {% empty %}
+                      <tr><td colspan="7" class="text-center text-muted">سفارشی یافت نشد.</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center mt-3">
+                <div>
+                  <div class="btn-group btn-group-sm" role="group">
+                    <button class="btn btn-outline-secondary" onclick="bulkAction('export')">صدور</button>
+                    <button class="btn btn-outline-danger" onclick="bulkAction('cancel')">لغو انتخاب‌شده</button>
+                    <button class="btn btn-outline-success" onclick="bulkAction('mark_shipped')">علامت ارسال</button>
+                  </div>
+                </div>
+                <div>
+                  {% if is_paginated %}
+                    <nav aria-label="پیمایش" class="d-inline-block">
+                      <ul class="pagination pagination-sm mb-0">
+                        {% if page_obj.has_previous %}
+                          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">قبلی</a></li>
+                        {% else %}<li class="page-item disabled"><span class="page-link">قبلی</span></li>{% endif %}
+                        <li class="page-item disabled"><span class="page-link">صفحه {{ page_obj.number }} از {{ page_obj.paginator.num_pages }}</span></li>
+                        {% if page_obj.has_next %}
+                          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">بعدی</a></li>
+                        {% else %}<li class="page-item disabled"><span class="page-link">بعدی</span></li>{% endif %}
+                      </ul>
+                    </nav>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Products -->
+            <div class="tab-pane fade" id="pane-products" role="tabpanel">
+              <div class="d-flex gap-2 mb-3">
+                <a class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#productModal"><i class="fa-solid fa-plus me-1"></i> افزودن محصول</a>
+                <form method="get" class="d-flex gap-2 w-100">
+                  <input name="q" value="{{ request.GET.q|default:'' }}" class="form-control form-control-sm" placeholder="جستجو نام یا شناسه محصول">
+                  <button class="btn btn-outline-primary btn-sm" type="submit">جستجو</button>
+                </form>
+              </div>
+
+              <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                  <thead class="table-light">
+                    <tr>
+                      <th>تصویر</th>
+                      <th>نام</th>
+                      <th>قیمت</th>
+                      <th>موجودی</th>
+                      <th>دسته</th>
+                      <th class="text-end">عملیات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for p in products|default:[] %}
+                      <tr>
+                        <td style="width:72px;">
+                          <img src="{% static p.image|default:'images/default.jpg' %}" alt="{{ p.name }}" class="img-fluid rounded" style="height:56px;object-fit:cover;">
+                        </td>
+                        <td>{{ p.name }}</td>
+                        <td class="fw-semibold">${{ p.price|floatformat:2 }}</td>
+                        <td>{{ p.stock|default:0 }}</td>
+                        <td>{{ p.category_name|default:"—" }}</td>
+                        <td class="text-end">
+                          <a href="{% url 'admin:product_edit' p.id %}" class="btn btn-sm btn-outline-secondary">ویرایش</a>
+                          <button class="btn btn-sm btn-outline-danger" onclick="confirmDeleteProduct({{ p.id }}, '{{ p.name|escapejs }}')">حذف</button>
+                        </td>
+                      </tr>
+                    {% empty %}
+                      <tr><td colspan="6" class="text-center text-muted">محصولی یافت نشد.</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Users -->
+            <div class="tab-pane fade" id="pane-users" role="tabpanel">
+              <div class="d-flex gap-2 mb-3">
+                <form method="get" class="d-flex gap-2 w-100">
+                  <input name="q" value="{{ request.GET.q|default:'' }}" class="form-control form-control-sm" placeholder="جستجو نام، ایمیل یا موبایل">
+                  <button class="btn btn-outline-primary btn-sm" type="submit">جستجو</button>
+                </form>
+              </div>
+
+              <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                  <thead class="table-light">
+                    <tr>
+                      <th>کاربر</th>
+                      <th>ایمیل / موبایل</th>
+                      <th>نقش</th>
+                      <th>وضعیت</th>
+                      <th class="text-end">عملیات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for u in users|default:[] %}
+                      <tr>
+                        <td class="d-flex align-items-center gap-2">
+                          <img src="{% static u.avatar|default:'images/default-avatar.png' %}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;">
+                          <div>
+                            <div class="fw-semibold">{{ u.name }}</div>
+                            <div class="small text-muted">{{ u.created_at|date:"Y/m/d" }}</div>
+                          </div>
+                        </td>
+                        <td>{{ u.email|default:'—' }}<br><small class="text-muted">{{ u.phone|default:'—' }}</small></td>
+                        <td>{{ u.role|default:'user' }}</td>
+                        <td>{% if u.is_active %}<span class="badge bg-success">فعال</span>{% else %}<span class="badge bg-danger">غیرفعال</span>{% endif %}</td>
+                        <td class="text-end">
+                          <a href="{% url 'admin:user_edit' u.id %}" class="btn btn-sm btn-outline-secondary">ویرایش</a>
+                          <form method="post" action="{% url 'admin:user_toggle' u.id %}" class="d-inline">{% csrf_token %}
+                            <button class="btn btn-sm btn-outline-warning" type="submit">{% if u.is_active %}غیرفعال‌سازی{% else %}فعال‌سازی{% endif %}</button>
+                          </form>
+                        </td>
+                      </tr>
+                    {% empty %}
+                      <tr><td colspan="5" class="text-center text-muted">کاربری یافت نشد.</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div> <!-- tab-content -->
+        </div> <!-- card-body -->
+      </div> <!-- card -->
+    </div>
+
+    <!-- Right column: quick controls, logs, settings -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm rounded-4 mb-3">
+        <div class="card-body">
+          <h6 class="fw-bold mb-2">عملیات سریع</h6>
+          <div class="d-grid gap-2">
+            <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#productModal">افزودن محصول</button>
+            <a href="{% url 'admin:bulk_import' %}" class="btn btn-outline-success">بارگزاری دسته‌ای</a>
+            <a href="{% url 'admin:settings' %}" class="btn btn-outline-secondary">تنظیمات</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="card shadow-sm rounded-4 mb-3">
+        <div class="card-body">
+          <h6 class="fw-bold mb-2">آخرین لاگ‌ها</h6>
+          <ul class="list-unstyled small mb-0" style="max-height:220px;overflow:auto;">
+            {% for l in admin_logs|default:[]|slice:":10" %}
+              <li class="mb-2">
+                <div class="text-muted">{{ l.time|default:"—" }}</div>
+                <div class="fw-semibold">{{ l.title }}</div>
+              </li>
+            {% empty %}
+              <li class="text-muted">لاگی موجود نیست.</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <div class="card shadow-sm rounded-4">
+        <div class="card-body">
+          <h6 class="fw-bold mb-2">نسخه پشتیبان</h6>
+          <p class="small text-muted mb-2">ایجاد یا دانلود بکاپ از دیتابیس و فایل‌ها</p>
+          <form method="post" action="{% url 'admin:backup' %}">{% csrf_token %}
+            <div class="d-grid gap-2">
+              <button class="btn btn-outline-danger btn-sm" type="submit">ایجاد بکاپ</button>
+              <a href="{% url 'admin:download_backup' %}" class="btn btn-outline-secondary btn-sm">دانلود آخرین بکاپ</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modals -->
+  <div class="modal fade" id="quickCreateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4">
+        <div class="modal-header">
+          <h5 class="modal-title">عملیات سریع</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="d-grid gap-2">
+            <a class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#productModal" data-bs-dismiss="modal">افزودن محصول جدید</a>
+            <a class="btn btn-outline-secondary" href="{% url 'admin:new_user' %}">ایجاد کاربر</a>
+            <a class="btn btn-outline-success" href="{% url 'admin:create_order' %}">ثبت سفارش دستی</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Modal (create/edit) -->
+  <div class="modal fade" id="productModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content rounded-4">
+        <form id="productForm" method="post" action="{% url 'admin:product_save' %}" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="modal-header">
+            <h5 class="modal-title">افزودن / ویرایش محصول</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label small">نام محصول</label>
+                <input name="name" type="text" class="form-control" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">دسته</label>
+                <select name="category" class="form-select">
+                  {% for c in categories|default:[] %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small">قیمت ($)</label>
+                <input name="price" type="number" class="form-control" step="0.01" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small">موجودی</label>
+                <input name="stock" type="number" class="form-control" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small">کد محصول (SKU)</label>
+                <input name="sku" type="text" class="form-control">
+              </div>
+              <div class="col-12">
+                <label class="form-label small">توضیحات کوتاه</label>
+                <input name="short_desc" type="text" class="form-control">
+              </div>
+              <div class="col-12">
+                <label class="form-label small">عکس محصول</label>
+                <input name="image" type="file" accept="image/*" class="form-control">
+                <div class="form-text small text-muted">تصاویر بهتر با ابعاد 800x800</div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">انصراف</button>
+            <button class="btn btn-primary" type="submit">ذخیره محصول</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Scripts: Chart.js, bulk actions, confirmations -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // Sales chart
+  const salesCtx = document.getElementById('salesChart')?.getContext('2d');
+  if (salesCtx) {
+    const salesChart = new Chart(salesCtx, {
+      type: 'line',
+      data: {
+        labels: [{% for d in sales_30.labels|default:[] %}'{{ d }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+        datasets: [{ 
+          label: 'فروش روزانه',
+          data: [{% for v in sales_30.data|default:[] %}{{ v }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+          borderColor: '#0d6efd', backgroundColor: 'rgba(13,110,253,0.08)', tension: 0.3, fill: true
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+  }
+
+  // Orders donut
+  const donutCtx = document.getElementById('ordersDonut')?.getContext('2d');
+  if (donutCtx) {
+    const donut = new Chart(donutCtx, {
+      type: 'doughnut',
+      data: {
+        labels: [{% for s in orders_status_labels|default:[] %}'{{ s }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+        datasets: [{
+          data: [{% for v in orders_status_values|default:[] %}{{ v }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+          backgroundColor: ['#198754','#0dcaf0','#ffc107','#dc3545','#6c757d']
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+  }
+
+  // Select all orders
+  const selectAll = document.getElementById('selectAllOrders');
+  selectAll?.addEventListener('change', function () {
+    document.querySelectorAll('.rowCheckbox').forEach(cb => cb.checked = this.checked);
+  });
+
+  // Bulk actions
+  window.bulkAction = function(action) {
+    const ids = Array.from(document.querySelectorAll('.rowCheckbox:checked')).map(i => i.value);
+    if (!ids.length) { alert('هیچ ردیفی انتخاب نشده است.'); return; }
+    if (action === 'cancel' && !confirm('آیا مطمئن به لغو سفارش‌های انتخاب‌شده هستید؟')) return;
+    // POST request helper (fetch)
+    fetch("{% url 'admin:bulk_action' %}", {
+      method: 'POST',
+      headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: action, ids: ids })
+    }).then(r => r.json()).then(resp => {
+      if (resp.ok) location.reload(); else alert(resp.message || 'عملیات ناموفق بود');
+    }).catch(()=> alert('خطا در ارتباط'));
+  };
+
+  window.bulkActionSingle = function(action, id) {
+    if (!confirm('آیا مطمئن هستید؟')) return;
+    fetch("{% url 'admin:bulk_action' %}", {
+      method: 'POST',
+      headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: action, ids: [id] })
+    }).then(r => r.json()).then(resp => { if (resp.ok) location.reload(); else alert(resp.message || 'خطا'); });
+  };
+
+  window.confirmDeleteProduct = function(id, name) {
+    if (!confirm('حذف محصول "'+name+'" قطعی است؟')) return;
+    fetch("{% url 'admin:product_delete' 0 %}".replace('/0/','/'+id+'/'), {
+      method: 'POST',
+      headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+    }).then(r => r.json()).then(resp => { if (resp.ok) location.reload(); else alert(resp.message || 'خطا'); });
+  };
+});
+</script>
+
+<style>
+  .card { border-radius:14px; }
+  .rounded-4 { border-radius:14px !important; }
+  .badge { font-size:0.85rem; }
+  @media (max-width:991px) {
+    .sticky-top { position: static !important; top: auto !important; }
+  }
+</style>
+{% endblock %}

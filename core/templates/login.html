@@ -1,0 +1,380 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}ورود — PharmaWeb{% endblock %}
+{% block content %}
+<div class="login-page" dir="rtl" lang="fa">
+  <div class="login-hero">
+    <div class="hero-inner container d-flex align-items-center">
+      <div class="hero-copy text-white me-4">
+        <h1 class="display-5 fw-bold mb-2">PharmaWeb — ورود به حساب</h1>
+        <hr>
+        <div class="d-flex gap-2">
+          <a href="{% url 'buy_medicine' %}" class="btn btn-light btn-lg text-primary">مشاهده فروشگاه</a>
+          <a href="{% url 'register_view' %}" class="btn btn-light btn-lg text-primary">ثبت نام </a>
+        </div>
+      </div>
+
+      <div class="hero-visual d-none d-lg-block">
+        <!-- Dynamic visual: animated gradient bands and floating pills rendered with CSS only (no external images) -->
+        <div class="visual-shapes" aria-hidden="true">
+          <span class="band band-1"></span>
+          <span class="band band-2"></span>
+          <span class="pill pill-1"></span>
+          <span class="pill pill-2"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container mt-5">
+    <div class="row justify-content-center">
+      <div class="col-xl-8 col-lg-9">
+        <div class="card glass-card shadow-lg overflow-hidden">
+          <div class="row g-0">
+            <!-- left: illustration (desktop) -->
+            <div class="col-md-5 bg-card-visual d-none d-md-flex align-items-center justify-content-center p-4">
+              <div class="w-100 text-center">
+                <div class="pharma-anim mb-3" aria-hidden="true">
+                  <style>
+                  /* enlarged and responsive animation so it fills the visual column */
+                  .pharma-anim{
+                    display:inline-block;
+                    width:320px;
+                    height:220px;
+                    position:relative;
+                    max-width:100%;
+                    margin-inline:auto;
+                    transform-origin:center;
+                    /* slight upscale to better cover the left panel */
+                    transform:scale(1.02);
+                  }
+                  .pharma-anim svg{width:100%;height:100%;display:block}
+                  .pharma-anim .pill{transform-origin:center;animation:float 4.6s ease-in-out infinite}
+                  .pharma-anim .pill.p1{animation-delay:0s}
+                  .pharma-anim .pill.p2{animation-delay:.6s}
+                  .pharma-anim .pill.p3{animation-delay:1.2s}
+                  .pharma-anim .bottle{animation:pop 6s ease-in-out infinite}
+                  @keyframes float{0%{transform:translateY(0)}50%{transform:translateY(-12px)}100%{transform:translateY(0)}}
+                  @keyframes pop{0%{transform:translateY(0) scale(1)}50%{transform:translateY(-8px) scale(1.03)}100%{transform:translateY(0) scale(1)}}
+                  /* small drop shadow + soft glow */
+                  .pharma-anim .glow{filter:blur(8px) opacity(.14)}
+                  /* make it larger on wider screens to better cover the card area */
+                  @media (min-width:992px){
+                    .pharma-anim{width:380px;height:260px; transform:scale(1.03);}
+                  }
+                  @media (max-width:767px){
+                    .pharma-anim{width:220px;height:150px; transform:scale(1);}
+                  }
+                  </style>
+
+                  <svg viewBox="0 0 220 140" role="img" aria-label="انیمیشن دارویی">
+                  <!-- soft background bands -->
+                  <defs>
+                    <linearGradient id="g1" x1="0" x2="1">
+                    <stop offset="0" stop-color="#7c5cff" stop-opacity="0.9"/>
+                    <stop offset="1" stop-color="#0d6efd" stop-opacity="0.9"/>
+                    </linearGradient>
+                    <linearGradient id="g2" x1="0" x2="1">
+                    <stop offset="0" stop-color="#ff9a9e"/>
+                    <stop offset="1" stop-color="#ffd166"/>
+                    </linearGradient>
+                    <filter id="s" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000" flood-opacity="0.12"/>
+                    </filter>
+                  </defs>
+
+                  <!-- background bands -->
+                  <rect x="6" y="6" rx="20" ry="20" width="208" height="60" fill="url(#g1)" opacity="0.16" transform="rotate(-6 110 36)"/>
+                  <rect x="8" y="46" rx="20" ry="20" width="190" height="46" fill="url(#g2)" opacity="0.11" transform="rotate(6 103 69)"/>
+
+                  <!-- floating pills -->
+                  <g transform="translate(18,18)">
+                    <g class="pill p1" transform="translate(20,70)">
+                    <rect x="-30" y="-10" rx="14" ry="14" width="60" height="22" fill="#ff9a9e" stroke="#fff" stroke-width="1.5" filter="url(#s)"/>
+                    <rect x="-2" y="-9" width="22" height="20" rx="10" fill="#fff" opacity="0.12"/>
+                    </g>
+
+                    <g class="pill p2" transform="translate(92,38) rotate(-8)">
+                    <rect x="-28" y="-10" rx="14" ry="14" width="56" height="20" fill="#a1c4fd" stroke="#fff" stroke-width="1.5" filter="url(#s)"/>
+                    <rect x="-12" y="-9" width="22" height="18" rx="9" fill="#fff" opacity="0.12"/>
+                    </g>
+
+                    <g class="pill p3" transform="translate(146,76) rotate(12)">
+                    <rect x="-26" y="-10" rx="13" ry="13" width="52" height="20" fill="#6be48b" stroke="#fff" stroke-width="1.3" filter="url(#s)"/>
+                    <rect x="-6" y="-9" width="18" height="18" rx="9" fill="#fff" opacity="0.12"/>
+                    </g>
+                  </g>
+
+                  <!-- medicine bottle (center-right) -->
+                  <g class="bottle" transform="translate(110,22)">
+                    <!-- bottle shadow/glow -->
+                    <ellipse class="glow" cx="54" cy="94" rx="40" ry="10" fill="#0d6efd"/>
+                    <!-- bottle body -->
+                    <g transform="translate(-20,0)">
+                    <rect x="20" y="30" width="68" height="76" rx="12" ry="12" fill="#ffffff" stroke="#e9eefc" stroke-width="2" />
+                    <rect x="36" y="18" width="40" height="18" rx="6" ry="6" fill="#0d6efd" />
+                    <!-- plus sign on bottle -->
+                    <g transform="translate(53,70)">
+                      <rect x="-12" y="-2.5" width="24" height="5" rx="2.2" fill="#fff"/>
+                      <rect x="-2.5" y="-12" width="5" height="24" rx="2.2" fill="#fff"/>
+                    </g>
+                    <!-- label gradient -->
+                    <rect x="28" y="48" width="52" height="30" rx="6" ry="6" fill="url(#g1)" opacity="0.95" />
+                    <rect x="40" y="56" width="28" height="6" rx="3" fill="#fff" opacity="0.18"/>
+                    </g>
+                  </g>
+                  </svg>
+                </div>
+                <h5 class="text-white fw-bold mb-1">خوش آمدید</h5>
+                <p class="text-white-50 small">ورود با شماره موبایل و رمز عبور — امنیت و سرعت در یک تجربه زیبا.</p>
+              </div>
+            </div>
+
+            <!-- right: form -->
+            <div class="col-md-7 p-4">
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                  <h4 class="mb-0 fw-bold">ورود به حساب کاربری</h4>
+                  <div class="small text-muted">با شماره موبایل و رمز عبور وارد شوید</div>
+                </div>
+                <div class="small text-muted">نیاز به کمک دارید ؟ <a href="{% url 'support' %}">پشتیبانی</a></div>
+              </div>
+
+              {% if form.non_field_errors %}
+                <div class="alert alert-danger small">{{ form.non_field_errors|join:", " }}</div>
+              {% endif %}
+
+              <form id="loginForm" method="post" action="{% url 'login' %}" class="needs-validation" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.GET.next|default:'' }}">
+                <div class="mb-3">
+                  <label class="form-label small">شماره موبایل</label>
+                  <div class="input-group input-lg">
+                    <span class="input-group-text bg-white"><i class="fa-solid fa-mobile-screen-button"></i></span>
+                    <!-- accept international or local formats; server-side validators still apply -->
+                    <input name="phone" type="tel" class="form-control form-control-lg" placeholder="09123456789" required pattern="^\+?\d{9,15}$" value="{{ form.phone.value|default:'' }}">
+                  </div>
+                  {% if form.phone.errors %}
+                    <div class="text-danger small mt-1">{{ form.phone.errors.0 }}</div>
+                  {% endif %}
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label small">رمز عبور</label>
+                  <div class="input-group input-lg">
+                    <input name="password" id="passwordField" type="password" class="form-control form-control-lg" required>
+                    <button class="btn btn-outline-secondary" type="button" id="pwdToggle" aria-label="نمایش رمز"><i class="fa-solid fa-eye"></i></button>
+                  </div>
+                  {% if form.password.errors %}
+                    <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+                  {% endif %}
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="remember" id="rememberMe">
+                    <label class="form-check-label small" for="rememberMe">مرا به خاطر بسپار</label>
+                  </div>
+                  <div>
+                    <a href="{% url 'support' %}" class="small">فراموشی رمز؟</a>
+                  </div>
+                </div>
+
+                <div class="d-grid">
+                  <button id="loginBtn" class="btn btn-primary btn-lg fw-bold py-2" type="submit">
+                    ورود
+                  </button>
+                </div>
+
+                
+
+                <hr class="my-4">
+
+                <div class="text-center small text-muted">
+                  حساب ندارید؟ <a href="{% url 'register_view' %}" class="fw-semibold">ثبت‌نام کنید</a>
+                </div>
+              </form>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- subtle footer -->
+        <div class="text-center mt-3 small text-muted">برای امنیت بیشتر از رمز قوی استفاده کنید. در صورت بروز مشکل با پشتیبانی تماس بگیرید.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- add toast container (render Django messages as toasts) -->
+<div id="toast-area" aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 1200;">
+  {% for msg in messages %}
+    <div class="toast align-items-center text-white border-0 mb-2 {% if msg.tags %}bg-{{ msg.tags }}{% else %}bg-primary{% endif %}" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+      <div class="d-flex">
+        <div class="toast-body small">
+          {{ msg }}
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="بستن"></button>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<!-- Styles -->
+<style>
+  /* filepath: c:\Users\win11\Documents\GitHub\emptyprjph\core\templates\login.html
+     Upgraded visuals: animated hero gradient, entrance animation, password meter */
+  :root{ --accent:#0d6efd; --glass: rgba(255,255,255,0.85); --muted:#6c757d; }
+
+  /* animated background band behind hero */
+  .login-hero {
+    position: relative;
+    overflow: hidden;
+  }
+  .login-hero::after{
+    content: "";
+    position: absolute;
+    inset: -20% -10% -10% -10%;
+    background: linear-gradient(120deg, rgba(255,255,255,0.03), rgba(255,255,255,0.06));
+    pointer-events: none;
+    transform: rotate(-8deg);
+    filter: blur(20px) saturate(120%);
+    mix-blend-mode: overlay;
+  }
+
+  /* subtle moving gradient */
+  .login-hero .hero-inner { position: relative; z-index: 2; }
+  .login-hero { animation: heroShift 12s linear infinite; }
+  @keyframes heroShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* entrance / pop for the glass card */
+  .glass-card { transform-origin: center top; animation: popIn .42s cubic-bezier(.2,.9,.2,1); }
+  @keyframes popIn {
+    0% { transform: translateY(8px) scale(.995); opacity: 0; }
+    60% { transform: translateY(-6px) scale(1.02); opacity: 1; }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
+  }
+
+  /* password strength meter */
+  .pwd-meter { height: 6px; background: rgba(0,0,0,0.06); border-radius: 4px; overflow: hidden; margin-top:6px; }
+  .pwd-meter > i { display:block; height:100%; width:0%; background: linear-gradient(90deg,#ff6b6b,#ffd166,#6be48b); transition: width .18s ease; }
+
+  /* small shake helper for invalid submit */
+  .shake { animation: shakeX .38s ease; }
+  @keyframes shakeX {
+    0%{ transform: translateX(0); } 25%{ transform: translateX(-6px); } 50%{ transform: translateX(6px); } 75%{ transform: translateX(-4px); } 100%{ transform: translateX(0); }
+  }
+
+  /* improved hero visuals fallback sizing */
+  .hero-visual img { max-width:220px; opacity: .98; transform: translateY(-6px); }
+  @media (max-width:767px){ .hero-copy h1{font-size:1.6rem;} .hero-visual img{max-width:110px;} }
+
+  /* add CSS for dynamic visual shapes */
+  .visual-shapes{position:relative;width:220px;height:140px;display:inline-block}
+  .visual-shapes .band{position:absolute;left:-20%;right:-20%;height:34px;border-radius:24px;opacity:0.55;filter:blur(8px)}
+  .visual-shapes .band-1{top:8%;background:linear-gradient(90deg,var(--accent),#7c5cff);animation:slide1 6s linear infinite}
+  .visual-shapes .band-2{top:40%;background:linear-gradient(90deg,#ff6b6b,#ffd166);animation:slide2 8s linear infinite}
+  .visual-shapes .pill{position:absolute;width:48px;height:28px;border-radius:18px;background:#fff;opacity:0.85;box-shadow:0 6px 18px rgba(0,0,0,0.12)}
+  .visual-shapes .pill-1{left:12%;top:58%;transform:rotate(-12deg);background:linear-gradient(90deg,#ff9a9e,#fecfef);animation:float1 5s ease-in-out infinite}
+  .visual-shapes .pill-2{right:8%;top:72%;transform:rotate(8deg);background:linear-gradient(90deg,#a1c4fd,#c2e9fb);animation:float2 6s ease-in-out infinite}
+  @keyframes slide1{0%{transform:translateX(-8%)}50%{transform:translateX(8%)}100%{transform:translateX(-8%)}}
+  @keyframes slide2{0%{transform:translateX(10%)}50%{transform:translateX(-10%)}100%{transform:translateX(10%)}}
+  @keyframes float1{0%,100%{transform:translateY(0) rotate(-12deg)}50%{transform:translateY(-8px) rotate(-12deg)}}
+  @keyframes float2{0%,100%{transform:translateY(0) rotate(8deg)}50%{transform:translateY(-6px) rotate(8deg)}}
+</style>
+
+<!-- Scripts -->
+<script>
+(function(){
+  'use strict';
+  const form = document.getElementById('loginForm');
+  const btn = document.getElementById('loginBtn');
+  const pwdToggle = document.getElementById('pwdToggle');
+  const pwdField = document.getElementById('passwordField');
+  const phoneField = document.querySelector('input[name="phone"]');
+
+  // autofocus phone for faster input
+  phoneField?.focus();
+
+  // password toggle
+  pwdToggle?.addEventListener('click', function(){
+    if (!pwdField) return;
+    const is = pwdField.type === 'password';
+    pwdField.type = is ? 'text' : 'password';
+    this.querySelector('i')?.classList.toggle('fa-eye-slash', is);
+  });
+
+  // add a simple password-strength indicator
+  // insert meter element under the password input if not present
+  (function ensureMeter(){
+    if (!pwdField) return;
+    if (!pwdField.nextElementSibling || !pwdField.nextElementSibling.classList.contains('pwd-meter')) {
+      const meterWrap = document.createElement('div');
+      meterWrap.className = 'pwd-meter';
+      const inner = document.createElement('i');
+      meterWrap.appendChild(inner);
+      pwdField.parentNode.insertBefore(meterWrap, pwdField.nextSibling);
+    }
+  })();
+
+  function passwordScore(s){
+    if (!s) return 0;
+    let score = 0;
+    if (s.length >= 8) score += 2;
+    if (/[A-Z]/.test(s)) score += 1;
+    if (/[0-9]/.test(s)) score += 1;
+    if (/[^A-Za-z0-9]/.test(s)) score += 1;
+    return Math.min(4, score);
+  }
+
+  pwdField?.addEventListener('input', function(){
+    const sc = passwordScore(this.value);
+    const pct = (sc / 4) * 100;
+    const el = this.parentNode.nextElementSibling?.querySelector('i');
+    if (el) el.style.width = pct + '%';
+  });
+
+  // client validation + submit UX
+  form?.addEventListener('submit', function(e){
+    if (!form.checkValidity()){
+      form.classList.add('was-validated');
+      e.preventDefault(); e.stopPropagation();
+      // small shake animation
+      form.querySelector('.glass-card')?.classList.add('shake');
+      setTimeout(()=> form.querySelector('.glass-card')?.classList.remove('shake'), 420);
+      return;
+    }
+    // disable to prevent double submit
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> در حال ورود...';
+  });
+
+  // Bootstrap toasts: show server messages (rendered in #toast-area)
+  window.addEventListener('load', function(){
+    try {
+      const toastArea = document.getElementById('toast-area');
+      if (!toastArea) return;
+      const tlist = toastArea.querySelectorAll('.toast');
+      tlist.forEach(t => {
+        // initialize and show
+        if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
+          const bt = new bootstrap.Toast(t);
+          bt.show();
+        } else {
+          // fallback: flash and remove
+          t.style.opacity = 1;
+          setTimeout(()=> t.remove(), 3000);
+        }
+      });
+    } catch (err) {
+      console.error('toast init failed', err);
+    }
+  });
+
+})();
+</script>
+{% endblock %}

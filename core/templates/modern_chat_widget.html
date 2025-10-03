@@ -1,0 +1,1204 @@
+{% load static %}
+
+<style>
+  :root {
+    --chat-primary: #2563eb;
+    --chat-accent: #3b82f6;
+    --chat-success: #059669;
+    --chat-warning: #d97706;
+    --chat-danger: #dc2626;
+    --chat-gray-50: #f9fafb;
+    --chat-gray-100: #f3f4f6;
+    --chat-gray-200: #e5e7eb;
+    --chat-gray-500: #6b7280;
+    --chat-gray-800: #1f2937;
+  }
+
+  .modern-chat-widget {
+    position: fixed;
+    z-index: 1100;
+    bottom: 2rem;
+    right: 2rem;
+    font-family: 'Vazir', sans-serif;
+    overflow: visible;
+  }
+
+  [dir="rtl"] .modern-chat-widget {
+    left: 2rem;
+    right: auto;
+  }
+
+  .chat-launcher {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--chat-primary), var(--chat-accent));
+    box-shadow: 0 12px 30px rgba(37, 99, 235, 0.3);
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    overflow: visible;
+  }
+
+  .chat-launcher::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .chat-launcher:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 20px 40px rgba(37, 99, 235, 0.4);
+  }
+
+  .chat-launcher:hover::before {
+    opacity: 1;
+  }
+
+  .chat-launcher i {
+    font-size: 1.5rem;
+    transition: transform 0.3s ease;
+  }
+
+  .chat-launcher.open i {
+    transform: rotate(180deg);
+  }
+
+  .chat-panel {
+    position: absolute;
+    bottom: 80px;
+    right: 0;
+    width: 400px;
+    max-width: calc(100vw - 2rem);
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    transform: translateY(20px);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid var(--chat-gray-200);
+  }
+
+  [dir="rtl"] .chat-panel {
+    right: auto;
+    left: 0;
+  }
+
+  .chat-panel.show {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .chat-header {
+    padding: 1.25rem;
+    background: linear-gradient(135deg, var(--chat-primary), var(--chat-accent));
+    color: white;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .chat-header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .chat-header-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .chat-header-text h6 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+
+  .chat-header-text p {
+    margin: 0;
+    font-size: 0.85rem;
+    opacity: 0.9;
+  }
+
+  .chat-header-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .sound-toggle {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+  }
+
+  .sound-toggle:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+  }
+
+  .sound-toggle.muted {
+    opacity: 0.6;
+  }
+
+  .sound-toggle.muted i::before {
+    content: '\f6a9'; /* fa-volume-mute */
+  }
+
+  .chat-body {
+    height: 400px;
+    max-height: 60vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Guest Form Styles */
+  .guest-form {
+    padding: 1.5rem 2rem;
+    background: var(--chat-gray-50);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    overflow-y: auto;
+    min-height: 0;
+  }
+
+  .guest-form.hidden {
+    display: none;
+  }
+
+  .guest-form h6 {
+    margin-bottom: 0.5rem;
+    color: var(--chat-gray-800);
+    font-weight: 600;
+  }
+
+  .guest-form p {
+    margin-bottom: 1.5rem;
+    color: var(--chat-gray-500);
+    font-size: 0.9rem;
+  }
+
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--chat-gray-800);
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--chat-gray-200);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    background: white;
+  }
+
+  .form-control:focus {
+    outline: none;
+    border-color: var(--chat-primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+
+  .form-control.error {
+    border-color: var(--chat-danger);
+    background: #fef2f2;
+  }
+
+  .error-message {
+    color: var(--chat-danger);
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    display: none;
+  }
+
+  .form-control.error + .error-message {
+    display: block;
+  }
+
+  .btn-start-chat {
+    background: var(--chat-primary);
+    color: white;
+    border: none;
+    padding: 0.875rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .btn-start-chat:hover:not(:disabled) {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+  }
+
+  .btn-start-chat:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .btn-start-chat .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    display: none;
+  }
+
+  .btn-start-chat.loading .spinner {
+    display: block;
+  }
+
+  .btn-start-chat.loading .btn-text {
+    display: none;
+  }
+
+  /* Chat Messages Area */
+  .messages-area {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+    background: var(--chat-gray-50);
+    display: none;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .messages-area.show {
+    display: flex;
+  }
+
+  .message-bubble {
+    max-width: 80%;
+    padding: 0.875rem 1.125rem;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    position: relative;
+    word-wrap: break-word;
+  }
+
+  .message-bubble.user {
+    align-self: flex-start;
+    background: white;
+    border: 1px solid var(--chat-gray-200);
+    color: var(--chat-gray-800);
+  }
+
+  .message-bubble.agent {
+    align-self: flex-end;
+    background: var(--chat-primary);
+    color: white;
+  }
+
+  .message-time {
+    font-size: 0.75rem;
+    opacity: 0.6;
+    margin-top: 0.25rem;
+  }
+
+  .typing-indicator {
+    padding: 0.5rem 1rem;
+    font-style: italic;
+    color: var(--chat-gray-500);
+    font-size: 0.85rem;
+    display: none;
+  }
+
+  .typing-indicator.show {
+    display: block;
+  }
+
+  .typing-dots {
+    display: inline-flex;
+    gap: 0.25rem;
+  }
+
+  .typing-dots span {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--chat-gray-500);
+    animation: typingDot 1.5s infinite;
+  }
+
+  .typing-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .typing-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  /* Chat Input */
+  .chat-input {
+    padding: 1rem;
+    background: white;
+    border-top: 1px solid var(--chat-gray-200);
+    display: none;
+  }
+
+  .chat-input.show {
+    display: block;
+  }
+
+  .input-group {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-end;
+  }
+
+  .message-input {
+    flex: 1;
+    border: 1px solid var(--chat-gray-200);
+    border-radius: 8px;
+    padding: 0.75rem;
+    resize: none;
+    min-height: 40px;
+    max-height: 100px;
+    font-family: inherit;
+    font-size: 0.95rem;
+  }
+
+  .message-input:focus {
+    outline: none;
+    border-color: var(--chat-primary);
+  }
+
+  .send-button {
+    background: var(--chat-primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .send-button:hover:not(:disabled) {
+    background: #1d4ed8;
+  }
+
+  .send-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .notification-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: var(--chat-danger);
+    color: white;
+    border-radius: 12px;
+    min-width: 24px;
+    height: 24px;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    z-index: 15;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    max-width: 40px;
+  }
+
+  [dir="rtl"] .notification-badge {
+    right: auto;
+    left: -8px;
+  }
+
+  .notification-badge.show {
+    display: flex;
+    animation: pulse 2s infinite;
+  }
+
+  /* Animations */
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes typingDot {
+    0%, 60%, 100% { opacity: 0.3; }
+    30% { opacity: 1; }
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+
+  @keyframes slideInUp {
+    from {
+      transform: translateY(10px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .message-bubble {
+    animation: slideInUp 0.3s ease;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .modern-chat-widget {
+      bottom: 1rem;
+      right: 1rem;
+    }
+
+    [dir="rtl"] .modern-chat-widget {
+      left: 1rem;
+    }
+
+    .chat-panel {
+      width: calc(100vw - 2rem);
+      right: 0;
+    }
+
+    [dir="rtl"] .chat-panel {
+      left: 0;
+    }
+
+    .chat-body {
+      height: 350px;
+      max-height: 50vh;
+    }
+
+    .guest-form {
+      padding: 1rem 1.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+  }
+</style>
+
+<div class="modern-chat-widget" id="modernChatWidget">
+  <!-- Chat Panel -->
+  <div class="chat-panel" id="chatPanel" role="dialog" aria-label="پشتیبانی آنلاین">
+    <div class="chat-header">
+      <div class="chat-header-icon">
+        <i class="fas fa-headset"></i>
+      </div>
+      <div class="chat-header-text">
+        <h6>پشتیبانی آنلاین</h6>
+        <p>آماده کمک به شما هستیم</p>
+      </div>
+      <div class="chat-header-controls">
+        <button id="soundToggle" class="sound-toggle" title="تنظیمات صدا">
+          <i class="fas fa-volume-up" id="soundIcon"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="chat-body">
+      {% if user.is_authenticated %}
+      <!-- Authenticated User Interface -->
+      <div class="messages-area show" id="messagesArea"></div>
+      
+      <div class="typing-indicator" id="typingIndicator">
+        پشتیبان در حال نوشتن است
+        <span class="typing-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
+      </div>
+      {% else %}
+      <!-- Guest Information Form -->
+      <div class="guest-form" id="guestForm">
+        <h6>شروع گفتگو</h6>
+        <p>لطفاً اطلاعات زیر را تکمیل کنید تا بتوانیم بهتر به شما کمک کنیم.</p>
+        
+        <form id="guestInfoForm" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="guestName">
+              <i class="fas fa-user me-1"></i>
+              نام و نام خانوادگی
+            </label>
+            <input 
+              type="text" 
+              id="guestName" 
+              class="form-control" 
+              placeholder="مثال: علی احمدی"
+              maxlength="50"
+              required
+            >
+            <div class="error-message">لطفاً نام و نام خانوادگی خود را وارد کنید (حداکثر 50 کاراکتر)</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="guestContact">
+              <i class="fas fa-envelope me-1"></i>
+              ایمیل یا شماره تماس
+            </label>
+            <input 
+              type="text" 
+              id="guestContact" 
+              class="form-control" 
+              placeholder="example@email.com یا 09123456789"
+              required
+            >
+            <div class="error-message">لطفاً یک ایمیل معتبر یا شماره تماس وارد کنید (حداکثر 15 رقم برای شماره)</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="guestSubject">
+              <i class="fas fa-tag me-1"></i>
+              موضوع درخواست
+            </label>
+            <input 
+              type="text" 
+              id="guestSubject" 
+              class="form-control" 
+              placeholder="مثال: سوال در مورد محصولات"
+              maxlength="100"
+              required
+            >
+            <div class="error-message">لطفاً موضوع درخواست خود را وارد کنید</div>
+          </div>
+
+          <button type="submit" class="btn-start-chat" id="startChatBtn">
+            <div class="spinner"></div>
+            <span class="btn-text">
+              <i class="fas fa-comments me-2"></i>
+              شروع گفتگو
+            </span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Messages Area for Guests (initially hidden) -->
+      <div class="messages-area" id="messagesArea"></div>
+      
+      <div class="typing-indicator" id="typingIndicator">
+        پشتیبان در حال نوشتن است
+        <span class="typing-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Chat Input -->
+    <div class="chat-input{% if user.is_authenticated %} show{% endif %}" id="chatInput">
+      <div class="input-group">
+        <textarea 
+          id="messageInput" 
+          class="message-input" 
+          placeholder="پیام خود را بنویسید..."
+          rows="1"
+        ></textarea>
+        <button id="sendMessageBtn" class="send-button">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Launcher -->
+  <button id="chatLauncher" class="chat-launcher" aria-expanded="false" aria-controls="chatPanel">
+    <i class="fas fa-comments"></i>
+    <div class="notification-badge" id="notificationBadge">1</div>
+  </button>
+</div>
+
+<!-- Message Templates -->
+<template id="messageBubbleTemplate">
+  <div class="message-bubble">
+    <div class="message-content"></div>
+    <div class="message-time"></div>
+  </div>
+</template>
+
+<script>
+class ModernChatWidget {
+  constructor() {
+    this.isOpen = false;
+    this.isAuthenticated = {% if user.is_authenticated %}true{% else %}false{% endif %};
+    this.websocket = null;
+    this.unreadCount = 0;
+    this.guestInfo = null;
+    this.soundEnabled = true; // Sound preference
+    
+    this.initElements();
+    this.bindEvents();
+    this.initWebSocket();
+    this.createNotificationSound();
+  }
+
+  initElements() {
+    this.widget = document.getElementById('modernChatWidget');
+    this.launcher = document.getElementById('chatLauncher');
+    this.panel = document.getElementById('chatPanel');
+    this.guestForm = document.getElementById('guestForm');
+    this.guestInfoForm = document.getElementById('guestInfoForm');
+    this.messagesArea = document.getElementById('messagesArea');
+    this.chatInput = document.getElementById('chatInput');
+    this.messageInput = document.getElementById('messageInput');
+    this.sendBtn = document.getElementById('sendMessageBtn');
+    this.typingIndicator = document.getElementById('typingIndicator');
+    this.notificationBadge = document.getElementById('notificationBadge');
+    this.startChatBtn = document.getElementById('startChatBtn');
+    this.soundToggle = document.getElementById('soundToggle');
+    this.soundIcon = document.getElementById('soundIcon');
+    
+    this.messageBubbleTemplate = document.getElementById('messageBubbleTemplate');
+    
+    // Load sound preference from localStorage
+    const savedSoundPreference = localStorage.getItem('chatSoundEnabled');
+    this.soundEnabled = savedSoundPreference !== null ? savedSoundPreference === 'true' : true;
+    this.updateSoundIcon();
+  }
+
+  bindEvents() {
+    // Launcher click
+    this.launcher.addEventListener('click', () => this.togglePanel());
+    
+    // Guest form submission (only for non-authenticated users)
+    if (!this.isAuthenticated && this.guestInfoForm) {
+      this.guestInfoForm.addEventListener('submit', (e) => this.handleGuestFormSubmit(e));
+    }
+    
+    // Message sending
+    this.sendBtn.addEventListener('click', () => this.sendMessage());
+    this.messageInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        this.sendMessage();
+      }
+    });
+
+    // Auto-resize textarea
+    this.messageInput.addEventListener('input', () => {
+      this.messageInput.style.height = 'auto';
+      this.messageInput.style.height = Math.min(this.messageInput.scrollHeight, 100) + 'px';
+    });
+
+    // Real-time validation (only for guests)
+    if (!this.isAuthenticated) {
+      document.getElementById('guestName')?.addEventListener('input', () => this.validateGuestName());
+      document.getElementById('guestContact')?.addEventListener('input', () => this.validateContact());
+      document.getElementById('guestSubject')?.addEventListener('input', () => this.validateSubject());
+    }
+
+    // Close panel when clicking outside
+    document.addEventListener('click', (e) => {
+      if (this.isOpen && !this.widget.contains(e.target)) {
+        this.closePanel();
+      }
+    });
+
+    // Sound toggle
+    if (this.soundToggle) {
+      this.soundToggle.addEventListener('click', () => {
+        this.toggleSound();
+        this.updateSoundIcon();
+      });
+    }
+  }
+
+  togglePanel() {
+    if (this.isOpen) {
+      this.closePanel();
+    } else {
+      this.openPanel();
+    }
+  }
+
+  // Create notification sound using Web Audio API for WhatsApp-like sound
+  createNotificationSound() {
+    try {
+      // Create AudioContext
+      this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      
+      // Create a more WhatsApp-like notification sound
+      this.createWhatsAppLikeSound();
+    } catch (error) {
+      console.log('Web Audio API not supported, using fallback');
+      this.createFallbackSound();
+    }
+  }
+
+  createWhatsAppLikeSound() {
+    // Create a sound similar to WhatsApp notification
+    this.playNotificationSound = () => {
+      if (!this.soundEnabled || this.isOpen) return;
+
+      try {
+        const oscillator1 = this.audioContext.createOscillator();
+        const oscillator2 = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+
+        // Two-tone WhatsApp-like sound
+        oscillator1.frequency.setValueAtTime(800, this.audioContext.currentTime);
+        oscillator1.frequency.setValueAtTime(600, this.audioContext.currentTime + 0.1);
+        
+        oscillator2.frequency.setValueAtTime(400, this.audioContext.currentTime);
+        oscillator2.frequency.setValueAtTime(300, this.audioContext.currentTime + 0.1);
+
+        // Envelope for natural sound
+        gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.3, this.audioContext.currentTime + 0.01);
+        gainNode.gain.linearRampToValueAtTime(0.1, this.audioContext.currentTime + 0.1);
+        gainNode.gain.linearRampToValueAtTime(0, this.audioContext.currentTime + 0.3);
+
+        oscillator1.connect(gainNode);
+        oscillator2.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+
+        oscillator1.start(this.audioContext.currentTime);
+        oscillator1.stop(this.audioContext.currentTime + 0.3);
+        
+        oscillator2.start(this.audioContext.currentTime);
+        oscillator2.stop(this.audioContext.currentTime + 0.3);
+      } catch (error) {
+        console.error('Error playing notification sound:', error);
+      }
+    };
+  }
+
+  createFallbackSound() {
+    // Fallback using HTML5 Audio with data URL (beep sound)
+    const audioData = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmceATqN1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmceATqN1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmceATqN1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmceATqN1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmceATqN1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmceATqN1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmceATqN1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmceATqN1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmceATqN1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmceATqN1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmceATqN1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmceATqN1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmceATqN1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmceATqN1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmceATqN1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmceATqN1/LNeSsFJHfH8N2QQAoUXrTp66hVFA==';
+    
+    this.playNotificationSound = () => {
+      if (!this.soundEnabled || this.isOpen) return;
+      
+      try {
+        const audio = new Audio(audioData);
+        audio.volume = 0.5;
+        audio.play().catch(e => console.log('Could not play notification sound:', e));
+      } catch (error) {
+        console.error('Error playing fallback sound:', error);
+      }
+    };
+  }
+
+  toggleSound() {
+    this.soundEnabled = !this.soundEnabled;
+    localStorage.setItem('chatSoundEnabled', this.soundEnabled);
+    return this.soundEnabled;
+  }
+
+  updateSoundIcon() {
+    if (!this.soundToggle || !this.soundIcon) return;
+    
+    if (this.soundEnabled) {
+      this.soundToggle.classList.remove('muted');
+      this.soundIcon.className = 'fas fa-volume-up';
+      this.soundToggle.title = 'غیرفعال کردن صدای اعلان';
+    } else {
+      this.soundToggle.classList.add('muted');
+      this.soundIcon.className = 'fas fa-volume-mute';
+      this.soundToggle.title = 'فعال کردن صدای اعلان';
+    }
+  }
+
+  openPanel() {
+    this.isOpen = true;
+    this.panel.classList.add('show');
+    this.launcher.classList.add('open');
+    this.launcher.setAttribute('aria-expanded', 'true');
+    
+    // Reset unread count
+    this.unreadCount = 0;
+    this.updateNotificationBadge();
+
+    // Focus appropriate input
+    if (!this.isAuthenticated && !this.guestInfo) {
+      setTimeout(() => {
+        document.getElementById('guestName')?.focus();
+      }, 300);
+    } else {
+      setTimeout(() => {
+        this.messageInput?.focus();
+      }, 300);
+    }
+  }
+
+  closePanel() {
+    this.isOpen = false;
+    this.panel.classList.remove('show');
+    this.launcher.classList.remove('open');
+    this.launcher.setAttribute('aria-expanded', 'false');
+  }
+
+  handleGuestFormSubmit(e) {
+    e.preventDefault();
+    
+    if (!this.validateGuestForm()) {
+      return;
+    }
+
+    const name = document.getElementById('guestName').value.trim();
+    const contact = document.getElementById('guestContact').value.trim();
+    const subject = document.getElementById('guestSubject').value.trim();
+
+    this.guestInfo = { name, contact, subject };
+    
+    // Show loading state
+    this.startChatBtn.classList.add('loading');
+    this.startChatBtn.disabled = true;
+
+    // Send guest info to server
+    this.sendGuestInfo().then(() => {
+      this.showChatInterface();
+    }).catch((error) => {
+      console.error('Failed to start chat:', error);
+      this.showError('خطا در برقراری ارتباط. لطفاً دوباره تلاش کنید.');
+    }).finally(() => {
+      this.startChatBtn.classList.remove('loading');
+      this.startChatBtn.disabled = false;
+    });
+  }
+
+  validateGuestForm() {
+    let isValid = true;
+    
+    isValid = this.validateGuestName() && isValid;
+    isValid = this.validateContact() && isValid;
+    isValid = this.validateSubject() && isValid;
+    
+    return isValid;
+  }
+
+  validateGuestName() {
+    const input = document.getElementById('guestName');
+    const value = input.value.trim();
+    
+    if (!value || value.length > 50) {
+      this.setFieldError(input, true);
+      return false;
+    }
+    
+    this.setFieldError(input, false);
+    return true;
+  }
+
+  validateContact() {
+    const input = document.getElementById('guestContact');
+    const value = input.value.trim();
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // Phone validation (Iranian format + international, max 15 digits)
+    const phoneRegex = /^(\+?[1-9]\d{1,14}|09\d{9})$/;
+    
+    if (!value) {
+      this.setFieldError(input, true);
+      return false;
+    }
+
+    // Check if it's email
+    if (emailRegex.test(value)) {
+      this.setFieldError(input, false);
+      return true;
+    }
+
+    // Check if it's phone (remove spaces, dashes, parentheses for validation)
+    const cleanPhone = value.replace(/[\s\-\(\)]/g, '');
+    if (phoneRegex.test(cleanPhone) && cleanPhone.length <= 15) {
+      this.setFieldError(input, false);
+      return true;
+    }
+    
+    this.setFieldError(input, true);
+    return false;
+  }
+
+  validateSubject() {
+    const input = document.getElementById('guestSubject');
+    const value = input.value.trim();
+    
+    if (!value || value.length > 100) {
+      this.setFieldError(input, true);
+      return false;
+    }
+    
+    this.setFieldError(input, false);
+    return true;
+  }
+
+  setFieldError(input, hasError) {
+    if (hasError) {
+      input.classList.add('error');
+    } else {
+      input.classList.remove('error');
+    }
+  }
+
+  async sendGuestInfo() {
+    if (!this.websocket || this.websocket.readyState !== WebSocket.OPEN) {
+      await this.waitForWebSocket();
+    }
+
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('Timeout')), 5000);
+      
+      this.websocket.send(JSON.stringify({
+        name: this.guestInfo.name,
+        contact: this.guestInfo.contact,
+        subject: this.guestInfo.subject
+      }));
+      
+      clearTimeout(timeout);
+      resolve();
+    });
+  }
+
+  showChatInterface() {
+    if (this.guestForm) {
+      this.guestForm.style.display = 'none';
+    }
+    this.messagesArea.classList.add('show');
+    this.chatInput.classList.add('show');
+    
+    // Add welcome message
+    this.addMessage({
+      role: 'agent',
+      content: `سلام ${this.guestInfo.name}! در خصوص "${this.guestInfo.subject}" چطور می‌توانم کمکتان کنم؟`,
+      created_at: new Date().toISOString()
+    });
+
+    this.messageInput.focus();
+  }
+
+  initWebSocket() {
+    if (this.isAuthenticated) {
+      // Authenticated users connect immediately
+      this.connectWebSocket();
+    }
+    // Guest users will connect after form submission
+  }
+
+  connectWebSocket() {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ws/chat/user/`;
+    
+    this.websocket = new WebSocket(wsUrl);
+    
+    this.websocket.onopen = () => {
+      console.log('Chat WebSocket connected');
+    };
+
+    this.websocket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      this.handleWebSocketMessage(data);
+    };
+
+    this.websocket.onclose = () => {
+      console.log('Chat WebSocket disconnected, reconnecting...');
+      setTimeout(() => this.connectWebSocket(), 2000);
+    };
+
+    this.websocket.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+  }
+
+  async waitForWebSocket() {
+    return new Promise((resolve, reject) => {
+      if (this.websocket?.readyState === WebSocket.OPEN) {
+        resolve();
+        return;
+      }
+
+      const timeout = setTimeout(() => reject(new Error('WebSocket timeout')), 10000);
+      
+      const checkConnection = () => {
+        if (this.websocket?.readyState === WebSocket.OPEN) {
+          clearTimeout(timeout);
+          resolve();
+        } else {
+          setTimeout(checkConnection, 100);
+        }
+      };
+
+      if (!this.websocket) {
+        this.connectWebSocket();
+      }
+      
+      checkConnection();
+    });
+  }
+
+  handleWebSocketMessage(data) {
+    switch (data.type) {
+      case 'history':
+        if (data.messages) {
+          data.messages.forEach(msg => this.addMessage(msg));
+        }
+        break;
+      case 'message':
+        this.addMessage(data.message);
+        if (!this.isOpen && data.message.role === 'agent') {
+          this.unreadCount++;
+          this.updateNotificationBadge();
+          this.playNotificationSound(); // Play sound for new messages
+          this.showNotification(data.message.content);
+        }
+        break;
+      case 'clear':
+        // Clear all messages from the chat when admin clears them
+        this.messagesArea.innerHTML = '';
+        this.showNotification('پیام‌ها توسط پشتیبانی پاک شدند');
+        break;
+      case 'chat_deleted':
+        // Chat has been completely deleted
+        this.messagesArea.innerHTML = '';
+        this.showNotification(data.message || 'چت توسط پشتیبانی حذف شد');
+        // Close the widget after a delay
+        setTimeout(() => {
+          this.closePanel();
+        }, 3000);
+        break;
+      case 'typing':
+        if (data.status === 'start') {
+          this.typingIndicator.classList.add('show');
+        } else {
+          this.typingIndicator.classList.remove('show');
+        }
+        this.scrollToBottom();
+        break;
+    }
+  }
+
+  addMessage(message) {
+    const bubble = this.messageBubbleTemplate.content.cloneNode(true);
+    const bubbleElement = bubble.querySelector('.message-bubble');
+    
+    bubbleElement.classList.add(message.role);
+    bubbleElement.querySelector('.message-content').textContent = message.content;
+    
+    const time = new Date(message.created_at);
+    bubbleElement.querySelector('.message-time').textContent = this.formatTime(time);
+    
+    this.messagesArea.appendChild(bubble);
+    this.scrollToBottom();
+  }
+
+  sendMessage() {
+    const content = this.messageInput.value.trim();
+    if (!content || !this.websocket) return;
+
+    this.websocket.send(JSON.stringify({
+      message: content
+    }));
+
+    this.messageInput.value = '';
+    this.messageInput.style.height = 'auto';
+  }
+
+  updateNotificationBadge() {
+    if (this.unreadCount > 0) {
+      const displayCount = this.unreadCount > 99 ? '99+' : this.unreadCount.toString();
+      this.notificationBadge.textContent = displayCount;
+      this.notificationBadge.classList.add('show');
+    } else {
+      this.notificationBadge.classList.remove('show');
+    }
+  }
+
+  showNotification(message) {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('پیام جدید از پشتیبانی', {
+        body: message,
+        icon: '/static/images/chat-icon.png'
+      });
+    }
+  }
+
+  showError(message) {
+    // You can implement a toast notification here
+    alert(message);
+  }
+
+  scrollToBottom() {
+    this.messagesArea.scrollTop = this.messagesArea.scrollHeight;
+  }
+
+  formatTime(date) {
+    return new Intl.DateTimeFormat('fa-IR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  }
+}
+
+// Initialize the chat widget
+document.addEventListener('DOMContentLoaded', () => {
+  window.modernChatWidget = new ModernChatWidget();
+
+  // Request notification permission
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+});
+</script>

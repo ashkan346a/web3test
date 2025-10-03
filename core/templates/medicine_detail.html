@@ -1,0 +1,329 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ item.name|default:"محصول" }} - خرید آنلاین از PharmaWeb{% endblock %}
+{% block description %}{{ item.name|default:"محصول" }} - {{ item.description|default:"خرید آنلاین از فروشگاه معتبر PharmaWeb با بهترین قیمت و کیفیت. ارسال سریع در سراسر کشور." }}{% endblock %}
+{% block keywords %}{{ item.name|default:"محصول" }}, خرید {{ item.name|default:"دارو" }}, {{ item.group|default:"دارو" }}, فروشگاه آنلاین دارو{% endblock %}
+
+{% block og_type %}product{% endblock %}
+{% block og_title %}{{ item.name|default:"محصول" }} - PharmaWeb{% endblock %}
+{% block og_description %}{{ item.description|default:"خرید آنلاین از فروشگاه معتبر PharmaWeb" }}{% endblock %}
+{% block og_image %}{% if item.image %}{{ request.scheme }}://{{ request.get_host }}{% static item.image %}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/default.svg' %}{% endif %}{% endblock %}
+
+{% block structured_data %}
+{{ block.super }}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "{{ item.name|default:'محصول' }}",
+  "description": "{{ item.description|default:'محصول با کیفیت از فروشگاه PharmaWeb' }}",
+  "image": "{% if item.image %}{{ request.scheme }}://{{ request.get_host }}{% static item.image %}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/default.svg' %}{% endif %}",
+  "sku": "{{ item.id }}",
+  "url": "{{ request.build_absolute_uri }}",
+  "category": "{{ item.group|default:'' }}",
+  "brand": { "@type": "Brand", "name": "PharmaWeb" },
+  {% if item.rating %}
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "{{ item.rating|floatformat:1 }}",
+    "reviewCount": "{{ item.review_count|default:1 }}"
+  },
+  {% endif %}
+  "offers": {
+    "@type": "Offer",
+    "url": "{{ request.build_absolute_uri }}",
+    "priceCurrency": "USD",
+    "price": "{{ item.price|default:'0' }}",
+    "availability": "https://schema.org/InStock",
+    "seller": { "@type": "Organization", "name": "PharmaWeb" }
+  }
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "خانه",
+      "item": "{{ SITE_URL }}/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "محصولات",
+      "item": "{{ SITE_URL }}/buy-medicine/"
+    }{% if item.group %},
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{ item.group }}",
+      "item": "{{ SITE_URL }}/buy-medicine/?group={{ item.group }}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 4,
+      "name": "{{ item.name|default:'محصول' }}",
+      "item": "{{ SITE_URL }}/item/{{ item.id }}/"
+    }
+    {% else %},
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{ item.name|default:'محصول' }}",
+      "item": "{{ SITE_URL }}/item/{{ item.id }}/"
+    }
+    {% endif %}
+  ]
+}
+</script>
+{% endblock %}
+{% block content %}
+<div class="container my-5" dir="rtl" lang="fa">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="card glass-card shadow-lg overflow-hidden">
+        <div class="row g-0">
+          <div class="col-md-5 p-4 d-flex align-items-center justify-content-center bg-light">
+            {% if item.image %}
+              <img src="{% static item.image %}" alt="{{ item.name }}" class="img-fluid rounded" style="max-height:380px; object-fit:contain;" loading="lazy" decoding="async" width="640" height="380">
+            {% else %}
+              <img src="{% static 'images/default.svg' %}" alt="{{ item.name }}" class="img-fluid rounded" style="max-height:380px; object-fit:contain;" loading="lazy" decoding="async" width="640" height="380">
+            {% endif %}
+          </div>
+
+          <div class="col-md-7 p-4">
+            <h3 class="fw-bold mb-1">{{ item.name|default:"محصول" }}</h3>
+            <div class="small text-muted mb-3">{{ item.group|default:"" }}</div>
+
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="fs-4 fw-bold text-primary">{{ item.price|default:"-" }} $</div>
+              {% if item.exp %}
+                <div class="small text-muted">انقضا: {{ item.exp }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <p class="small text-muted">{{ item.description|linebreaksbr }}</p>
+            </div>
+
+            <div class="actions">
+              <a href="{% url 'cart_add' item.id %}" data-url="{% url 'cart_add' item.id %}" class="btn btn-primary add-to-cart">افزودن به سبد</a>
+            </div>
+
+            <hr class="my-4">
+            <div class="small text-muted">در صورت نیاز به مشاوره یا داروهای جایگزین با <a href="{% url 'support' %}">پشتیبانی</a> تماس بگیرید.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center mt-3 small text-muted">محصولات اورجینال و تاریخ‌دار — تیم PharmaWeb</div>
+    </div>
+  </div>
+</div>
+
+<!-- Toasts for messages -->
+<div id="toast-area" class="position-fixed top-0 end-0 p-3" style="z-index:1200;">
+  {% for msg in messages %}
+    <div class="toast align-items-center text-white border-0 mb-2 {% if msg.tags %}bg-{{ msg.tags }}{% else %}bg-primary{% endif %}" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+      <div class="d-flex">
+        <div class="toast-body small">{{ msg }}</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="بستن"></button>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<style>
+  /* filepath: c:\Users\win11\Documents\GitHub\emptyprjph\core\templates\medicine_detail.html
+     Reuse glass-card look */
+  .glass-card { border-radius: 12px; background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.90)); border:1px solid rgba(0,0,0,0.04); }
+  .bg-light { background: linear-gradient(180deg,#fafbff,#f5f7ff); }
+  .btn-primary { border-radius:10px; }
+</style>
+
+<script>
+(function(){
+  'use strict';
+  // show bootstrap toasts if available
+  window.addEventListener('load', function(){
+    try {
+      const ta = document.getElementById('toast-area');
+      if (!ta) return;
+      ta.querySelectorAll('.toast').forEach(t => {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Toast) new bootstrap.Toast(t).show();
+        else setTimeout(()=> t.remove(), 3000);
+      });
+    } catch(e){ console.error(e); }
+  });
+})();
+</script>
+{% endblock %}
+          <ul class="nav nav-tabs" id="detailTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="tab-desc" data-bs-toggle="tab" data-bs-target="#pane-desc" type="button" role="tab">توضیحات</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="tab-comp" data-bs-toggle="tab" data-bs-target="#pane-comp" type="button" role="tab">محتویات / ترکیب</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="tab-reviews" data-bs-toggle="tab" data-bs-target="#pane-reviews" type="button" role="tab">نظرات</button>
+            </li>
+          </ul>
+
+          <div class="tab-content mt-3">
+            <div class="tab-pane fade show active" id="pane-desc" role="tabpanel">
+              <div class="small text-muted">{% if item.long_description %}{{ item.long_description }}{% else %}{{ item.description|default:"توضیحات تکمیلی موجود نیست." }}{% endif %}</div>
+            </div>
+
+            <div class="tab-pane fade" id="pane-comp" role="tabpanel">
+              {% if item.composition %}
+                <ul class="list-unstyled mb-0">
+                  {% for comp in item.composition %}
+                    <li class="py-1"><strong>{{ comp.name }}</strong>: <span class="text-muted">{{ comp.amount }}</span></li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <div class="text-muted small">اطلاعات ترکیب برای این محصول ثبت نشده است.</div>
+              {% endif %}
+            </div>
+
+            <div class="tab-pane fade" id="pane-reviews" role="tabpanel">
+              {% if reviews %}
+                <div class="list-group list-group-flush">
+                  {% for r in reviews %}
+                    <div class="list-group-item d-flex justify-content-between align-items-start">
+                      <div>
+                        <div class="fw-semibold">{{ r.user_name|default:"کاربر" }}</div>
+                        <div class="small text-muted">{{ r.created_at|date:"Y/m/d" }}</div>
+                        <div class="mt-2 small text-muted">{{ r.comment }}</div>
+                      </div>
+                      <div class="text-end">
+                        <div class="fw-bold">{{ r.rating|default:0 }}/5</div>
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <div class="text-center text-muted small py-3">هنوز نظری ثبت نشده است.</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar: price, quick info, related -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm rounded-4 sticky-top" style="top:90px;">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <div class="small text-muted">قیمت</div>
+              <div class="fs-4 fw-bold">{{ item.price|default:"0.00"|floatformat:2 }} $</div>
+            </div>
+            <div class="text-end">
+              {% if item.rating %}
+                <div class="small text-muted">امتیاز</div>
+                <div class="fw-semibold">{{ item.rating|floatformat:1 }} <i class="fa-solid fa-star text-warning"></i></div>
+              {% endif %}
+            </div>
+          </div>
+
+          <hr>
+
+          <ul class="list-unstyled small text-muted mb-3">
+            {% if item.manufacturer %}<li>سازنده: <span class="fw-semibold text-dark">{{ item.manufacturer }}</span></li>{% endif %}
+            {% if item.package %}<li>بسته‌بندی: <span class="fw-semibold text-dark">{{ item.package }}</span></li>{% endif %}
+            {% if item.dosage %}<li>دوز: <span class="fw-semibold text-dark">{{ item.dosage }}</span></li>{% endif %}
+            {% if item.exp %}<li>انقضا: <span class="fw-semibold text-dark">{{ item.exp }}</span></li>{% endif %}
+            {% if item.stock is not none %}<li>موجودی: <span class="fw-semibold text-dark">{{ item.stock }}</span></li>{% endif %}
+          </ul>
+
+          <div class="d-grid gap-2 mb-2">
+            <a href="{% url 'buy_medicine' %}" class="btn btn-outline-secondary btn-sm">بازگشت به فروشگاه</a>
+            <a href="{% url 'support' %}" class="btn btn-outline-primary btn-sm">تماس با پشتیبانی</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Related products -->
+      <div class="card mt-3 shadow-sm rounded-4">
+        <div class="card-body">
+          <h6 class="fw-bold mb-3">محصولات مرتبط</h6>
+          <div class="row g-2">
+            {% if related %}
+              {% for r in related|slice:":4" %}
+                <div class="col-6">
+                  <a href="{% url 'medicine_detail' r.id %}" class="d-flex text-decoration-none text-dark align-items-center gap-2">
+                    <div style="width:56px;height:56px;flex:0 0 56px;">
+                      <img src="{% static r.image|default:'images/default.jpg' %}" alt="{{ r.name }}" class="img-fluid rounded" style="width:56px;height:56px;object-fit:cover;">
+                    </div>
+                    <div class="small">
+                      <div class="fw-semibold text-truncate" style="max-width:110px;">{{ r.name }}</div>
+                      <div class="text-muted">{{ r.price|default:"0.00"|floatformat:2 }} $</div>
+                    </div>
+                  </a>
+                </div>
+              {% endfor %}
+            {% else %}
+              <div class="col-12 text-muted small">محصول مرتبطی یافت نشد.</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const qtyInput = document.getElementById('qtyInput');
+  const qtyInc = document.getElementById('qtyInc');
+  const qtyDec = document.getElementById('qtyDec');
+  const addBtn = document.getElementById('addBtn');
+
+  qtyInc?.addEventListener('click', () => { qtyInput.value = Math.max(1, parseInt(qtyInput.value||1) + 1); });
+  qtyDec?.addEventListener('click', () => { qtyInput.value = Math.max(1, parseInt(qtyInput.value||1) - 1); });
+
+  // Share product: copy link fallback with navigator.share when available
+  const shareBtn = document.getElementById('shareBtn');
+  shareBtn?.addEventListener('click', async () => {
+    const url = window.location.href;
+    const title = document.querySelector('h1')?.innerText || document.title;
+    if (navigator.share) {
+      try { await navigator.share({ title, url }); return; } catch(e){ /* ignore */ }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      const toast = new bootstrap.Toast(document.getElementById('flashToast'));
+      document.getElementById('flashBody').innerText = 'لینک محصول کپی شد';
+      toast.show();
+    } catch (e) {
+      alert('لینک کپی نشد: ' + url);
+    }
+  });
+
+  // optional: prevent double submit UX
+  document.getElementById('addToCartForm')?.addEventListener('submit', function () {
+    addBtn.disabled = true;
+    addBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> در حال افزودن...';
+  });
+});
+</script>
+{% endblock %}
+
+<style>
+  .card { border-radius:14px; }
+  .sticky-top { position: sticky; top: 90px; }
+  .product-img { width:100%; height:auto; object-fit:cover; }
+  @media (max-width: 991px) {
+    .sticky-top { top: 70px; }
+  }
+</style>

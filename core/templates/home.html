@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load pharma_icons %}
+{% block title %}PharmaWeb — صفحه اصلی{% endblock %}
+
+{% block description %}داروخانه آنلاین PharmaWeb - خرید دارو با بالاترین کیفیت، امنیت کامل و ارسال سریع{% endblock %}
+{% block extra_head %}
+<link rel="preload" href="{% static 'css/pharma-home.css' %}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="{% static 'css/pharma-home.css' %}" rel="stylesheet"></noscript>
+<style>
+/* Critical inline styles for above-the-fold content */
+.home-wrapper {
+  background: #f8fafc;
+  min-height: 100vh;
+  padding: 2rem 0;
+}
+.main-content-card {
+  background: linear-gradient(135deg, #667eea 0%, #4facfe 50%, #f093fb 100%);
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(102, 126, 234, 0.15);
+  padding: 3rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+.main-content-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 70%, rgba(255,255,255,0.1) 0%, transparent 60%);
+  pointer-events: none;
+}
+.hero-section {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.1);
+  margin-bottom: 3rem;
+  position: relative;
+  z-index: 10;
+}
+</style>
+{% endblock %}
+
+{% block structured_data %}
+{{ block.super }}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "PharmaWeb",
+  "url": "{{ SITE_URL|default:request.build_absolute_uri|default:'' }}",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "{{ SITE_URL }}/buy-medicine/?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="home-wrapper">
+  <div class="main-content-card" dir="rtl">
+
+    <!-- Enhanced Hero Section -->
+    <section class="hero-section">
+      <!-- Decorative bubble background -->
+      <div class="bubble-layer" aria-hidden="true">
+        <span class="bubble"></span>
+        <span class="bubble"></span>
+        <span class="bubble"></span>
+        <span class="bubble"></span>
+        <span class="bubble"></span>
+        <span class="bubble"></span>
+        <span class="bubble"></span>
+        <span class="bubble"></span>
+        <span class="bubble"></span>
+        <span class="bubble"></span>
+        <span class="bubble"></span>
+        <span class="bubble"></span>
+        <span class="bubble"></span>
+        <span class="bubble"></span>
+      </div>
+      <div class="hero-content">
+        <div class="row align-items-center">
+          <div class="col-lg-12">
+            <div class="hero-badge mb-4">
+              {% pharma_icon 'quality-guarantee' color='white' size='small' %}
+              <span>جدیدترین محصولات دارویی</span>
+            </div>
+            
+            <h1 class="hero-title">
+              PharmaWeb
+              <br>داروخانه آنلاین مطمئن
+            </h1>
+            
+            <p class="hero-subtitle">
+              تجربه خرید دارو با بالاترین کیفیت، امنیت کامل و ارسال سریع. 
+            </p>
+
+            <!-- Enhanced Search -->
+            <div class="hero-search">
+              <form method="get" action="{% url 'buy_medicine' %}" id="search-form">
+                <div class="search-wrapper">
+                  <input name="q" value="{{ request.GET.q|default:'' }}" 
+                         class="search-input" 
+                         placeholder="نام دارو، برند یا کد محصول را جستجو کنید..." 
+                         aria-label="جستجو"
+                         id="search-input">
+                  <button class="search-btn" type="submit" id="search-btn">
+                    {% pharma_icon 'search-icon' color='white' size='small' %}
+                    <span>جستجو</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Hero Actions -->
+            <div class="hero-actions">
+              <a href="{% url 'buy_medicine' %}" class="hero-btn hero-btn-primary">
+                {% pharma_icon 'pharmacy-icon' color='white' size='small' css_class='me-2' %}
+                مشاهده همه محصولات
+              </a>
+              <a href="{% url 'cart' %}" class="hero-btn hero-btn-outline">
+                {% pharma_icon 'cart-icon' color='white' size='small' css_class='me-2' %}
+                سبد خرید
+              </a>
+              <a href="{% url 'support' %}" class="hero-btn hero-btn-outline">
+                {% pharma_icon 'professional-support' color='white' size='small' css_class='me-2' %}
+                پشتیبانی
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Enhanced Features Section -->
+    <section class="features-section">
+      <div class="section-header">
+        <h2 class="section-title">چرا PharmaWeb؟</h2>
+        <p class="section-subtitle">
+          ما بهترین تجربه خرید دارو را با تضمین کیفیت و امنیت بالا ارائه می‌دهیم
+        </p>
+      </div>
+      
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="feature-card">
+            <div class="feature-icon security">
+              {% pharma_icon 'quality-guarantee' color='white' size='xl' %}
+            </div>
+            <h3 class="feature-title">پرداخت امن و مطمئن</h3>
+            <p class="feature-description">
+              پشتیبانی کامل از روش‌های پرداخت مختلف شامل رمزارزها و درگاه‌های بانکی معتبر با رمزنگاری پیشرفته
+            </p>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="feature-card">
+            <div class="feature-icon delivery">
+              {% pharma_icon 'fast-delivery' color='white' size='xl' %}
+            </div>
+            <h3 class="feature-title">ارسال سریع و ایمن</h3>
+            <p class="feature-description">
+              ارسال فوری در کمتر از 24 ساعت برای شهرهای بزرگ و تضمین حفظ کیفیت محصولات در طول حمل و نقل
+            </p>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="feature-card">
+            <div class="feature-icon support">
+              {% pharma_icon 'professional-support' color='white' size='xl' %}
+            </div>
+            <h3 class="feature-title">پشتیبانی ۲۴/۷</h3>
+            <p class="feature-description">
+              تیم متخصص پشتیبانی ما همیشه آماده پاسخگویی به سوالات شما و ارائه مشاوره دارویی رایگان هستند
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Enhanced Categories Section -->
+    <section class="categories-section">
+      <div class="section-header">
+        <h2 class="section-title">دسته‌بندی محصولات</h2>
+        <p class="section-subtitle">
+          محصولات را بر اساس نیاز خود از دسته‌بندی‌های مختلف انتخاب کنید
+        </p>
+      </div>
+
+      <div class="row g-4">
+        {% if groups %}
+          {% for group in groups|slice:":6" %}
+            <div class="col-sm-6 col-lg-4">
+              <a href="{% url 'buy_medicine' %}?category={{ group.id }}" class="category-card">
+                <div class="category-icon">
+                  {% pharma_icon 'capsule-icon' color='white' %}
+                </div>
+                <h4 class="category-title fw-bold mb-2">{{ group.name }}</h4>
+                <p class="category-count text-muted mb-0">
+                  {% pharma_icon 'medicine-bottle-icon' color='white' size='small' css_class='me-1' %}
+                  {{ group.variants|length }} محصول موجود
+                </p>
+                <div class="mt-3">
+                  <span class="text-primary fw-semibold">
+                    مشاهده محصولات
+                    <i class="fas fa-arrow-left ms-2"></i>
+                  </span>
+                </div>
+              </a>
+            </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </section>
+
+    <!-- Enhanced Popular Products Section -->
+    <section class="products-section">
+      <div class="section-header">
+        <h2 class="section-title">محصولات پرطرفدار</h2>
+        <p class="section-subtitle">
+          پرفروش‌ترین و محبوب‌ترین محصولات دارویی در میان مشتریان ما
+        </p>
+      </div>
+
+      <div class="row g-4">
+        {% if groups %}
+          {% for group in groups|slice:":8" %}
+            {% with v=group.variants.0 %}
+              {% if v %}
+                <div class="col-sm-6 col-lg-3">
+                  <div class="product-card">
+                    <div class="product-image-wrapper">
+                      {% if v.image %}
+                        <img src="{% static v.image %}" 
+                             class="product-image" 
+                             alt="{{ v.name|default:'محصول' }}"
+                             loading="lazy"
+                             decoding="async"
+                             width="320" height="320">
+                      {% else %}
+                        <div class="product-image d-flex align-items-center justify-content-center" 
+                             style="background: linear-gradient(135deg, #f1f5f9, #e2e8f0);">
+                          {% pharma_icon 'medicine-bottle-icon' color='muted' size='large' %}
+                        </div>
+                      {% endif %}
+                      <div class="product-badge">
+                        ${{ v.price|default:"0"|floatformat:2 }}
+                      </div>
+                    </div>
+                    
+                    <div class="product-body">
+                      <h5 class="product-title">{{ v.name|truncatechars:40 }}</h5>
+                      <p class="product-description">
+                        {{ v.description|default:"محصول با کیفیت بالا و اصالت تضمینی"|truncatechars:80 }}
+                      </p>
+                      
+                      <div class="product-actions">
+                        <a href="{% url 'medicine_detail' v.id %}" class="product-btn product-btn-outline">
+                          {% pharma_icon 'search-icon' color='white' size='small' css_class='me-1' %}
+                          جزئیات
+                        </a>
+                        <form method="post" action="{% url 'cart_add' v.id %}" class="d-inline flex-fill">
+                          {% csrf_token %}
+                          <input type="hidden" name="qty" value="1">
+                          <button class="product-btn product-btn-primary w-100">
+                            {% pharma_icon 'cart-icon' color='white' size='small' css_class='me-1' %}
+                            افزودن
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+            {% endwith %}
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <div class="text-center mt-5">
+        <a href="{% url 'buy_medicine' %}" class="hero-btn hero-btn-outline">
+          {% pharma_icon 'menu-icon' color='white' size='small' css_class='me-2' %}
+          مشاهده همه محصولات
+        </a>
+      </div>
+    </section>
+
+    <!-- Enhanced CTA Section -->
+    <section class="cta-section">
+      <div class="cta-content">
+        <h2 class="cta-title">آماده شروع خرید هستید؟</h2>
+        <p class="cta-subtitle">
+          همین حالا از بهترین داروهای اصل و تضمینی با قیمت‌های مناسب استفاده کنید
+        </p>
+        <a href="{% url 'buy_medicine' %}" class="cta-btn">
+          {% pharma_icon 'fast-delivery' color='white' %}
+          شروع خرید اکنون
+        </a>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<!-- Search functionality -->
+<script>
+// Register service worker for caching
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/static/pharma-sw.js').catch(() => {});
+}
+
+// Ensure search works
+document.addEventListener('DOMContentLoaded', function() {
+  const searchForm = document.getElementById('search-form');
+  const searchBtn = document.getElementById('search-btn');
+  
+  console.log('Form found:', searchForm);
+  console.log('Button found:', searchBtn);
+  
+  if (searchBtn) {
+    searchBtn.addEventListener('click', function(e) {
+      console.log('Button clicked!');
+      const input = document.getElementById('search-input');
+      if (input && input.value.trim()) {
+        console.log('Searching for:', input.value);
+        // Show loading state
+        searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>جستجو...</span>';
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

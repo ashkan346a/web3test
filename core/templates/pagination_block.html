@@ -1,0 +1,64 @@
+{# pagination_block.html - generic pagination for page_obj or variants_page #}
+
+{% if page_obj %}
+<nav class="bm-pagination" aria-label="pagination">
+  <ul class="bm-pagination-list">
+    {% if page_obj.has_previous %}
+      <li class="prev"><a href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">&laquo; قبلی</a></li>
+    {% else %}
+      <li class="prev disabled"><span>&laquo; قبلی</span></li>
+    {% endif %}
+
+    {% for i in page_obj.paginator.page_range %}
+      {% if i == page_obj.number %}
+        <li class="active"><span>{{ i }}</span></li>
+      {% elif i >= page_obj.number|add:'-2' and i <= page_obj.number|add:'2' %}
+        <li><a href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ i }}">{{ i }}</a></li>
+      {% elif i == 1 %}
+        <li><a href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page=1">1</a></li>
+      {% elif i == page_obj.paginator.num_pages %}
+        <li><a href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a></li>
+      {% elif i == page_obj.number|add:'-3' or i == page_obj.number|add:'3' %}
+        <li class="dots"><span>…</span></li>
+      {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+      <li class="next"><a href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">بعدی &raquo;</a></li>
+    {% else %}
+      <li class="next disabled"><span>بعدی &raquo;</span></li>
+    {% endif %}
+  </ul>
+</nav>
+
+{% elif variants_page %}
+<nav class="bm-pagination" aria-label="pagination">
+  <ul class="bm-pagination-list">
+    {% if variants_page.has_previous %}
+      <li class="prev"><a href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ variants_page.previous_page_number }}">&laquo; قبلی</a></li>
+    {% else %}
+      <li class="prev disabled"><span>&laquo; قبلی</span></li>
+    {% endif %}
+
+    {% for i in variants_page.paginator.page_range %}
+      {% if i == variants_page.number %}
+        <li class="active"><span>{{ i }}</span></li>
+      {% elif i >= variants_page.number|add:'-2' and i <= variants_page.number|add:'2' %}
+        <li><a href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ i }}">{{ i }}</a></li>
+      {% elif i == 1 %}
+        <li><a href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page=1">1</a></li>
+      {% elif i == variants_page.paginator.num_pages %}
+        <li><a href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ variants_page.paginator.num_pages }}">{{ variants_page.paginator.num_pages }}</a></li>
+      {% elif i == variants_page.number|add:'-3' or i == variants_page.number|add:'3' %}
+        <li class="dots"><span>…</span></li>
+      {% endif %}
+    {% endfor %}
+
+    {% if variants_page.has_next %}
+      <li class="next"><a href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ variants_page.next_page_number }}">بعدی &raquo;</a></li>
+    {% else %}
+      <li class="next disabled"><span>بعدی &raquo;</span></li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}

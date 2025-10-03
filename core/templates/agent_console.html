@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}کنسول پشتیبانی{% endblock %}
+{% block content %}
+<div class="row">
+  <div class="col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-header">گفتگوها</div>
+      <div class="list-group list-group-flush" id="roomList">
+        {% for r in rooms %}
+          <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" data-room="{{ r.id }}">
+            <span>
+              {% if r.guest_name %}{{ r.guest_name }}
+              {% elif r.user %}{{ r.user.phone }}
+              {% else %}{{ r.session_key }}{% endif %}
+            </span>
+            <span class="badge bg-secondary">{{ r.messages.count }}</span>
+          </a>
+        {% empty %}
+          <div class="p-3 text-muted">موردی نیست</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="card shadow-sm">
+      <div class="card-header d-flex align-items-center gap-2">
+        <strong id="roomTitle">گفتگو</strong>
+        <small class="text-muted" id="roomMeta"></small>
+      </div>
+      <div class="card-body" id="consoleMessages" style="height: 55vh; overflow-y:auto"></div>
+      <div class="card-footer d-flex gap-2">
+        <input type="text" id="consoleInput" class="form-control" placeholder="پاسخ خود را بنویسید…">
+        <button class="btn btn-primary" id="consoleSend">ارسال</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<template id="agentBubble"><div class="p-2 rounded mb-1"></div></template>
+
+<script>
+  (function(){
+    const list = document.getElementById('roomList');
+    const msgs = document.getElementById('consoleMessages');
+    const input = document.getElementById('consoleInput');
+    const send = document.getElementById('consoleSend');
+    const bubbleT = document.getElementById('agentBubble');
+  let currentRoom = null, ws = null, feed = null;
+
+    function openRoom(roomId, title) {
+      currentRoom = roomId;
+      document.getElementById('roomTitle').textContent = `گفتگو #${roomId}`;
+      msgs.innerHTML = '';
+      if (ws) { ws.close(); ws = null; }
+      const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+      ws = new WebSocket(`${proto}://${location.host}/ws/chat/agent/${roomId}/`);
+      ws.onmessage = (ev) => {
+        const data = JSON.parse(ev.data);
+        if (data.type === 'message') {
+          addBubble(data.message);
+        } else if (data.type === 'history') {
+          (data.messages || []).forEach(addBubble);
+        } else if (data.type === 'clear') {
+          // Clear messages when admin requests it
+          msgs.innerHTML = '';
+        } else if (data.type === 'chat_deleted') {
+          // Chat has been deleted
+          msgs.innerHTML = '';
+          alert(data.message || 'چت حذف شد');
+          // Optionally refresh the rooms list or redirect
+          window.location.reload();
+        }
+      }
+      input.focus();
+    }
+
+    function addBubble(m){
+      const node = bubbleT.content.firstElementChild.cloneNode(true);
+      node.textContent = `${m.role === 'agent' ? 'شما' : 'کاربر'}: ${m.content}`;
+      node.className = m.role === 'agent' ? 'bg-primary text-white p-2 rounded mb-1' : 'bg-light p-2 rounded mb-1';
+      msgs.appendChild(node); msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    send.addEventListener('click', () => {
+      const txt = input.value.trim(); if (!txt || !ws) return;
+      ws.send(JSON.stringify({ message: txt }));
+      input.value = '';
+    });
+    input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') send.click(); });
+
+    list.addEventListener('click', (e) => {
+      const a = e.target.closest('[data-room]'); if (!a) return; e.preventDefault();
+      openRoom(a.getAttribute('data-room'));
+    });
+
+    // Agent feed to auto-refresh rooms list and show incoming notifications
+    (function ensureFeed(){
+      const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+      feed = new WebSocket(`${proto}://${location.host}/ws/chat/agent-feed/`);
+      feed.onmessage = (ev) => {
+        const data = JSON.parse(ev.data || '{}');
+        if (data.type === 'rooms') {
+          // rebuild rooms list
+          if (Array.isArray(data.rooms)) {
+            list.innerHTML = data.rooms.map(r => (
+              `<a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" data-room="${r.id}">
+                 <span>${r.title}</span>
+                 <span class="badge bg-secondary">${r.count}</span>
+               </a>`
+            )).join('');
+          }
+        } else if (data.type === 'notify') {
+          // if notification belongs to open room, append bubble; else highlight in list
+          if (String(data.room_id) === String(currentRoom) && data.message) {
+            addBubble(data.message);
+          } else {
+            const a = list.querySelector(`[data-room="${data.room_id}"]`);
+            if (a) a.classList.add('active');
+          }
+        }
+      };
+      feed.onclose = () => setTimeout(ensureFeed, 1500);
+    })();
+  })();
+</script>
+{% endblock %}

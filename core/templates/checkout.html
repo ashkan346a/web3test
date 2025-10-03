@@ -1,0 +1,3399 @@
+{% extends 'base.html' %}
+{% load static %}
+
+<!-- Add Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+{% block content %}
+<div class="checkout-container" dir="rtl" lang="fa">
+  <!-- Hero Section -->
+  <div class="checkout-hero">
+    <div class="hero-background"></div>
+    <div class="container">
+      <div class="hero-content">
+        <div class="checkout-progress">
+          <div class="progress-step completed">
+            <div class="step-icon">
+              <i class="fas fa-shopping-cart"></i>
+            </div>
+            <span class="step-label">انتخاب محصولات</span>
+          </div>
+          <div class="progress-line completed"></div>
+          <div class="progress-step active">
+            <div class="step-icon">
+              <i class="fas fa-credit-card"></i>
+            </div>
+            <span class="step-label">پرداخت</span>
+          </div>
+          <div class="progress-line"></div>
+          <div class="progress-step">
+            <div class="step-icon">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <span class="step-label">تکمیل سفارش</span>
+          </div>
+        </div>
+        <h1 class="hero-title">تکمیل سفارش</h1>
+        <p class="hero-subtitle">تنها چند قدم تا دریافت سفارش شما باقی مانده</p>
+      </div>
+    </div>
+  </div>
+  <!-- Main Content -->
+  <div class="container checkout-content">
+    <div class="row g-4">
+      <!-- Order Summary Section -->
+      <div class="col-lg-8">
+        <div class="checkout-card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-receipt"></i>
+              فاکتور سفارش
+            </h3>
+            <div class="card-badge">
+              <span class="badge-text">{{ cart_items|length }} آیتم</span>
+            </div>
+          </div>
+          
+          <div class="order-items">
+            {% for it in cart_items %}
+            <div class="order-item">
+              <div class="item-image">
+                <div class="product-placeholder">
+                  <i class="fas fa-pills"></i>
+                </div>
+              </div>
+              <div class="item-details">
+                <h4 class="item-name">{{ it.name }}</h4>
+                <div class="item-meta">
+                  <span class="item-quantity">
+                    <i class="fas fa-times"></i>
+                    {{ it.quantity }}
+                  </span>
+                  <span class="item-price">${{ it.price|floatformat:2 }}</span>
+                </div>
+              </div>
+              <div class="item-total">
+                <div class="total-amount">${{ it.total|floatformat:2 }}</div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          <div class="order-summary">
+            <div class="summary-row">
+              <span class="summary-label">جمع محصولات</span>
+              <span class="summary-value">${{ total_amount|floatformat:2 }}</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">هزینه ارسال</span>
+              <span class="summary-value free">رایگان</span>
+            </div>
+            <div class="summary-divider"></div>
+            <div class="summary-row total">
+              <span class="summary-label">مجموع کل</span>
+              <span class="summary-value">${{ total_amount|floatformat:2 }}</span>
+            </div>
+          </div>
+
+          <!-- Crypto Conversion for Selected Currency -->
+          <div class="selected-crypto-conversion" id="selectedConversion" style="display: none;">
+            <h4 class="conversions-title">
+              <i class="fas fa-coins"></i>
+              معادل پرداخت با <span id="selectedCurrencyName">-</span>
+            </h4>
+            <div class="selected-conversion-item">
+              <div class="conversion-details">
+                <div class="amount-section">
+                  <label>مبلغ قابل پرداخت:</label>
+                  <div class="amount-row">
+                    <span id="selectedCryptoAmount">-</span>
+                    <button class="copy-amount-btn" onclick="copySelectedAmount()">
+                      <i class="fas fa-copy"></i>
+                      کپی مبلغ
+                    </button>
+                  </div>
+                </div>
+                <div class="rate-section">
+                  <label>نرخ فعلی:</label>
+                  <span id="selectedCryptoRate">-</span>
+                </div>
+              </div>
+            </div>
+          </div> 
+
+          <div class="checkout-actions">
+            <a href="{% url 'buy_medicine' %}" class="btn-back">
+              <i class="fas fa-arrow-right"></i>
+              ادامه خرید
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Section -->
+      <div class="col-lg-4">
+        <div class="payment-card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-credit-card"></i>
+              انتخاب روش پرداخت
+            </h3>
+          </div>
+
+          <!-- Payment Methods -->
+          <div class="payment-methods">
+            <div class="methods-title">
+              <i class="fas fa-coins"></i>
+              ارزهای دیجیتال پذیرفته شده
+            </div>
+            <div class="payment-grid">
+              <button class="payment-method pay-btn" data-code="BTC">
+                <div class="method-icon btc">
+                  <i class="fab fa-bitcoin"></i>
+                </div>
+                <div class="method-info">
+                  <span class="method-name">Bitcoin</span>
+                  <span class="method-code">BTC</span>
+                </div>
+                <div class="method-check">
+                  <i class="fas fa-check"></i>
+                </div>
+              </button>
+
+              <button class="payment-method pay-btn" data-code="ETH">
+                <div class="method-icon eth">
+                  <i class="fab fa-ethereum"></i>
+                </div>
+                <div class="method-info">
+                  <span class="method-name">Ethereum</span>
+                  <span class="method-code">ETH</span>
+                </div>
+                <div class="method-check">
+                  <i class="fas fa-check"></i>
+                </div>
+              </button>
+
+              <button class="payment-method pay-btn" data-code="USDT">
+                <div class="method-icon usdt">
+                  <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="method-info">
+                  <span class="method-name">Tether</span>
+                  <span class="method-code">USDT</span>
+                </div>
+                <div class="method-check">
+                  <i class="fas fa-check"></i>
+                </div>
+              </button>
+
+              <button class="payment-method pay-btn" data-code="TRX">
+                <div class="method-icon trx">
+                  <i class="fas fa-circle"></i>
+                </div>
+                <div class="method-info">
+                  <span class="method-name">TRON</span>
+                  <span class="method-code">TRX</span>
+                </div>
+                <div class="method-check">
+                  <i class="fas fa-check"></i>
+                </div>
+              </button>
+
+              <button class="payment-method pay-btn" data-code="BNB">
+                <div class="method-icon bnb">
+                  <i class="fas fa-coins"></i>
+                </div>
+                <div class="method-info">
+                  <span class="method-name">Binance</span>
+                  <span class="method-code">BNB</span>
+                </div>
+                <div class="method-check">
+                  <i class="fas fa-check"></i>
+                </div>
+              </button>
+
+              <button class="payment-method pay-btn" data-code="TON">
+                <div class="method-icon ton">
+                  <i class="fas fa-gem"></i>
+                </div>
+                <div class="method-info">
+                  <span class="method-name">TON Coin</span>
+                  <span class="method-code">TON</span>
+                </div>
+                <div class="method-check">
+                  <i class="fas fa-check"></i>
+                </div>
+              </button>
+
+              <button class="payment-method pay-btn" data-code="SOL">
+                <div class="method-icon sol">
+                  <i class="fas fa-rocket"></i>
+                </div>
+                <div class="method-info">
+                  <span class="method-name">Solana</span>
+                  <span class="method-code">SOL</span>
+                </div>
+                <div class="method-check">
+                  <i class="fas fa-check"></i>
+                </div>
+              </button>
+
+              <button class="payment-method pay-btn" data-code="DOGE">
+                <div class="method-icon doge">
+                  <i class="fas fa-dog"></i>
+                </div>
+                <div class="method-info">
+                  <span class="method-name">Dogecoin</span>
+                  <span class="method-code">DOGE</span>
+                </div>
+                <div class="method-check">
+                  <i class="fas fa-check"></i>
+                </div>
+              </button>
+            </div>
+          </div>
+          
+          <!-- IRR Card-to-Card Payment Section -->
+          <div class="payment-methods irr-section" style="margin-top: 20px;">
+            <div class="methods-title">
+              <i class="fas fa-credit-card"></i>
+              پرداخت کارت به کارت (ریال ایران)
+            </div>
+            <div class="payment-grid">
+              <button class="payment-method pay-btn irr-payment" data-code="IRR">
+                <div class="method-icon irr">
+                  <i class="fas fa-credit-card"></i>
+                </div>
+                <div class="method-info">
+                  <span class="method-name">کارت به کارت</span>
+                  <span class="method-code">IRR</span>
+                </div>
+                <div class="method-check">
+                  <i class="fas fa-check"></i>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Wallet Details (Initially Hidden) -->
+          <div id="wallet-placeholder" class="payment-placeholder">
+            <div class="placeholder-icon">
+              <i class="fas fa-hand-pointer"></i>
+            </div>
+            <h4>روش پرداخت را انتخاب کنید</h4>
+            <p>لطفاً یکی از ارزهای دیجیتال بالا را برای پرداخت انتخاب کنید</p>
+          </div>
+
+          <div id="wallet-details" class="wallet-details" style="display:none">
+            <div class="wallet-header">
+              <div class="selected-currency">
+                <div class="currency-icon" id="selected-icon">
+                  <i class="fab fa-bitcoin"></i>
+                </div>
+                <div class="currency-info">
+                  <span class="currency-name" id="sel-currency">Bitcoin</span>
+                  <span class="currency-network">شبکه اصلی</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="payment-info">
+              <div class="info-item">
+                <div class="info-label">
+                  <i class="fas fa-wallet"></i>
+                  آدرس کیف‌پول
+                </div>
+                <div class="wallet-address" id="wallet-address">
+                  <!-- Address will be populated by JS -->
+                </div>
+                <div class="address-actions">
+                  <button class="action-btn" id="copy-address">
+                    <i class="fas fa-copy"></i>
+                    کپی آدرس
+                  </button>
+                  <a href="#" class="action-btn" id="open-in-wallet" target="_blank">
+                    <i class="fas fa-external-link-alt"></i>
+                    Explorer
+                  </a>
+                </div>
+              </div>
+
+              <div class="payment-amount">
+                <div class="amount-display">
+                  <div class="crypto-amount">
+                    <span id="crypto-amount">0</span>
+                    <span id="crypto-code">BTC</span>
+                  </div>
+                  <div class="fiat-amount">
+                    معادل $<span id="fiat-amount">0.00</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="qr-section">
+                <div class="qr-wrapper">
+                  <img id="qr-image" src="" alt="QR Code" class="qr-code">
+                  <div class="qr-overlay">
+                    <div class="qr-label">اسکن برای پرداخت</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="payment-actions">
+                <button class="confirm-payment-btn" id="confirm-pay">
+                  <i class="fas fa-check-circle"></i>
+                  <span>پرداخت انجام شد</span>
+                  <small>بررسی تراکنش</small>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- IRR Card-to-Card Payment Details -->
+          <div id="irr-payment-details" class="irr-payment-details" style="display:none">
+            <div class="payment-header">
+              <div class="payment-method-info">
+                <div class="method-icon-large irr">
+                  <i class="fas fa-credit-card"></i>
+                </div>
+                <div class="method-details">
+                  <h3>پرداخت کارت به کارت</h3>
+                  <span class="method-desc">انتقال وجه به شماره کارت</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="irr-amount-section">
+              <div class="amount-box">
+                <div class="amount-label">مبلغ قابل پرداخت:</div>
+                <div class="irr-amount-display">
+                  <span id="irr-amount">
+                    {% if irr_conversion %}{{ irr_conversion.irr_amount|floatformat:0 }}{% else %}0{% endif %}
+                  </span>
+                  <span class="currency">ریال</span>
+                </div>
+                <div class="usd-equivalent">
+                  معادل $<span id="usd-amount">{{ total_amount|floatformat:2 }}</span>
+                </div>
+                <button class="copy-btn" id="copy-irr-amount" onclick="copyIRRAmount()">
+                  <i class="fas fa-copy"></i>
+                  کپی مبلغ
+                </button>
+              </div>
+            </div>
+
+            <div class="card-details-section">
+              <h4><i class="fas fa-credit-card"></i> مشخصات کارت مقصد:</h4>
+              
+              <div class="card-info-grid">
+                <div class="card-info-item">
+                  <label>شماره کارت:</label>
+                  <div class="card-number-display">
+                    <span id="card-number">{% if irr_card_details %}{{ irr_card_details.card_number }}{% endif %}</span>
+                    <button class="copy-btn small" onclick="copyCardNumber()">
+                      <i class="fas fa-copy"></i>
+                      کپی
+                    </button>
+                  </div>
+                </div>
+                
+                <div class="card-info-item">
+                  <label>بانک:</label>
+                  <span>{% if irr_card_details %}{{ irr_card_details.bank }}{% endif %}</span>
+                </div>
+                
+                <div class="card-info-item">
+                  <label>صاحب حساب:</label>
+                  <span>{% if irr_card_details %}{{ irr_card_details.account_holder }}{% endif %}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="irr-payment-instructions">
+              <div class="instructions-header">
+                <i class="fas fa-info-circle"></i>
+                راهنمای پرداخت
+              </div>
+              <ol class="instructions-list">
+                <li>مبلغ فوق را به شماره کارت ذکر شده انتقال دهید</li>
+                <li>بعد از انتقال وجه، روی دکمه "پرداخت انجام شد" کلیک کنید</li>
+                <li>رسید انتقال را برای پیگیری نگه دارید</li>
+              </ol>
+            </div>
+
+            <div class="irr-payment-actions">
+              <button class="confirm-payment-btn irr-confirm" id="confirm-irr-payment">
+                <i class="fas fa-check-circle"></i>
+                <span>پرداخت انجام شد</span>
+                <small>تأیید انتقال وجه</small>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Modern Checkout Page Styles */
+.checkout-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+}
+
+/* Hero Section */
+.checkout-hero {
+  position: relative;
+  padding: 40px 0;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9));
+  backdrop-filter: blur(10px);
+  margin-bottom: -30px;
+  z-index: 1;
+}
+
+.hero-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><polygon fill="%23ffffff08" points="0,1000 1000,0 1000,1000"/></svg>');
+  background-size: cover;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+/* Progress Steps */
+.checkout-progress {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 30px;
+  gap: 20px;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.step-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.progress-step.completed .step-icon {
+  background: linear-gradient(135deg, #4caf50, #66bb6a);
+  border-color: #4caf50;
+}
+
+.progress-step.active .step-icon {
+  background: linear-gradient(135deg, #ff6b6b, #ffa726);
+  border-color: #ff6b6b;
+  animation: pulse 2s infinite;
+}
+
+.step-icon i {
+  font-size: 1.5rem;
+  color: white;
+}
+
+.step-label {
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.progress-line {
+  width: 60px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-line.completed {
+  background: #4caf50;
+}
+
+.progress-line.completed::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: shimmer 2s infinite;
+}
+
+/* Hero Text */
+.hero-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 8px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.hero-subtitle {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 0;
+}
+
+/* Content Area */
+.checkout-content {
+  position: relative;
+  z-index: 2;
+  padding-top: 30px;
+  padding-bottom: 50px;
+}
+
+/* Cards */
+.checkout-card, .payment-card {
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+}
+
+.card-header {
+  padding: 24px 30px 20px;
+  border-bottom: 1px solid #f0f2f5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #f8f9fa, #ffffff);
+}
+
+.card-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+}
+
+.card-title i {
+  color: #667eea;
+  font-size: 1.2rem;
+}
+
+.card-badge {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Order Items */
+.order-items {
+  padding: 20px 30px;
+}
+
+.order-item {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  border: 2px solid #f0f2f5;
+  border-radius: 16px;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #f8f9ff, #ffffff);
+  transition: all 0.3s ease;
+}
+
+.order-item:hover {
+  border-color: #667eea;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.item-image {
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+}
+
+.product-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.item-details {
+  flex: 1;
+}
+
+.item-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 8px;
+}
+
+.item-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.item-quantity {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.item-total {
+  text-align: right;
+}
+
+.total-amount {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+/* Order Summary */
+.order-summary {
+  padding: 20px 30px;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+}
+
+.summary-row.total {
+  border-top: 2px solid #dee2e6;
+  margin-top: 8px;
+  padding-top: 16px;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.summary-label {
+  color: #6c757d;
+}
+
+.summary-value {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.summary-value.free {
+  color: #4caf50;
+}
+
+.summary-divider {
+  height: 1px;
+  background: #dee2e6;
+  margin: 8px 0;
+}
+
+/* Crypto Conversions */
+.crypto-conversions {
+  padding: 20px 30px;
+  background: linear-gradient(135deg, #f0f4ff, #ffffff);
+  border-top: 1px solid #e3e8ff;
+}
+
+/* Selected Crypto Conversion */
+.selected-crypto-conversion {
+  background: linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%);
+  border-radius: 20px;
+  padding: 25px;
+  margin-top: 25px;
+  border: 2px solid rgba(102, 126, 234, 0.1);
+  animation: slideInUp 0.5s ease;
+}
+
+.selected-conversion-item {
+  background: white;
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+.conversion-details {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.amount-section,
+.rate-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.amount-section label,
+.rate-section label {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.amount-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px 15px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 2px solid #e9ecef;
+}
+
+.amount-row span {
+  flex: 1;
+  font-family: 'Courier New', monospace;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+.copy-amount-btn {
+  background: linear-gradient(135deg, #28a745, #34ce57);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.copy-amount-btn:hover {
+  background: linear-gradient(135deg, #218838, #28a745);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(40, 167, 69, 0.3);
+}
+
+.rate-section span {
+  background: #e3f2fd;
+  padding: 10px 15px;
+  border-radius: 10px;
+  font-weight: 600;
+  color: #1976d2;
+  border: 2px solid #bbdefb;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.conversions-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.conversions-title i {
+  color: #667eea;
+}
+
+.conversions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.conversion-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: white;
+  border: 2px solid #e3e8ff;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.conversion-item:hover {
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+}
+
+.crypto-icon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.crypto-icon i {
+  color: #d4af37;
+  font-size: 1.2rem;
+}
+
+.crypto-info {
+  flex: 1;
+}
+
+.crypto-name {
+  display: block;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.9rem;
+}
+
+.crypto-amount {
+  display: block;
+  font-size: 0.8rem;
+  color: #667eea;
+  font-weight: 600;
+}
+
+.crypto-rate {
+  display: block;
+  font-size: 0.75rem;
+  color: #6c757d;
+}
+
+/* Checkout Actions */
+.checkout-actions {
+  padding: 20px 30px;
+  border-top: 1px solid #f0f2f5;
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #f8f9fa;
+  color: #6c757d;
+  text-decoration: none;
+  border-radius: 10px;
+  font-weight: 600;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.btn-back:hover {
+  background: #e9ecef;
+  color: #495057;
+  text-decoration: none;
+}
+
+/* Payment Methods */
+.payment-methods {
+  padding: 20px 30px;
+}
+
+.methods-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.methods-title i {
+  color: #667eea;
+}
+
+.payment-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.payment-method {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, #f8f9ff, #ffffff);
+  border: 2px solid #e3e8ff;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #2c3e50;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.payment-method::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.payment-method:hover::before {
+  left: 100%;
+}
+
+.payment-method:hover {
+  border-color: #667eea;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+}
+
+.payment-method.active {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-color: #667eea;
+}
+
+.method-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.3rem;
+}
+
+.method-icon.btc {
+  background: linear-gradient(135deg, #f7931a, #ffb84d);
+  color: white;
+}
+
+.method-icon.eth {
+  background: linear-gradient(135deg, #627eea, #8fa4f3);
+  color: white;
+}
+
+.method-icon.usdt {
+  background: linear-gradient(135deg, #26a17b, #4ade80);
+  color: white;
+}
+
+.method-icon.trx {
+  background: linear-gradient(135deg, #ff060a, #ff4444);
+  color: white;
+}
+
+.method-icon.bnb {
+  background: linear-gradient(135deg, #f3ba2f, #fdd835);
+  color: #d4af37;
+}
+
+.method-icon.ton {
+  background: linear-gradient(135deg, #0088cc, #33a6e5);
+  color: white;
+}
+
+.method-icon.sol {
+  background: linear-gradient(135deg, #9945ff, #b855ff);
+  color: white;
+}
+
+.method-icon.doge {
+  background: linear-gradient(135deg, #c2a633, #d4af37);
+  color: #8b6914;
+}
+
+.payment-method.active .method-icon {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.method-info {
+  flex: 1;
+}
+
+.method-name {
+  display: block;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 2px;
+}
+
+.method-code {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.method-check {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(102, 126, 234, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.payment-method.active .method-check {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.method-check i {
+  font-size: 0.8rem;
+  color: #667eea;
+}
+
+.payment-method.active .method-check i {
+  color: white;
+}
+
+/* IRR Payment Styles */
+.method-icon.irr {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+}
+
+.irr-payment-details {
+  padding: 20px 30px 30px;
+  background: linear-gradient(135deg, #f8f9fa, #ffffff);
+  border-radius: 20px;
+  margin-top: 20px;
+}
+
+.payment-header {
+  margin-bottom: 24px;
+}
+
+.payment-method-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, #28a745, #20c997);
+  border-radius: 16px;
+  color: white;
+}
+
+.method-icon-large {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+
+.method-icon-large i {
+  font-size: 1.3rem;
+  color: white;
+}
+
+.method-details h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.method-desc {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.irr-amount-section {
+  margin-bottom: 24px;
+}
+
+.amount-box {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  color: white;
+  position: relative;
+}
+
+.amount-label {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  margin-bottom: 8px;
+}
+
+.irr-amount-display {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.currency {
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+.usd-equivalent {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-bottom: 16px;
+}
+
+.copy-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.copy-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.copy-btn.small {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+}
+
+.card-details-section {
+  background: #f8f9ff;
+  border: 2px solid #e3e8ff;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.card-details-section h4 {
+  margin: 0 0 16px 0;
+  color: #495057;
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-info-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.card-info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.card-info-item label {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.card-number-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+}
+
+.irr-payment-instructions {
+  background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+  border: 2px solid #ffeaa7;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.instructions-header {
+  font-weight: 600;
+  color: #856404;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.instructions-list {
+  margin: 0;
+  padding-right: 20px;
+  color: #856404;
+}
+
+.instructions-list li {
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.irr-payment-actions {
+  text-align: center;
+}
+
+.confirm-payment-btn.irr-confirm {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  border: none;
+  padding: 16px 32px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.confirm-payment-btn.irr-confirm:hover {
+  background: linear-gradient(135deg, #218838, #1ea085);
+  transform: translateY(-2px);
+}
+
+.irr-section {
+  border-top: 2px solid rgba(255, 255, 255, 0.2);
+  padding-top: 20px;
+}
+
+/* Payment Placeholder */
+.payment-placeholder {
+  padding: 40px 30px;
+  text-align: center;
+  color: #6c757d;
+}
+
+.placeholder-icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #f0f2f5, #e9ecef);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.placeholder-icon i {
+  font-size: 2rem;
+  color: #adb5bd;
+}
+
+.payment-placeholder h4 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 8px;
+}
+
+.payment-placeholder p {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Wallet Details */
+.wallet-details {
+  padding: 20px 30px 30px;
+}
+
+.wallet-header {
+  margin-bottom: 24px;
+}
+
+.selected-currency {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 16px;
+  color: white;
+}
+
+.currency-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.currency-icon i {
+  font-size: 1.3rem;
+  color: white;
+}
+
+.currency-info {
+  flex: 1;
+}
+
+.currency-name {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.currency-network {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+/* Payment Info */
+.payment-info {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.info-item {
+  background: #f8f9ff;
+  border: 2px solid #e3e8ff;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.info-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+}
+
+.info-label i {
+  color: #667eea;
+}
+
+.wallet-address {
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 16px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  word-break: break-all;
+  color: #495057;
+  margin-bottom: 12px;
+}
+
+.address-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  padding: 8px 16px;
+  background: #667eea;
+  color: white;
+  text-decoration: none;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.action-btn:hover {
+  background: #764ba2;
+  color: white;
+  text-decoration: none;
+}
+
+/* Payment Amount */
+.payment-amount {
+  background: linear-gradient(135deg, #f0f4ff, #ffffff);
+  border: 2px solid #e3e8ff;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+}
+
+.amount-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.crypto-amount {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2c3e50;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.fiat-amount {
+  font-size: 0.95rem;
+  color: #6c757d;
+  font-weight: 600;
+}
+
+/* QR Section */
+.qr-section {
+  display: flex;
+  justify-content: center;
+}
+
+.qr-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.qr-code {
+  width: 200px;
+  height: 200px;
+  border: 4px solid white;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.qr-code:hover {
+  transform: scale(1.05);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+.qr-overlay {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* QR Modal Styles */
+.qr-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeInModal 0.3s ease;
+}
+
+.qr-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+}
+
+.qr-modal-content {
+  position: relative;
+  background: white;
+  border-radius: 20px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  animation: slideInModal 0.4s ease;
+  direction: rtl;
+}
+
+.qr-modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.qr-modal-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.qr-modal-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.qr-modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.qr-modal-body {
+  padding: 30px;
+}
+
+.qr-display {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.qr-display img {
+  max-width: 300px;
+  width: 100%;
+  height: auto;
+  border: 3px solid #f0f2f5;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.qr-info {
+  space-y: 20px;
+}
+
+.wallet-info,
+.amount-info {
+  margin-bottom: 25px;
+}
+
+.wallet-info label,
+.amount-info label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+.address-display,
+.amount-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f8f9fa;
+  padding: 12px 15px;
+  border-radius: 12px;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.address-display:hover,
+.amount-display:hover {
+  border-color: #667eea;
+  background: #f0f4ff;
+}
+
+.address-display span,
+.amount-display span {
+  flex: 1;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  color: #495057;
+  word-break: break-all;
+}
+
+.copy-btn {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+}
+
+.copy-btn:hover {
+  background: #5a67d8;
+  transform: translateY(-2px);
+}
+
+.copy-btn:active {
+  transform: translateY(0);
+}
+
+@keyframes fadeInModal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInModal {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Payment Actions */
+.payment-actions {
+  margin-top: 24px;
+}
+
+.confirm-payment-btn {
+  width: 100%;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #4caf50, #66bb6a);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.confirm-payment-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+}
+
+.confirm-payment-btn i {
+  font-size: 1.5rem;
+  margin-bottom: 4px;
+}
+
+.confirm-payment-btn span {
+  font-size: 1rem;
+}
+
+.confirm-payment-btn small {
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+  .checkout-progress {
+    gap: 10px;
+  }
+  
+  .progress-line {
+    width: 40px;
+  }
+  
+  .step-icon {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .step-icon i {
+    font-size: 1.2rem;
+  }
+  
+  .conversions-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .order-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+  
+  .summary-row {
+    flex-direction: column;
+    gap: 4px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 576px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+  
+  .checkout-progress {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .progress-line {
+    width: 3px;
+    height: 30px;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  
+  .address-actions {
+    flex-direction: column;
+  }
+  
+  .crypto-amount {
+    font-size: 1.4rem;
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .qr-modal-content {
+    width: 95%;
+  }
+  
+  .qr-modal-body {
+    padding: 20px;
+  }
+  
+  .qr-display img {
+    max-width: 250px;
+  }
+  
+  .selected-crypto-conversion {
+    padding: 15px;
+  }
+  
+  .conversion-details {
+    gap: 15px;
+  }
+  
+  .amount-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .copy-amount-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Loading States */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+      /* Responsive Design */
+      @media (max-width: 1200px) {
+        .container {
+          max-width: 95%;
+        }
+        
+        .checkout-grid {
+          grid-template-columns: 1fr;
+          gap: 30px;
+        }
+        
+        .hero-content h1 {
+          font-size: 2.2rem;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .hero-section {
+          padding: 80px 20px 40px;
+        }
+        
+        .hero-content h1 {
+          font-size: 1.8rem;
+          margin-bottom: 15px;
+        }
+        
+        .hero-content p {
+          font-size: 16px;
+        }
+        
+        .progress-steps {
+          margin: 30px 0;
+        }
+        
+        .step {
+          margin: 0 8px;
+        }
+        
+        .step-number {
+          width: 35px;
+          height: 35px;
+          font-size: 14px;
+        }
+        
+        .step-title {
+          font-size: 13px;
+          margin-top: 8px;
+        }
+        
+        .checkout-card {
+          padding: 25px 20px;
+          margin-bottom: 20px;
+        }
+        
+        .card-title {
+          font-size: 20px;
+          margin-bottom: 20px;
+        }
+        
+        .payment-methods {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 15px;
+        }
+        
+        .pay-btn {
+          padding: 15px;
+          flex-direction: column;
+          text-align: center;
+        }
+        
+        .pay-btn i {
+          margin-bottom: 8px;
+          font-size: 24px;
+        }
+        
+        .wallet-display {
+          padding: 20px;
+        }
+        
+        .wallet-header {
+          flex-direction: column;
+          text-align: center;
+          gap: 15px;
+        }
+        
+        .crypto-icon {
+          margin-bottom: 10px;
+        }
+        
+        .wallet-address {
+          font-size: 12px;
+          word-break: break-all;
+        }
+        
+        .amount-display {
+          flex-direction: column;
+          gap: 15px;
+          text-align: center;
+        }
+        
+        .qr-section {
+          margin-top: 20px;
+        }
+        
+        .qr-code img {
+          width: 180px;
+          height: 180px;
+        }
+        
+        .action-buttons {
+          flex-direction: column;
+          gap: 12px;
+        }
+        
+        .btn {
+          width: 100%;
+          justify-content: center;
+        }
+        
+        .order-summary .summary-item {
+          flex-direction: column;
+          gap: 5px;
+          text-align: center;
+        }
+        
+        .order-item {
+          padding: 15px;
+        }
+        
+        .item-info h4 {
+          font-size: 16px;
+        }
+        
+        .item-price {
+          font-size: 18px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .hero-section {
+          padding: 60px 15px 30px;
+        }
+        
+        .hero-content h1 {
+          font-size: 1.6rem;
+        }
+        
+        .container {
+          padding: 0 15px;
+        }
+        
+        .checkout-card {
+          padding: 20px 15px;
+          border-radius: 15px;
+        }
+        
+        .payment-methods {
+          grid-template-columns: 1fr;
+          gap: 12px;
+        }
+        
+        .pay-btn {
+          padding: 18px 15px;
+          font-size: 14px;
+        }
+        
+        .step {
+          margin: 0 5px;
+        }
+        
+        .step-number {
+          width: 30px;
+          height: 30px;
+          font-size: 12px;
+        }
+        
+        .step-title {
+          font-size: 11px;
+          margin-top: 6px;
+        }
+        
+        .wallet-display {
+          padding: 15px;
+        }
+        
+        .amount-item {
+          padding: 12px 15px;
+        }
+        
+        .amount-value {
+          font-size: 16px;
+        }
+        
+        .qr-code img {
+          width: 150px;
+          height: 150px;
+        }
+        
+        .order-item {
+          padding: 12px;
+        }
+        
+        .item-info h4 {
+          font-size: 14px;
+        }
+        
+        .item-price {
+          font-size: 16px;
+        }
+      }
+
+      /* Dark mode support - بهبود یافته برای وضوح بهتر متن */
+      @media (prefers-color-scheme: dark) {
+        /* حذف dark mode - استفاده از رنگ‌های پیش‌فرض */
+        /* کاربر می‌تواند خودش dark mode را در تنظیمات مرورگر فعال کند */
+        /* اما ما از رنگ‌های روشن و واضح استفاده می‌کنیم */
+      }
+
+      /* Print styles */
+      @media print {
+        .hero-section,
+        .progress-steps,
+        .action-buttons {
+          display: none;
+        }
+        
+        .checkout-card {
+          box-shadow: none;
+          border: 1px solid #000;
+          break-inside: avoid;
+        }
+        
+        .wallet-display {
+          border: 2px solid #000;
+        }
+        
+        .qr-code {
+          page-break-inside: avoid;
+        }
+      }
+
+      /* High contrast mode */
+      @media (prefers-contrast: high) {
+        .checkout-card {
+          border: 2px solid #000;
+        }
+        
+        .pay-btn {
+          border: 2px solid;
+        }
+        
+        .btn {
+          border: 2px solid;
+        }
+      }
+
+      /* Reduced motion */
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+
+      /* انیمیشن‌های پویاتر و تعاملی */
+      .checkout-card, .payment-card {
+        transform: translateY(0);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      
+      .checkout-card:hover, .payment-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 25px 50px rgba(102, 126, 234, 0.25);
+      }
+
+      .pay-btn {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: translateY(0);
+      }
+      
+      .pay-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.6s;
+      }
+      
+      .pay-btn:hover::before {
+        left: 100%;
+      }
+      
+      .pay-btn:hover {
+        transform: translateY(-4px) scale(1.05);
+        box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+      }
+      
+      .pay-btn:active {
+        transform: translateY(-2px) scale(1.02);
+      }
+      
+      .pay-btn.active {
+        transform: translateY(-6px) scale(1.08);
+        box-shadow: 0 20px 40px rgba(118, 75, 162, 0.5);
+        border: 2px solid #764ba2;
+      }
+      
+      .pay-btn.active::after {
+        content: '✓';
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: #4caf50;
+        color: white;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: bold;
+        animation: checkmark-bounce 0.6s ease;
+      }
+      
+      @keyframes checkmark-bounce {
+        0% { transform: scale(0) rotate(0deg); }
+        50% { transform: scale(1.3) rotate(180deg); }
+        100% { transform: scale(1) rotate(360deg); }
+      }
+
+      /* انیمیشن ظاهر شدن wallet details */
+      #wallet-details {
+        animation: slideInUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      
+      @keyframes slideInUp {
+        0% {
+          opacity: 0;
+          transform: translateY(60px) scale(0.9);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      /* انیمیشن دکمه‌ها */
+      .btn {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+      }
+      
+      .btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+      }
+      
+      .btn:hover::before {
+        width: 300px;
+        height: 300px;
+      }
+      
+      .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+      }
+
+      /* انیمیشن QR کد */
+      .qr-code {
+        position: relative;
+      }
+      
+      .qr-code::before {
+        content: '';
+        position: absolute;
+        top: -10px;
+        left: -10px;
+        right: -10px;
+        bottom: -10px;
+        background: linear-gradient(45deg, #667eea, #764ba2, #667eea);
+        background-size: 300% 300%;
+        border-radius: 20px;
+        z-index: -1;
+        animation: gradient-rotate 3s ease infinite;
+      }
+      
+      @keyframes gradient-rotate {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+
+      /* انیمیشن loading بهبود یافته */
+      .loading {
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .loading::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(102, 126, 234, 0.3),
+          transparent
+        );
+        animation: loading-shimmer 2s infinite;
+      }
+      
+      @keyframes loading-shimmer {
+        0% { left: -100%; }
+        100% { left: 100%; }
+      }
+
+      /* انیمیشن پرداخت موفق */
+      .success-animation {
+        animation: success-pulse 1s ease;
+      }
+      
+      @keyframes success-pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); box-shadow: 0 0 30px rgba(76, 175, 80, 0.6); }
+        100% { transform: scale(1); }
+      }
+
+      /* انیمیشن‌های ورودی برای عناصر */
+      .fade-in {
+        animation: fadeIn 0.8s ease-out;
+      }
+      
+      @keyframes fadeIn {
+        0% {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      /* انیمیشن چشمک زدن برای مراحل فعال */
+      .step.active .step-number {
+        animation: pulse-glow 2s infinite;
+      }
+      
+      @keyframes pulse-glow {
+        0%, 100% { 
+          box-shadow: 0 0 20px rgba(102, 126, 234, 0.6); 
+        }
+        50% { 
+          box-shadow: 0 0 35px rgba(102, 126, 234, 0.9), 
+                     0 0 50px rgba(118, 75, 162, 0.6); 
+        }
+      }
+    </style><script>
+(function(){
+  var TOTAL = parseFloat('{{ total_amount|floatformat:2 }}') || 0.0;
+  var rates = {};
+  var selectedMethod = null;
+  var lastPaymentRequest = 0; // Track last payment request time
+  var PAYMENT_COOLDOWN = 60000; // 1 minute in milliseconds
+
+  // Wallet addresses
+  var WALLETS = {};
+  try{
+    WALLETS = JSON.parse('{{ WALLETS_json|default:'{}'|escapejs }}');
+  }catch(e){
+    WALLETS = {
+      'BTC': '{{ BITCOIN_MAIN_WALLET|default:"bc1q68p8..." }}',
+      'ETH': '{{ ETH_MAIN_WALLET|default:"0x..." }}',
+      'TRX': '{{ MAIN_WALLET|default:"TXyor..." }}',
+      'USDT': '{{ MAIN_WALLET|default:"TXyor..." }}',
+      'BNB': '{{ BNB_MAIN_WALLET|default:"0xa05..." }}',
+      'TON': '{{ TON_WALLET|default:"UQAT..." }}'
+    };
+  }
+
+  var liveRatesUrl = '{% url "api_live_rates_live" %}';
+  var qrBase = '{{ qr_base|default:"/static/images/qr/" }}';
+
+  var cryptoConfig = {
+    'BTC': {
+      name: 'Bitcoin',
+      icon: 'fab fa-bitcoin',
+      color: '#f7931a',
+      explorer: (addr) => `https://www.blockchain.com/btc/address/${addr}`
+    },
+    'ETH': {
+      name: 'Ethereum', 
+      icon: 'fab fa-ethereum',
+      color: '#627eea',
+      explorer: (addr) => `https://etherscan.io/address/${addr}`
+    },
+    'USDT': {
+      name: 'Tether',
+      icon: 'fas fa-dollar-sign',
+      color: '#26a17b',
+      explorer: (addr) => `https://tronscan.org/#/address/${addr}`
+    },
+    'TRX': {
+      name: 'TRON',
+      icon: 'fas fa-circle',
+      color: '#ff060a',
+      explorer: (addr) => `https://tronscan.org/#/address/${addr}`
+    },
+    'BNB': {
+      name: 'Binance Coin',
+      icon: 'fas fa-coins',
+      color: '#f3ba2f',
+      explorer: (addr) => `https://bscscan.com/address/${addr}`
+    },
+    'TON': {
+      name: 'TON Coin',
+      icon: 'fas fa-gem',
+      color: '#0088cc',
+      explorer: (addr) => `https://tonscan.org/address/${addr}`
+    },
+    'SOL': {
+      name: 'Solana',
+      icon: 'fas fa-rocket',
+      color: '#9945ff',
+      explorer: (addr) => `https://solscan.io/account/${addr}`
+    },
+    'DOGE': {
+      name: 'Dogecoin',
+      icon: 'fas fa-dog',
+      color: '#c2a633',
+      explorer: (addr) => `https://dogechain.info/address/${addr}`
+    }
+  };
+
+  function qs(sel) { return document.querySelector(sel); }
+  function qsa(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+
+  // QR Modal Functions
+  function openQRModal(code) {
+    if (!selectedMethod || selectedMethod !== code) {
+      showNotification('ابتدا روش پرداخت را انتخاب کنید', 'warning');
+      return;
+    }
+    
+    const config = cryptoConfig[code];
+    const addr = WALLETS[code];
+    const rateData = rates[code];
+    
+    if (!config || !addr) return;
+    
+    // Calculate current amount
+    const rate = rateData && rateData.USD ? rateData.USD : 0;
+    const amount = rate > 0 ? (TOTAL / rate).toFixed(code === 'BTC' ? 8 : 6) : '0';
+    
+    // Update modal content
+    qs('#qrModalTitle').textContent = `QR Code ${config.name}`;
+    qs('#qrModalImage').src = qrBase + code.toUpperCase() + '.png';
+    qs('#qrModalAddress').textContent = addr;
+    qs('#qrModalAmount').textContent = `${amount} ${code}`;
+    
+    // Show modal
+    qs('#qrCodeModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeQRModal() {
+    qs('#qrCodeModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+  }
+
+  function copyModalAddress() {
+    const addr = qs('#qrModalAddress').textContent;
+    copyToClipboard(addr, 'آدرس کیف پول کپی شد');
+  }
+
+  function copyModalAmount() {
+    const amount = qs('#qrModalAmount').textContent;
+    copyToClipboard(amount, 'مبلغ کپی شد');
+  }
+
+  function copySelectedAmount() {
+    const amount = qs('#selectedCryptoAmount').textContent;
+    if (amount && amount !== '-') {
+      copyToClipboard(amount, 'مبلغ معادل کپی شد');
+    }
+  }
+
+  function copyToClipboard(text, successMessage) {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text)
+        .then(() => showNotification(successMessage, 'success'))
+        .catch(() => fallbackCopy(text, successMessage));
+    } else {
+      fallbackCopy(text, successMessage);
+    }
+  }
+
+  function fallbackCopy(text, successMessage) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    
+    try {
+      document.execCommand('copy');
+      showNotification(successMessage, 'success');
+    } catch(e) {
+      showNotification('خطا در کپی کردن', 'error');
+    }
+    
+    document.body.removeChild(textarea);
+  }
+
+  // Update selected conversion display
+  function updateSelectedConversion(code) {
+    const config = cryptoConfig[code];
+    const rateData = rates[code];
+    
+    if (!config || !rateData) {
+      qs('#selectedConversion').style.display = 'none';
+      return;
+    }
+    
+    const rate = rateData.USD || 0;
+    const amount = rate > 0 ? (TOTAL / rate).toFixed(code === 'BTC' ? 8 : 6) : '0';
+    
+    qs('#selectedCurrencyName').textContent = config.name;
+    qs('#selectedCryptoAmount').textContent = `${amount}`;
+    qs('#selectedCryptoRate').textContent = ` ${code} ≈ $${rate.toFixed(2)}`;
+    
+    qs('#selectedConversion').style.display = 'block';
+  }
+
+  function fetchRates() {
+    fetch(liveRatesUrl + '?total_usd=' + TOTAL)
+      .then(r => r.json())
+      .then(j => {
+        if(j && j.rates) {
+          rates = j.rates;
+          updateCryptoConversions();
+        }
+      })
+      .catch(() => {
+        // Silent fallback
+      });
+  }
+
+  function updateCryptoConversions() {
+    const conversionsGrid = qs('.conversions-grid');
+    if (!conversionsGrid) return;
+
+    conversionsGrid.innerHTML = '';
+    
+    const supportedCoins = ['BTC', 'ETH', 'TRX', 'USDT', 'BNB', 'TON'];
+    
+    supportedCoins.forEach(code => {
+      const config = cryptoConfig[code];
+      const rateData = rates[code];
+      
+      if (!config || !rateData) return;
+      
+      const conversionItem = document.createElement('div');
+      conversionItem.className = 'conversion-item';
+      
+      const price = rateData.USD || 0;
+      const amount = rateData.amount || 0;
+      
+      conversionItem.innerHTML = `
+        <div class="crypto-icon">
+          <i class="${config.icon}" style="color: ${config.color}"></i>
+        </div>
+        <div class="crypto-info">
+          <span class="crypto-name">${config.name}</span>
+          ${amount ? 
+            `<span class="crypto-amount">${formatNumber(amount, code === 'BTC' ? 8 : 6)} ${code}</span>
+             <span class="crypto-rate">1 ${code} ≈ $${formatNumber(price, 2)}</span>` :
+            '<span class="crypto-amount">نرخ در دسترس نیست</span>'
+          }
+        </div>
+      `;
+      
+      conversionsGrid.appendChild(conversionItem);
+      
+      // انیمیشن ورودی
+      setTimeout(() => {
+        conversionItem.style.opacity = '1';
+        conversionItem.style.transform = 'translateY(0)';
+      }, 50);
+    });
+  }
+
+  function formatNumber(v, decimals = 6) { 
+    return Number(v).toFixed(decimals).replace(/\.0+$/, '');
+  }
+
+  function showNotification(message, type = 'info') {
+    // Remove existing notifications with animation
+    const existing = document.querySelector('.checkout-notification');
+    if(existing) {
+      existing.style.transform = 'translateX(400px) scale(0.8)';
+      existing.style.opacity = '0';
+      setTimeout(() => existing.remove(), 300);
+    }
+    
+    const notification = document.createElement('div');
+    notification.className = `checkout-notification notification-${type}`;
+    notification.innerHTML = `
+      <div class="notification-content">
+        <i class="fas fa-${getNotificationIcon(type)}"></i>
+        <span>${message}</span>
+        <button class="notification-close" onclick="this.parentElement.parentElement.remove()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    `;
+    
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: white;
+      padding: 18px 24px;
+      border-radius: 15px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.15), 0 5px 15px rgba(0,0,0,0.1);
+      z-index: 9999;
+      transform: translateX(400px) scale(0.8);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border-left: 5px solid ${getNotificationColor(type)};
+      max-width: 380px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #333;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.8);
+    `;
+    
+    // Enhanced notification content styling
+    const content = notification.querySelector('.notification-content');
+    content.style.cssText = `
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+    `;
+    
+    const icon = content.querySelector('i');
+    icon.style.cssText = `
+      color: ${getNotificationColor(type)};
+      font-size: 20px;
+      animation: notification-icon-bounce 0.6s ease;
+    `;
+    
+    const closeBtn = content.querySelector('.notification-close');
+    closeBtn.style.cssText = `
+      position: absolute;
+      top: -8px;
+      right: -10px;
+      background: ${getNotificationColor(type)};
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.3s ease;
+      opacity: 0.8;
+    `;
+    
+    closeBtn.addEventListener('mouseenter', function() {
+      this.style.transform = 'scale(1.2)';
+      this.style.opacity = '1';
+    });
+    
+    closeBtn.addEventListener('mouseleave', function() {
+      this.style.transform = 'scale(1)';
+      this.style.opacity = '0.8';
+    });
+    
+    // Add CSS animations
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes notification-icon-bounce {
+        0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+        40% { transform: translateY(-8px); }
+        60% { transform: translateY(-4px); }
+      }
+      
+      .notification-${type} {
+        background: linear-gradient(135deg, white 0%, ${getNotificationColor(type)}10 100%) !important;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(notification);
+    
+    // Entrance animation
+    setTimeout(() => {
+      notification.style.transform = 'translateX(0) scale(1)';
+      notification.style.opacity = '1';
+    }, 100);
+    
+    // Auto remove with exit animation
+    setTimeout(() => {
+      notification.style.transform = 'translateX(400px) scale(0.8)';
+      notification.style.opacity = '0';
+      setTimeout(() => {
+        if(notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+          document.head.removeChild(style);
+        }
+      }, 400);
+    }, 4000);
+  }
+
+  function getNotificationIcon(type) {
+    const icons = {
+      success: 'check-circle',
+      error: 'exclamation-triangle',
+      info: 'info-circle',
+      warning: 'exclamation-circle'
+    };
+    return icons[type] || 'info-circle';
+  }
+
+  function getNotificationColor(type) {
+    const colors = {
+      success: '#4caf50',
+      error: '#f44336',
+      info: '#2196f3',
+      warning: '#ff9800'
+    };
+    return colors[type] || '#2196f3';
+  }
+
+  function showWallet(code) {
+    selectedMethod = code;
+    
+    // Handle IRR payment separately
+    if (code === 'IRR') {
+      showIRRPayment();
+      return;
+    }
+    
+    const config = cryptoConfig[code];
+    const addr = WALLETS[code] || '';
+    const rateObj = rates[code] || null;
+    const usdRate = rateObj && (rateObj.USD || rateObj.usd) ? parseFloat(rateObj.USD || rateObj.usd) : null;
+    
+    // Fallback rates
+    const FALLBACK = {
+      'BTC': 50000,
+      'ETH': 3000,
+      'BNB': 500,
+      'TRX': 0.12,
+      'TON': 2.5,
+      'USDT': 1
+    };
+    
+    if(!usdRate) {
+      const fallbackRate = FALLBACK[code] || 1;
+      showNotification(`استفاده از نرخ تقریبی برای ${config.name}`, 'warning');
+    }
+    
+    const finalRate = usdRate || FALLBACK[code] || 1;
+    const cryptoAmt = finalRate ? (TOTAL / finalRate) : 0;
+
+    // Hide placeholder, show details
+    qs('#wallet-placeholder').style.display = 'none';
+    qs('#wallet-details').style.display = 'block';
+
+    // Update selected currency display
+    qs('#selected-icon').innerHTML = `<i class="${config.icon}"></i>`;
+    qs('#sel-currency').textContent = config.name;
+    
+    // Update wallet address
+    qs('#wallet-address').textContent = addr;
+    
+    // Update amounts
+    qs('#crypto-amount').textContent = formatNumber(cryptoAmt);
+    qs('#crypto-code').textContent = code;
+    qs('#fiat-amount').textContent = formatNumber(TOTAL, 2);
+
+    // Update QR image and make it clickable
+    const qrPath = qrBase + code.toUpperCase() + '.png';
+    const qrImage = qs('#qr-image');
+    qrImage.src = qrPath;
+    qrImage.alt = code + ' QR Code';
+    qrImage.onclick = () => openQRModal(code);
+    qrImage.style.cursor = 'pointer';
+
+    // Update explorer link
+    qs('#open-in-wallet').href = config.explorer(addr);
+
+    // Update selected conversion display
+    updateSelectedConversion(code);
+    qs('#open-in-wallet').href = config.explorer(addr);
+
+    // Add loading effect
+    const walletDetails = qs('#wallet-details');
+    walletDetails.classList.add('loading');
+    setTimeout(() => {
+      walletDetails.classList.remove('loading');
+    }, 500);
+
+    showNotification(`روش پرداخت ${config.name} انتخاب شد`, 'success');
+  }
+
+  function showIRRPayment() {
+    // Hide crypto payment details and show IRR payment details
+    qs('#wallet-placeholder').style.display = 'none';
+    qs('#wallet-details').style.display = 'none';
+    qs('#irr-payment-details').style.display = 'block';
+    
+    // Fetch current IRR rate and update amounts
+    updateIRRAmounts();
+    
+    showNotification('روش پرداخت کارت به کارت انتخاب شد', 'success');
+  }
+
+  function updateIRRAmounts() {
+    // Fetch IRR conversion from API
+    fetch(`/api/payment/irr/?total_usd=${TOTAL}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          showNotification('خطا در دریافت نرخ ارز: ' + data.error, 'error');
+          return;
+        }
+        
+        // Update IRR amount display
+        qs('#irr-amount').textContent = formatNumber(data.price_irr, 0);
+        qs('#usd-amount').textContent = formatNumber(data.price_usd, 2);
+        
+        // Store for copy functionality
+        window.currentIRRAmount = data.price_irr;
+      })
+      .catch(error => {
+        console.error('Error fetching IRR rate:', error);
+        showNotification('خطا در دریافت نرخ ارز', 'error');
+      });
+  }
+
+  function resetSelection() {
+    selectedMethod = null;
+    qs('#wallet-placeholder').style.display = 'block';
+    qs('#wallet-details').style.display = 'none';
+    qs('#irr-payment-details').style.display = 'none';
+    qs('#selectedConversion').style.display = 'none';
+    qsa('.payment-method').forEach(btn => btn.classList.remove('active'));
+  }
+
+  // Attach click handlers to payment methods
+  qsa('.pay-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const code = this.getAttribute('data-code');
+      const isAlreadyActive = this.classList.contains('active');
+      
+      // Remove active class from all buttons
+      qsa('.pay-btn').forEach(b => b.classList.remove('active'));
+      
+      if(isAlreadyActive) {
+        resetSelection();
+      } else {
+        this.classList.add('active');
+        showWallet(code);
+      }
+    });
+  });
+
+  // Copy address functionality
+  qs('#copy-address').addEventListener('click', function() {
+    const addr = qs('#wallet-address').textContent || '';
+    if(!addr) {
+      showNotification('آدرس کیف پول موجود نیست', 'error');
+      return;
+    }
+
+    // Modern clipboard API
+    if(navigator.clipboard) {
+      navigator.clipboard.writeText(addr)
+        .then(() => {
+          showNotification('آدرس با موفقیت کپی شد', 'success');
+          
+          // Visual feedback
+          const btn = this;
+          const originalText = btn.innerHTML;
+          btn.innerHTML = '<i class="fas fa-check"></i> کپی شد';
+          btn.style.background = '#4caf50';
+          
+          setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = '#667eea';
+          }, 2000);
+        })
+        .catch(() => {
+          fallbackCopy(addr);
+        });
+    } else {
+      fallbackCopy(addr);
+    }
+  });
+
+  function fallbackCopy(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    
+    try {
+      document.execCommand('copy');
+      showNotification('آدرس کپی شد', 'success');
+    } catch(e) {
+      showNotification('خطا در کپی کردن آدرس', 'error');
+    }
+    
+    document.body.removeChild(textarea);
+  }
+
+  // IRR Copy Functions
+  function copyIRRAmount() {
+    const amount = window.currentIRRAmount || qs('#irr-amount').textContent.replace(/,/g, '');
+    if (!amount) {
+      showNotification('مبلغ موجود نیست', 'error');
+      return;
+    }
+
+    const formattedAmount = amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(amount.toString())
+        .then(() => {
+          showNotification(`مبلغ کپی شد: ${formattedAmount} ریال`, 'success');
+          
+          // Visual feedback
+          const btn = qs('#copy-irr-amount');
+          const originalText = btn.innerHTML;
+          btn.innerHTML = '<i class="fas fa-check"></i> کپی شد';
+          btn.style.background = 'rgba(76, 175, 80, 0.8)';
+          
+          setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = 'rgba(255, 255, 255, 0.2)';
+          }, 2000);
+        })
+        .catch(() => {
+          showNotification('خطا در کپی کردن مبلغ', 'error');
+        });
+    } else {
+      showNotification('مرورگر شما از کپی خودکار پشتیبانی نمی‌کند', 'warning');
+    }
+  }
+
+  function copyCardNumber() {
+    const cardNumber = qs('#card-number').textContent;
+    if (!cardNumber) {
+      showNotification('شماره کارت موجود نیست', 'error');
+      return;
+    }
+
+    // Remove dashes for cleaner copy
+    const cleanCardNumber = cardNumber.replace(/-/g, '');
+    
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(cleanCardNumber)
+        .then(() => {
+          showNotification(`شماره کارت کپی شد: ${cardNumber}`, 'success');
+          
+          // Find the copy button and give visual feedback
+          const btn = event.target;
+          const originalText = btn.innerHTML;
+          btn.innerHTML = '<i class="fas fa-check"></i> کپی شد';
+          btn.style.background = 'rgba(76, 175, 80, 0.8)';
+          
+          setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = 'rgba(255, 255, 255, 0.2)';
+          }, 2000);
+        })
+        .catch(() => {
+          showNotification('خطا در کپی کردن شماره کارت', 'error');
+        });
+    } else {
+      showNotification('مرورگر شما از کپی خودکار پشتیبانی نمی‌کند', 'warning');
+    }
+  }
+
+  // Confirm payment with cooldown
+  qs('#confirm-pay').addEventListener('click', function() {
+    if(!selectedMethod) {
+      showNotification('لطفاً ابتدا روش پرداخت را انتخاب کنید', 'warning');
+      return;
+    }
+
+    const now = Date.now();
+    const timeSinceLastRequest = now - lastPaymentRequest;
+    
+    if (timeSinceLastRequest < PAYMENT_COOLDOWN) {
+      const remainingTime = Math.ceil((PAYMENT_COOLDOWN - timeSinceLastRequest) / 1000);
+      showNotification(`لطفاً ${remainingTime} ثانیه دیگر صبر کنید`, 'warning');
+      return;
+    }
+
+    const btn = this;
+    const originalContent = btn.innerHTML;
+    
+    // Update last request time
+    lastPaymentRequest = now;
+    
+    // Show loading state
+    btn.innerHTML = `
+      <i class="fas fa-spinner fa-spin"></i>
+      <span>در حال بررسی...</span>
+      <small>لطفاً صبر کنید</small>
+    `;
+    btn.disabled = true;
+    btn.style.background = 'linear-gradient(135deg, #6c757d, #adb5bd)';
+
+    // Start countdown timer
+    let countdown = 60;
+    const countdownInterval = setInterval(() => {
+      countdown--;
+      if (countdown > 0) {
+        btn.innerHTML = `
+          <i class="fas fa-clock"></i>
+          <span>درخواست بعدی در ${countdown} ثانیه</span>
+          <small>لطفاً صبر کنید</small>
+        `;
+      } else {
+        clearInterval(countdownInterval);
+        btn.innerHTML = originalContent;
+        btn.disabled = false;
+        btn.style.background = 'linear-gradient(135deg, #4caf50, #66bb6a)';
+      }
+    }, 1000);
+
+    // Simulate API call
+    setTimeout(() => {
+      showNotification('درخواست بررسی پرداخت ارسال شد. وضعیت تراکنش در حال بررسی است.', 'info');
+    }, 2000);
+  });
+
+  // IRR Payment Confirm Handler
+  qs('#confirm-irr-payment').addEventListener('click', function() {
+    if(!selectedMethod || selectedMethod !== 'IRR') {
+      showNotification('لطفاً ابتدا روش پرداخت کارت به کارت را انتخاب کنید', 'warning');
+      return;
+    }
+
+    const btn = this;
+    const originalContent = btn.innerHTML;
+    
+    // Disable button and show loading
+    btn.disabled = true;
+    btn.innerHTML = `
+      <i class="fas fa-spinner fa-spin"></i>
+      <span>در حال بررسی...</span>
+      <small>لطفاً صبر کنید</small>
+    `;
+    btn.style.background = 'linear-gradient(135deg, #ffc107, #ff8f00)';
+
+    // Record payment request time
+    lastPaymentRequest = Date.now();
+
+    // Show processing notification
+    showNotification('درخواست تأیید پرداخت کارت به کارت ارسال شد', 'info');
+
+    // Simulate processing time
+    setTimeout(() => {
+      btn.innerHTML = `
+        <i class="fas fa-check-circle"></i>
+        <span>درخواست ارسال شد</span>
+        <small>در حال بررسی</small>
+      `;
+      btn.style.background = 'linear-gradient(135deg, #4caf50, #66bb6a)';
+      
+      showNotification('درخواست شما ثبت شد. پس از تأیید انتقال وجه، سفارش تکمیل خواهد شد.', 'success');
+      
+      // Reset button after a delay
+      setTimeout(() => {
+        btn.innerHTML = originalContent;
+        btn.disabled = false;
+        btn.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
+      }, 3000);
+    }, 2000);
+  });
+
+  // Initial setup
+  fetchRates();
+  
+  // Refresh rates every 30 seconds for better UX
+  setInterval(fetchRates, 30000);
+
+  // Add hover effects to order items and enhanced animations
+  document.addEventListener('DOMContentLoaded', function() {
+    const orderItems = qsa('.order-item');
+    orderItems.forEach((item, index) => {
+      // انیمیشن ورودی با تاخیر
+      item.style.opacity = '0';
+      item.style.transform = 'translateY(30px)';
+      item.classList.add('fade-in');
+      
+      setTimeout(() => {
+        item.style.transition = 'all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        item.style.opacity = '1';
+        item.style.transform = 'translateY(0)';
+      }, index * 150);
+
+      // تعاملات hover پیشرفته
+      item.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-8px) scale(1.03)';
+        this.style.boxShadow = '0 20px 40px rgba(102, 126, 234, 0.2)';
+      });
+      
+      item.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0) scale(1)';
+        this.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.1)';
+      });
+    });
+
+    // انیمیشن تدریجی برای کارت‌ها
+    const cards = qsa('.checkout-card, .payment-card');
+    cards.forEach((card, index) => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(40px) scale(0.95)';
+      
+      setTimeout(() => {
+        card.style.transition = 'all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0) scale(1)';
+        card.classList.add('fade-in');
+      }, index * 200 + 300);
+    });
+
+    // انیمیشن برای دکمه‌های پرداخت
+    const payBtns = qsa('.pay-btn');
+    payBtns.forEach((btn, index) => {
+      btn.style.opacity = '0';
+      btn.style.transform = 'translateY(20px)';
+      
+      setTimeout(() => {
+        btn.style.transition = 'all 0.6s ease';
+        btn.style.opacity = '1';
+        btn.style.transform = 'translateY(0)';
+      }, index * 100 + 800);
+    });
+
+    // انیمیشن progress steps
+    const steps = qsa('.step');
+    steps.forEach((step, index) => {
+      setTimeout(() => {
+        step.style.animation = 'fadeIn 0.6s ease-out';
+      }, index * 150);
+    });
+  });
+
+  // Auto-scroll to payment section when method is selected
+  function scrollToPayment() {
+    const paymentCard = qs('.payment-card');
+    if(paymentCard) {
+      paymentCard.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center' 
+      });
+    }
+  }
+
+  // Add scroll to payment methods
+  qsa('.pay-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      setTimeout(scrollToPayment, 300);
+    });
+  });
+})();
+</script>
+
+<!-- Global functions for HTML onclick handlers -->
+<script>
+function closeQRModal() {
+  const modal = document.querySelector('#qrCodeModal');
+  if (modal) {
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+  }
+}
+
+function copyModalAddress() {
+  const addr = document.querySelector('#qrModalAddress').textContent;
+  copyToClipboard(addr, 'آدرس کیف پول کپی شد');
+}
+
+function copyModalAmount() {
+  const amount = document.querySelector('#qrModalAmount').textContent;
+  copyToClipboard(amount, 'مبلغ کپی شد');
+}
+
+function copySelectedAmount() {
+  const amount = document.querySelector('#selectedCryptoAmount').textContent;
+  if (amount && amount !== '-') {
+    copyToClipboard(amount, 'مبلغ معادل کپی شد');
+  }
+}
+
+function copyToClipboard(text, successMessage) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text)
+      .then(() => showSimpleNotification(successMessage))
+      .catch(() => fallbackCopy(text, successMessage));
+  } else {
+    fallbackCopy(text, successMessage);
+  }
+}
+
+function fallbackCopy(text, successMessage) {
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.select();
+  
+  try {
+    document.execCommand('copy');
+    showSimpleNotification(successMessage);
+  } catch(e) {
+    showSimpleNotification('خطا در کپی کردن');
+  }
+  
+  document.body.removeChild(textarea);
+}
+
+function showSimpleNotification(message) {
+  const notification = document.createElement('div');
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #28a745;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    z-index: 10001;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    animation: slideInFromRight 0.3s ease;
+  `;
+  notification.innerHTML = `
+    <i class="fas fa-check-circle" style="margin-left: 8px;"></i>
+    ${message}
+  `;
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.style.animation = 'slideOutToRight 0.3s ease';
+    setTimeout(() => notification.remove(), 300);
+  }, 3000);
+}
+
+// Add CSS for animations
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes slideInFromRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes slideOutToRight {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+  }
+`;
+document.head.appendChild(style);
+</script>
+
+<!-- Address missing modal specific to checkout -->
+<div id="addressMissingModal" class="modal" tabindex="-1" role="dialog" style="display:none;">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content" style="direction: rtl; text-align: right;">
+      <div class="modal-header">
+        <h5 class="modal-title">تکمیل آدرس مورد نیاز است</h5>
+      </div>
+      <div class="modal-body">
+        <p>برای ادامه خرید ابتدا باید آدرس تحویل را ثبت کنید. شما بعد از انتقال به صفحه پروفایل می‌توانید آدرس خود را اضافه کنید.</p>
+      </div>
+      <div class="modal-footer">
+        <button id="goToProfileBtn" type="button" class="btn btn-primary">رفتن به پروفایل</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QR Code Modal -->
+<div id="qrCodeModal" class="qr-modal" style="display: none;">
+  <div class="qr-modal-overlay" onclick="closeQRModal()"></div>
+  <div class="qr-modal-content">
+    <div class="qr-modal-header">
+      <h3 id="qrModalTitle">QR Code کیف پول</h3>
+      <button class="qr-modal-close" onclick="closeQRModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="qr-modal-body">
+      <div class="qr-display">
+        <img id="qrModalImage" src="" alt="QR Code" />
+      </div>
+      <div class="qr-info">
+        <div class="wallet-info">
+          <label>آدرس کیف پول:</label>
+          <div class="address-display">
+            <span id="qrModalAddress"></span>
+            <button class="copy-btn" onclick="copyModalAddress()">
+              <i class="fas fa-copy"></i>
+            </button>
+          </div>
+        </div>
+        <div class="amount-info">
+          <label>مبلغ قابل پرداخت:</label>
+          <div class="amount-display">
+            <span id="qrModalAmount"></span>
+            <button class="copy-btn" onclick="copyModalAmount()">
+              <i class="fas fa-copy"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if not user_has_address %}
+<script>
+(function(){
+  function showModal() {
+    var modal = document.getElementById('addressMissingModal');
+    if (!modal) return;
+    modal.style.display = 'block';
+    var overlay = document.createElement('div');
+    overlay.id = 'addressMissingOverlay';
+    overlay.style.position = 'fixed';
+    overlay.style.top = 0;
+    overlay.style.left = 0;
+    overlay.style.right = 0;
+    overlay.style.bottom = 0;
+    overlay.style.background = 'rgba(0,0,0,0.4)';
+    overlay.style.zIndex = 1040;
+    document.body.appendChild(overlay);
+    modal.style.zIndex = 1050;
+    modal.style.position = 'fixed';
+    modal.style.left = '50%';
+    modal.style.top = '50%';
+    modal.style.transform = 'translate(-50%, -50%)';
+    modal.style.maxWidth = '500px';
+    modal.style.width = '90%';
+  }
+
+  function hideModal() {
+    var modal = document.getElementById('addressMissingModal');
+    var overlay = document.getElementById('addressMissingOverlay');
+    if (modal) modal.style.display = 'none';
+    if (overlay) overlay.parentNode.removeChild(overlay);
+  }
+
+  showModal();
+  var goBtn = document.getElementById('goToProfileBtn');
+  if (goBtn) {
+    goBtn.addEventListener('click', function(){
+      window.location.href = '{% url "profile" %}';
+    });
+  }
+  setTimeout(function(){
+    window.location.href = '{% url "profile" %}';
+  }, 3000);
+})();
+</script>
+{% endif %}
+
+{% endblock %}

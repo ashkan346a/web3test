@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}راهنمای خرید — PharmaWeb{% endblock %}
+{% block description %}راهنمای کامل خرید از PharmaWeb — مراحل انتخاب، ثبت سفارش، پرداخت امن و ارسال سریع.{% endblock %}
+{% block canonical_url %}{{ SITE_URL }}/guide/{% endblock %}
+{% block content %}
+<div class="py-4" dir="rtl">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold mb-1">راهنمای سفارش در PharmaWeb</h2>
+      <p class="text-muted small mb-0">مراحل ساده و امن برای سفارش و دریافت دارو</p>
+    </div>
+    <div>
+      <a href="{% url 'buy_medicine' %}" class="btn btn-primary btn-sm">
+        <i class="fa-solid fa-capsules me-2"></i>مشاهده محصولات
+      </a>
+    </div>
+  </div>
+
+  <!-- Overview cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100 border-0">
+        <div class="card-body">
+          <div class="d-flex align-items-start gap-3">
+            <div class="bg-primary text-white rounded-3 p-3">
+              <i class="fa-solid fa-magnifying-glass fa-2x"></i>
+            </div>
+            <div>
+              <h6 class="mb-1 fw-bold">جستجو و انتخاب</h6>
+              <p class="text-muted small mb-0">محصولات را با نام، توضیحات یا کد محصول جستجو کنید و بهترین گزینه را انتخاب کنید.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100 border-0">
+        <div class="card-body">
+          <div class="d-flex align-items-start gap-3">
+            <div class="bg-success text-white rounded-3 p-3">
+              <i class="fa-solid fa-cart-plus fa-2x"></i>
+            </div>
+            <div>
+              <h6 class="mb-1 fw-bold">افزودن به سبد</h6>
+              <p class="text-muted small mb-0">تعداد را انتخاب کنید، به سبد خرید خود اضافه کنید یا جزئیات محصول را ببینید.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100 border-0">
+        <div class="card-body">
+          <div class="d-flex align-items-start gap-3">
+            <div class="bg-warning text-dark rounded-3 p-3">
+              <i class="fa-solid fa-money-check-dollar fa-2x"></i>
+            </div>
+            <div>
+              <h6 class="mb-1 fw-bold">پرداخت و ارسال</h6>
+              <p class="text-muted small mb-0">روش‌های پرداخت ایمن و انتخاب شیوه ارسال مطابق نیاز شما.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stepper / Timeline -->
+  <div class="card mb-4 shadow-sm border-0">
+    <div class="card-body">
+      <div class="d-flex align-items-start gap-4">
+        <div class="vr me-2" style="height:100%;"></div>
+        <div class="flex-grow-1">
+          <div class="d-flex align-items-start mb-4 gap-3">
+            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:48px; height:48px;">
+              1
+            </div>
+            <div>
+              <h6 class="mb-1 fw-bold">جستجو و انتخاب محصول</h6>
+              <p class="text-muted small mb-0">از فیلترها استفاده کنید، تصاویر و تاریخ انقضا را بررسی و برند/دوز را مشاهده کنید .</p>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-start mb-4 gap-3">
+            <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width:48px; height:48px;">
+              2
+            </div>
+            <div>
+              <h6 class="mb-1 fw-bold">افزودن به سبد و بازبینی</h6>
+              <p class="text-muted small mb-0">تعداد را تنظیم کنید، به سبد اضافه کرده و پیش از پرداخت محتویات سبد را بازبینی کنید.</p>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-start gap-3">
+            <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center" style="width:48px; height:48px;">
+              3
+            </div>
+            <div>
+              <h6 class="mb-1 fw-bold">پرداخت و پیگیری</h6>
+              <p class="text-muted small mb-0">روش پرداخت را انتخاب و سفارش را نهایی کنید. رسید و وضعیت سفارش از طریق پروفایل و ایمیل قابل پیگیری است.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tips & Safety -->
+  <div class="row g-3 mb-4">
+    <div class="col-lg-8">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <h5 class="mb-3 fw-bold">نکات ایمنی و توصیه‌ها</h5>
+          <ul class="list-unstyled mb-0">
+            <li class="d-flex align-items-start mb-3">
+              <i class="fa-solid fa-check-circle text-success me-3 mt-1"></i>
+              <div>
+                <div class="fw-semibold">بررسی تاریخ انقضا</div>
+                <div class="text-muted small">همیشه تاریخ انقضا و بسته‌بندی تصویر را مشاهده کنید. در صفحه محصول تاریخ انقضا نمایش داده می‌شود.</div>
+              </div>
+            </li>
+
+            <li class="d-flex align-items-start mb-3">
+              <i class="fa-solid fa-prescription-bottle-medical text-primary me-3 mt-1"></i>
+              <div>
+                <div class="fw-semibold">مشورت با پزشک</div>
+                <div class="text-muted small">در صورت مصرف هم‌زمان داروها یا داروهای نسخه‌ای، قبل از خرید با پزشک یا داروساز مشورت کنید.</div>
+              </div>
+            </li>
+
+            <li class="d-flex align-items-start">
+              <i class="fa-solid fa-shield-halved text-warning me-3 mt-1"></i>
+              <div>
+                <div class="fw-semibold">امنیت پرداخت</div>
+                <div class="text-muted small"> پرداخت‌ها امن و رمزنگاری شده هستند؛ رسید پرداخت و جزئیات سفارش برای شما ارسال می‌شود.  </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick contact / support card -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body d-flex flex-column justify-content-between">
+          <div>
+            <h6 class="fw-bold mb-2">نیاز به کمک؟</h6>
+            <p class="text-muted small">پشتیبانی 24/7 برای سوالات پزشکی و سفارشات</p>
+            <div class="mb-3">
+              <a href="{% url 'support' %}" class="btn btn-outline-primary btn-sm w-100 mb-2"><i class="fa-solid fa-headset me-2"></i>تماس با پشتیبانی</a>
+              <a href="{% url 'profile' %}" class="btn btn-outline-secondary btn-sm w-100"><i class="fa-solid fa-user me-2"></i>رفتن به پروفایل</a>
+            </div>
+          </div>
+          <small class="text-muted">برای مسائل حساس پزشکی، اطلاعات را در قسمت پشتیبانی ارسال کنید تا تیم ما سریع‌تر کمک کند.</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ accordion -->
+  <div class="card shadow-sm border-0">
+    <div class="card-body">
+      <h5 class="mb-3 fw-bold">سؤالات متداول</h5>
+      <div class="accordion" id="faqAccordion">
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="faqHeading1">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse1" aria-expanded="false" aria-controls="faqCollapse1">
+              چگونه می‌توانم سفارش خود را پیگیری کنم؟
+            </button>
+          </h2>
+          <div id="faqCollapse1" class="accordion-collapse collapse" aria-labelledby="faqHeading1" data-bs-parent="#faqAccordion">
+            <div class="accordion-body text-muted small">وارد حساب کاربری خود شوید و به بخش "سفارش‌ها" (Order History) مراجعه کنید. جزئیات و وضعیت هر سفارش آنجا نمایش داده می‌شود.</div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="faqHeading2">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse2" aria-expanded="false" aria-controls="faqCollapse2">
+              آیا می‌توانم داروی غیرنسخه‌ای را بدون نسخه سفارش دهم؟
+            </button>
+          </h2>
+          <div id="faqCollapse2" class="accordion-collapse collapse" aria-labelledby="faqHeading2" data-bs-parent="#faqAccordion">
+            <div class="accordion-body text-muted small">بله، برای داروهای بدون نسخه می‌توانید به‌صورت عادی سفارش دهید .</div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="faqHeading3">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse3" aria-expanded="false" aria-controls="faqCollapse3">
+              سیاست بازگشت کالا چگونه است؟
+            </button>
+          </h2>
+          <div id="faqCollapse3" class="accordion-collapse collapse" aria-labelledby="faqHeading3" data-bs-parent="#faqAccordion">
+            <div class="accordion-body text-muted small">داروها به‌طور کلی قابل بازگشت نیستند مگر در موارد آسیب در حمل و نقل یا مغایرت با سفارش؛ برای بازگشت با پشتیبانی تماس بگیرید.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .card { border-radius:14px; }
+    .accordion-button:not(.collapsed) { background:#f1f7ff; color:#0d6efd; font-weight:700; }
+    .vr { width:4px; background:linear-gradient(180deg,#e9f0ff,#ffffff); border-radius:8px; }
+    @media (max-width:767px) {
+      .vr { display:none; }
+    }
+  </style>
+</div>
+{% endblock %}

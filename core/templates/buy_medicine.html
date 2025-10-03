@@ -1,0 +1,5863 @@
+{% extends "base.html" %}
+{% load static %}
+{% load cache %}
+{% block title %}
+  {% if selected_group %}محصولات — {{ selected_group }} | PharmaWeb{% elif query %}نتایج جستجو برای «{{ query }}» | PharmaWeb{% else %}همه محصولات | PharmaWeb{% endif %}
+{% endblock %}
+{% block description %}
+  {% if selected_group %}مشاهده و خرید محصولات گروه {{ selected_group }} با قیمت مناسب و ارسال سریع در PharmaWeb.{% elif query %}نتایج جستجو برای «{{ query }}» — محصولات مرتبط با جستجوی شما در PharmaWeb.{% else %}لیست کامل محصولات دارویی با کیفیت و اصالت در PharmaWeb — خرید مطمئن و ارسال سریع.{% endif %}
+{% endblock %}
+{% block meta_robots %}
+  {% if query and not selected_group %}
+    <meta name="robots" content="noindex,follow">
+  {% else %}
+    {{ block.super }}
+  {% endif %}
+{% endblock %}
+{% block canonical_url %}
+  {% if selected_group %}{{ SITE_URL }}/buy-medicine/?group={{ selected_group|urlencode }}{% else %}{{ SITE_URL }}/buy-medicine/{% endif %}
+{% endblock %}
+{% block content %}
+
+<!-- Hero Section -->
+<div class="hero-pharmacy">
+  <div class="hero-background">
+    <div class="floating-pills">
+      <div class="pill pill-1">💊</div>
+      <div class="pill pill-2">💉</div>
+      <div class="pill pill-3">🩺</div>
+      <div class="pill pill-4">⚕️</div>
+      <div class="pill pill-5">💊</div>
+      <div class="pill pill-6">🧬</div>
+    </div>
+  </div>
+  
+  <div class="container">
+    <div class="hero-content text-center">
+      <div class="hero-icon">
+        <i class="fas fa-capsules"></i>
+      </div>
+      <h1 class="hero-title">داروخانه آنلاین</h1>
+      <p class="hero-subtitle">جستجو، مشاهده و خرید آسان داروها با توضیحات کامل</p>
+      
+      <!-- Enhanced Search Bar -->
+      <div class="search-container">
+        <form id="search-form" method="get" class="search-wrapper" role="search">
+          <div class="search-input-group">
+            <div class="search-icon">
+              <i class="fas fa-search"></i>
+            </div>
+            <input id="live-search" type="search" name="q" value="{{ query }}"
+                   class="search-input" placeholder="نام دارو، گروه یا کد دارو..."
+                   aria-label="جستجو" autocomplete="off">
+            <button class="search-btn" type="submit">
+              <span>جستجو</span>
+              <i class="fas fa-arrow-left"></i>
+            </button>
+          </div>
+          <div class="search-suggestions" id="search-suggestions"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container my-5" dir="rtl">
+
+  <!-- Enhanced Categories Section -->
+  <div class="categories-section mb-5">
+    <div class="container-fluid px-3">
+      <!-- Desktop Categories Navigation -->
+      <div class="categories-desktop d-none d-lg-block">
+        <div class="categories-header">
+          <h3 class="categories-title">
+            <i class="fas fa-th-large"></i>
+            دسته‌بندی محصولات
+          </h3>
+          <div class="categories-toggle">
+            <button class="toggle-btn" id="categoriesToggle">
+              <i class="fas fa-chevron-down"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="categories-grid" id="categoriesGrid">
+          {% cache 600 medicine_categories_fragment lang %}
+          <a class="category-tile {% if not selected_group %}active{% endif %}"
+             href="{% if sort %}?sort={{ sort }}{% else %}/buy-medicine/{% endif %}" data-group="">
+            <div class="tile-icon">
+              <i class="fas fa-th-large"></i>
+            </div>
+            <div class="tile-content">
+              <span class="tile-title">همه دسته‌ها</span>
+              <span class="tile-count">{{ variants_page.paginator.count|default:"-" }} محصول</span>
+            </div>
+          </a>
+          
+          {% for group in groups %}
+            <a class="category-tile {% if selected_group == group.id %}active{% endif %}"
+               href="?q={{ query }}&group={{ group.id }}&sort={{ sort }}" data-group="{{ group.id }}">
+              <div class="tile-icon">
+                <i class="fas fa-capsules"></i>
+              </div>
+              <div class="tile-content">
+                <span class="tile-title">{{ group.name }}</span>
+                <span class="tile-count">{{ group.variants|length }} محصول</span>
+              </div>
+            </a>
+          {% endfor %}
+          {% endcache %}
+        </div>
+      </div>
+
+      <!-- Mobile & Tablet Categories -->
+      <div class="categories-mobile d-lg-none">
+        <div class="mobile-header">
+          <h4 class="mobile-title">
+            <i class="fas fa-filter"></i>
+            انتخاب دسته‌بندی
+          </h4>
+          <button class="mobile-filter-btn" id="mobileFilterBtn">
+            <i class="fas fa-bars"></i>
+          </button>
+        </div>
+        
+        <!-- Horizontal Scroll Categories -->
+        <div class="categories-scroll-container">
+          <div class="categories-scroll" id="categoriesScroll">
+            <div class="scroll-chip {% if not selected_group %}active{% endif %}"
+                 data-href="{% if sort %}?sort={{ sort }}{% else %}/buy-medicine/{% endif %}" data-group="">
+              <div class="chip-icon">
+                <i class="fas fa-th-large"></i>
+              </div>
+              <div class="chip-text">
+                <span class="chip-title">همه</span>
+                <span class="chip-count">{{ variants_page.paginator.count|default:"-" }}</span>
+              </div>
+            </div>
+            
+            {% for group in groups %}
+              <div class="scroll-chip {% if selected_group == group.id %}active{% endif %}"
+                   data-href="?q={{ query }}&group={{ group.id }}&sort={{ sort }}" data-group="{{ group.id }}">
+                <div class="chip-icon">
+                  <i class="fas fa-capsules"></i>
+                </div>
+                <div class="chip-text">
+                  <span class="chip-title">{{ group.name }}</span>
+                  <span class="chip-count">{{ group.variants|length }}</span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+          
+          <!-- Scroll Indicators -->
+          <div class="scroll-indicators">
+            <button class="scroll-btn scroll-left" id="scrollLeft">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+            <button class="scroll-btn scroll-right" id="scrollRight">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Mobile Dropdown Modal -->
+        <div class="mobile-categories-modal" id="mobileCategoriesModal">
+          <div class="modal-backdrop"></div>
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5>انتخاب دسته‌بندی</h5>
+              <button class="modal-close" id="modalClose">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="categories-list">
+                <a class="list-item {% if not selected_group %}active{% endif %}"
+                   href="{% if sort %}?sort={{ sort }}{% else %}/buy-medicine/{% endif %}" data-group="">
+                  <div class="item-icon">
+                    <i class="fas fa-th-large"></i>
+                  </div>
+                  <div class="item-content">
+                    <span class="item-title">همه دسته‌ها</span>
+                    <span class="item-count">{{ variants_page.paginator.count|default:"-" }} محصول</span>
+                  </div>
+                  <div class="item-arrow">
+                    <i class="fas fa-chevron-left"></i>
+                  </div>
+                </a>
+                
+                {% for group in groups %}
+                  <a class="list-item {% if selected_group == group.id %}active{% endif %}"
+                     href="?q={{ query }}&group={{ group.id }}&sort={{ sort }}" data-group="{{ group.id }}">
+                    <div class="item-icon">
+                      <i class="fas fa-capsules"></i>
+                    </div>
+                    <div class="item-content">
+                      <span class="item-title">{{ group.name }}</span>
+                      <span class="item-count">{{ group.variants|length }} محصول</span>
+                    </div>
+                    <div class="item-arrow">
+                      <i class="fas fa-chevron-left"></i>
+                    </div>
+                  </a>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          <div class="modal-backdrop" id="modalBackdrop"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Products Section -->
+  <div class="container-fluid px-2">
+    <div class="products-section">
+      {% if variants_page.object_list %}
+        <!-- Products Header -->
+        <div class="products-header">
+          <div class="products-info">
+            <h5 class="products-title">
+              <i class="fas fa-capsules"></i>
+              محصولات موجود
+            </h5>
+            <p class="products-count">{{ variants_page.paginator.count }} محصول یافت شد</p>
+          </div>
+          
+          <div class="products-controls">
+            <!-- View Toggle -->
+            <div class="view-toggle">
+              <button class="view-btn active" data-view="grid" title="نمایش شبکه‌ای">
+                <i class="fas fa-th"></i>
+              </button>
+              <button class="view-btn" data-view="list" title="نمایش لیستی">
+                <i class="fas fa-list"></i>
+              </button>
+            </div>
+            
+            
+        </div>
+        
+        <!-- Products Grid -->
+        <div id="products-grid" class="products-grid view-grid">
+          {% for variant in variants_page.object_list %}
+            <div class="product-card-wrapper">
+              <div class="product-card"
+                   data-id="{{ variant.id }}"
+                   data-name="{{ variant.name }}"
+                   data-desc="{{ variant.description }}"
+                   data-price="{{ variant.price }}"
+                   data-group="{{ variant.group }}"
+                   data-exp="{{ variant.exp|default:'' }}">
+                
+                <!-- Product Image -->
+                <div class="product-image-container">
+                    {% if variant.image %}
+                    {% if variant.image|slice:":7" == "images/" %}
+                      <img src="{% static variant.image %}" class="product-image" alt="{{ variant.name|default:'محصول' }}" loading="lazy" decoding="async" width="320" height="320">
+                    {% else %}
+                      <img src="{% static 'images/' %}{{ variant.image }}" class="product-image" alt="{{ variant.name|default:'محصول' }}" loading="lazy" decoding="async" width="320" height="320">
+                    {% endif %}
+                  {% else %}
+                    <img src="{% static 'images/default.svg' %}" class="product-image" alt="بدون تصویر" loading="lazy" decoding="async" width="320" height="320">
+                  {% endif %}
+                  
+                  <div class="product-overlay">
+                    <button class="overlay-btn detail-btn" title="مشاهده جزئیات">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="overlay-btn quick-add-btn" title="افزودن سریع">
+                      <i class="fas fa-plus"></i>
+                    </button>
+                  </div>
+                  
+                  <div class="product-price-badge">
+                    <span class="price-value">${{ variant.price|floatformat:2 }}</span>
+                  </div>
+                  
+                  <!-- Wishlist Button -->
+                  <button class="wishlist-btn" title="افزودن به علاقه‌مندی‌ها">
+                    <i class="far fa-heart"></i>
+                  </button>
+                </div>
+
+                <!-- Product Info -->
+                <div class="product-info">
+                  <h6 class="product-title">{{ variant.name }}</h6>
+                  
+                  <!-- Expiry Date Section -->
+                  {% if variant.exp %}
+                  <div class="product-expiry">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span class="expiry-text">انقضا: {{ variant.exp }}</span>
+                    {% comment %}
+                    <!-- Optional: Add expiry status based on date -->
+                    {% if variant.exp_status == 'near' %}
+                      <span class="expiry-badge badge-warning">نزدیک انقضا</span>
+                    {% elif variant.exp_status == 'expired' %}
+                      <span class="expiry-badge badge-danger">منقضی شده</span>
+                    {% else %}
+                      <span class="expiry-badge badge-success">معتبر</span>
+                    {% endif %}
+                    {% endcomment %}
+                  </div>
+                  {% endif %}
+                  
+                  <div class="product-description">
+                    <p class="description-text collapsed">{{ variant.description|default:"بدون توضیح" }}</p>
+                    <button class="toggle-description">
+                      <span class="toggle-text">نمایش کامل</span>
+                      <i class="fas fa-chevron-down toggle-icon"></i>
+                    </button>
+                  </div>
+                  
+                  <!-- Product Rating -->
+                  <div class="product-rating">
+                    <div class="stars">
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="far fa-star"></i>
+                    </div>
+                    <span class="rating-text">(4.2 از 5)</span>
+                  </div>
+                  
+                  <!-- Product Actions -->
+                  <div class="product-actions">
+                    <form method="post" action="{% url 'cart_update' variant.id %}" class="add-to-cart-form">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="update">
+                      
+                      <div class="quantity-selector">
+                        <button type="button" class="qty-btn qty-decrease">
+                          <i class="fas fa-minus"></i>
+                        </button>
+                        <input type="number" name="qty" value="1" min="1" class="qty-input">
+                        <button type="button" class="qty-btn qty-increase">
+                          <i class="fas fa-plus"></i>
+                        </button>
+                      </div>
+                      
+                      <button type="submit" class="add-to-cart-btn">
+                        <i class="fas fa-cart-plus"></i>
+                        <span>افزودن به سبد</span>
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if variants_page.has_other_pages %}
+          <div class="pagination-section">
+            <nav class="pagination-nav">
+              <ul class="pagination-list">
+                {% if variants_page.has_previous %}
+                  <li class="pagination-item">
+                    <a class="pagination-link prev" href="?page={{ variants_page.previous_page_number }}">
+                      <i class="fas fa-chevron-right"></i>
+                      قبلی
+                    </a>
+                  </li>
+                {% endif %}
+                
+                {% for i in variants_page.paginator.page_range %}
+                  <li class="pagination-item {% if variants_page.number == i %}active{% endif %}">
+                    <a class="pagination-link" href="?page={{ i }}">{{ i }}</a>
+                  </li>
+                {% endfor %}
+                
+                {% if variants_page.has_next %}
+                  <li class="pagination-item">
+                    <a class="pagination-link next" href="?page={{ variants_page.next_page_number }}">
+                      بعدی
+                      <i class="fas fa-chevron-left"></i>
+                    </a>
+                  </li>
+                {% endif %}
+              </ul>
+            </nav>
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="no-products-message">
+          <div class="no-products-icon">
+            <i class="fas fa-search"></i>
+          </div>
+          <h5>محصولی یافت نشد</h5>
+          <p>متاسفانه محصولی با این مشخصات پیدا نکردیم</p>
+          <button class="clear-filters-btn" onclick="window.location.href='?'">
+            <i class="fas fa-refresh"></i>
+            پاک کردن فیلترها
+          </button>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Enhanced Product Detail Modal -->
+<div class="modal fade" id="productDetailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content product-modal">
+      <div class="modal-header">
+        <div class="modal-header-content">
+          <div class="modal-icon">
+            <i class="fas fa-pills"></i>
+          </div>
+          <h5 class="modal-title" id="modalTitle">جزئیات محصول</h5>
+        </div>
+        <button type="button" class="modal-close-btn" data-bs-dismiss="modal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="product-detail-container">
+          <div class="product-detail-image">
+            <div class="image-wrapper">
+              <img id="modalImage" src="{% static 'images/default.svg' %}" alt="محصول" class="detail-image">
+              <div class="image-zoom-btn">
+                <i class="fas fa-search-plus"></i>
+              </div>
+            </div>
+          </div>
+          
+          <div class="product-detail-info">
+            <div class="product-price-section">
+              <div class="price-label">قیمت</div>
+              <div class="price-value" id="modalPrice">$0</div>
+              <div class="price-badge">
+                <i class="fas fa-tag"></i>
+                قیمت ویژه
+              </div>
+            </div>
+            
+            <div class="product-description-section">
+              <h6 class="description-title">
+                <i class="fas fa-info-circle"></i>
+                توضیحات محصول
+              </h6>
+              <div id="modalDescription" class="description-content">
+                بدون توضیح
+              </div>
+            </div>
+            
+            <!-- Expiry Date in Modal -->
+            <div class="product-expiry-section" id="modalExpirySection" style="display: none;">
+              <h6 class="expiry-title">
+                <i class="fas fa-calendar-alt"></i>
+                تاریخ انقضا
+              </h6>
+              <div id="modalExpiry" class="modal-expiry-content">
+                -
+              </div>
+            </div>
+            
+            <div class="product-features">
+              <div class="feature-item">
+                <i class="fas fa-shield-alt"></i>
+                <span>محصول اصل و تایید شده</span>
+              </div>
+              <div class="feature-item">
+                <i class="fas fa-truck"></i>
+                <span>ارسال سریع</span>
+              </div>
+              <div class="feature-item">
+                <i class="fas fa-medal"></i>
+                <span>کیفیت بالا</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <div class="modal-actions">
+          <button type="button" class="action-btn secondary-btn" data-bs-dismiss="modal">
+            <i class="fas fa-times"></i>
+            بستن
+          </button>
+          <button id="modalAddCart" type="button" class="action-btn primary-btn">
+            <i class="fas fa-cart-plus"></i>
+            افزودن به سبد خرید
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* filepath: c:\Users\win11\Documents\GitHub\emptyprjph\core\templates\buy_medicine.html
+   Updated: add modal + inline expand handlers and POST-to-form cart add */
+(function(){
+  // ...existing JS code above (debounce, showAll, apiSearch, etc.) ...
+
+  // helper: get CSRF token from document cookies or hidden input
+  function getCsrfFromCookie() {
+    const m = document.cookie.match(/(^|;\s*)csrftoken=([^;]+)/);
+    return m ? decodeURIComponent(m[2]) : null;
+  }
+
+  // state: last opened card element
+  let lastOpenedCard = null;
+
+  document.addEventListener('click', function (e) {
+    // open modal when detail-btn or product image clicked (existing logic)
+    if (e.target && (e.target.matches('.detail-btn') || (e.target.matches('.product-img') && e.target.closest('.product-card')))) {
+      const card = e.target.closest('.product-card');
+      if (!card) return;
+      lastOpenedCard = card;
+      const name = card.dataset.name || '';
+      const desc = card.dataset.desc || '';
+      const price = card.dataset.price || (card.querySelector('.badge') ? card.querySelector('.badge').innerText : '');
+      const imgEl = card.querySelector('img');
+      const imgSrc = imgEl ? imgEl.src : '';
+      if (document.getElementById('modalTitle')) document.getElementById('modalTitle').innerText = name || 'محصول';
+      if (document.getElementById('modalDescription')) document.getElementById('modalDescription').innerText = desc || 'بدون توضیح';
+      if (document.getElementById('modalPrice')) document.getElementById('modalPrice').innerText = price ? (price + ' $') : '';
+      if (document.getElementById('modalImage')) document.getElementById('modalImage').src = imgSrc || '{% static "images/default.svg" %}';
+      if (typeof bootstrap !== 'undefined') {
+        const modalEl = document.getElementById('productDetailModal');
+        const bsModal = new bootstrap.Modal(modalEl);
+        bsModal.show();
+
+        // Lock body scroll while product modal is open
+        modalEl.addEventListener('show.bs.modal', function(){
+          document.body.style.overflow = 'hidden';
+        }, { once: true });
+        modalEl.addEventListener('hidden.bs.modal', function(){
+          document.body.style.overflow = '';
+        }, { once: true });
+      }
+    }
+  });
+
+  // modal add-to-cart: post the existing product form for lastOpenedCard
+  const modalAddBtn = document.getElementById('modalAddCart');
+  if (modalAddBtn) {
+    modalAddBtn.addEventListener('click', async function () {
+      if (!lastOpenedCard) return;
+      // try to find the product form inside the card
+      const form = lastOpenedCard.querySelector('form');
+      if (!form) {
+        alert('فرم خرید یافت نشد');
+        return;
+      }
+      const action = form.getAttribute('action');
+      const formData = new FormData(form);
+      // if qty control is available in modal we could adjust; here default from card form used
+      const csrfFromInput = form.querySelector('input[name="csrfmiddlewaretoken"]');
+      const csrf = csrfFromInput ? csrfFromInput.value : getCsrfFromCookie();
+      try {
+        const resp = await fetch(action, {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrf || '',
+          },
+          body: formData,
+          credentials: 'same-origin'
+        });
+        if (resp.ok) {
+          // success: close modal and show brief message
+          try { if (typeof bootstrap !== 'undefined') bootstrap.Modal.getInstance(document.getElementById('productDetailModal')).hide(); } catch(e){}
+          // small visual confirmation
+          const done = document.createElement('div');
+          done.className = 'position-fixed top-0 start-50 translate-middle-x mt-3 alert alert-success';
+          done.style.zIndex = 1080;
+          done.innerText = 'محصول به سبد افزوده شد ✅';
+          document.body.appendChild(done);
+          setTimeout(()=> done.remove(), 1600);
+        } else {
+          // If server redirected to login (302), fetch will still be ok but may be 200 with login HTML.
+          // A safe approach: if response is redirect-like or not JSON, prompt user to login
+          if (resp.status === 403 || resp.status === 401) {
+            window.location.href = '{% url "login_view" %}?next=' + encodeURIComponent(window.location.pathname);
+            return;
+          }
+          // otherwise show simple message
+          const text = await resp.text();
+          alert('خطا در افزودن به سبد: ' + (text && text.length < 400 ? text : resp.status));
+        }
+      } catch (err) {
+        console.error(err);
+        alert('خطا در ارسال درخواست به سرور');
+      }
+    });
+  }
+
+  // --- New handlers: qty buttons, toggle desc, mobile group filtering ---
+  document.addEventListener('click', function(e) {
+    const inc = e.target.closest('.qty-increase');
+    const dec = e.target.closest('.qty-decrease');
+    const toggle = e.target.closest('.toggle-desc');
+
+    if (inc) {
+      const wrapper = inc.closest('.input-group');
+      if (!wrapper) return;
+      const input = wrapper.querySelector('.qty-input');
+      if (!input) return;
+      try {
+        const min = parseInt(input.getAttribute('min') || '1', 10) || 1;
+        let v = parseInt(input.value || '1', 10) || 0;
+        v = v + 1;
+        if (v < min) v = min;
+        input.value = v;
+      } catch (err) { }
+    }
+
+    if (dec) {
+      const wrapper = dec.closest('.input-group');
+      if (!wrapper) return;
+      const input = wrapper.querySelector('.qty-input');
+      if (!input) return;
+      try {
+        const min = parseInt(input.getAttribute('min') || '1', 10) || 1;
+        let v = parseInt(input.value || '1', 10) || 0;
+        v = v - 1;
+        if (v < min) v = min;
+        input.value = v;
+      } catch (err) { }
+    }
+
+    if (toggle) {
+      const card = toggle.closest('.product-card');
+      if (!card) return;
+      const p = card.querySelector('.desc');
+      if (!p) return;
+      const isCollapsed = p.classList.toggle('collapsed');
+      toggle.innerText = isCollapsed ? 'نمایش کامل' : 'بستن';
+    }
+  });
+
+  function showProductsForGroup(groupId) {
+    const grid = document.getElementById('products-grid');
+    if (!grid) return;
+    const cols = Array.from(grid.querySelectorAll('.col'));
+    let any = false;
+    cols.forEach(col => {
+      const card = col.querySelector('.product-card');
+      if (!card) return;
+      if (!groupId) {
+        col.style.display = '';
+        any = true;
+      } else {
+        if (card.dataset.group == groupId) {
+          col.style.display = '';
+          any = true;
+        } else {
+          col.style.display = 'none';
+        }
+      }
+    });
+
+    // remove or show 'no products' message
+    const existing = document.getElementById('no-products-msg');
+    if (!any) {
+      if (!existing) {
+        const el = document.createElement('div');
+        el.id = 'no-products-msg';
+        el.className = 'alert alert-warning text-center mt-3';
+        el.innerText = 'محصولی یافت نشد.';
+        grid.parentNode.insertBefore(el, grid.nextSibling);
+      }
+    } else {
+      if (existing) existing.remove();
+    }
+
+    // on small screens scroll to products
+    if (window.innerWidth < 992 && any) {
+      const top = grid.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top: top, behavior: 'smooth' });
+    }
+  }
+
+  // Enhanced Categories Navigation
+  document.addEventListener('DOMContentLoaded', function() {
+    initializeCategoriesNavigation();
+    initializeProductsView();
+    initializeWishlist();
+    initializeScrollEffects();
+  });
+
+  function initializeCategoriesNavigation() {
+    // Desktop categories toggle
+    const toggleBtn = document.getElementById('categoriesToggle');
+    const categoriesGrid = document.getElementById('categoriesGrid');
+    let isCollapsed = false;
+
+    if (toggleBtn && categoriesGrid) {
+      toggleBtn.addEventListener('click', function() {
+        isCollapsed = !isCollapsed;
+        if (isCollapsed) {
+          categoriesGrid.style.maxHeight = '0';
+          categoriesGrid.style.opacity = '0';
+          toggleBtn.innerHTML = '<i class="fas fa-chevron-down"></i>';
+        } else {
+          categoriesGrid.style.maxHeight = 'none';
+          categoriesGrid.style.opacity = '1';
+          toggleBtn.innerHTML = '<i class="fas fa-chevron-up"></i>';
+        }
+      });
+    }
+
+    // Mobile filter button
+    const mobileFilterBtn = document.getElementById('mobileFilterBtn');
+    const mobileCategoriesModal = document.getElementById('mobileCategoriesModal');
+    const modalClose = document.getElementById('modalClose');
+    const modalBackdrop = document.getElementById('modalBackdrop');
+
+    // کد قدیمی حذف شده - جایگزین شده با نسخه بهبود یافته در پایین
+
+    // Handle scroll chip clicks - نسخه ساده برای compatibility
+    const scrollChips = document.querySelectorAll('.scroll-chip');
+    scrollChips.forEach(chip => {
+      chip.addEventListener('click', function() {
+        const href = this.getAttribute('data-href');
+        const groupId = this.getAttribute('data-group');
+        
+        // Update active state
+        scrollChips.forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Always navigate to the href if it exists
+        if (href) {
+          window.location.href = href;
+        } else {
+          // Fallback to filtering (shouldn't happen with our updated HTML)
+          showProductsForGroup(groupId);
+        }
+      });
+    });
+
+    // Handle modal list clicks
+    const listItems = document.querySelectorAll('.list-item');
+    listItems.forEach(item => {
+      item.addEventListener('click', function(e) {
+        e.preventDefault();
+        const href = this.getAttribute('href');
+        const groupId = this.getAttribute('data-group');
+        
+        // Update active states
+        listItems.forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Close modal
+        document.getElementById('mobileCategoriesModal')?.classList.remove('active');
+        document.body.style.overflow = '';
+        
+        // Always navigate to href if it exists
+        if (href) {
+          window.location.href = href;
+        } else {
+          // Fallback to filtering (shouldn't happen with our updated HTML)
+          showProductsForGroup(groupId);
+        }
+      });
+    });
+  }
+
+  function initializeProductsView() {
+    const viewButtons = document.querySelectorAll('.view-btn');
+    const productsGrid = document.getElementById('products-grid');
+
+    viewButtons.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const view = this.getAttribute('data-view');
+        
+        // Update active button
+        viewButtons.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Update grid view
+        if (productsGrid) {
+          productsGrid.className = `products-grid view-${view}`;
+          
+          // Add animation
+          productsGrid.style.opacity = '0.7';
+          setTimeout(() => {
+            productsGrid.style.opacity = '1';
+          }, 200);
+        }
+      });
+    });
+  }
+
+  function initializeWishlist() {
+    const wishlistBtns = document.querySelectorAll('.wishlist-btn');
+    
+    wishlistBtns.forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        
+        this.classList.toggle('active');
+        const icon = this.querySelector('i');
+        
+        if (this.classList.contains('active')) {
+          icon.className = 'fas fa-heart';
+          showNotification('به علاقه‌مندی‌ها اضافه شد', 'success');
+        } else {
+          icon.className = 'far fa-heart';
+          showNotification('از علاقه‌مندی‌ها حذف شد', 'info');
+        }
+      });
+    });
+  }
+
+  function initializeScrollEffects() {
+    // Parallax effect for hero section
+    window.addEventListener('scroll', function() {
+      const scrolled = window.pageYOffset;
+      const hero = document.querySelector('.hero-pharmacy');
+      
+      if (hero) {
+        const rate = scrolled * -0.3;
+        hero.style.transform = `translateY(${rate}px)`;
+      }
+    });
+
+    // Smooth reveal animations
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+        }
+      });
+    }, observerOptions);
+
+    // Observe product cards
+    const productCards = document.querySelectorAll('.product-card-wrapper');
+    productCards.forEach((card, index) => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(30px)';
+      card.style.transition = `all 0.6s ease ${index * 0.1}s`;
+      observer.observe(card);
+    });
+  }
+
+  // Enhanced notification system
+  function showNotification(message, type = 'info') {
+    // Remove existing notifications
+    const existing = document.querySelector('.notification');
+    if(existing) existing.remove();
+    
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+      <div class="notification-content">
+        <div class="notification-icon">
+          <i class="fas fa-${getNotificationIcon(type)}"></i>
+        </div>
+        <span class="notification-text">${message}</span>
+        <button class="notification-close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    `;
+    
+    // Enhanced styles
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: white;
+      padding: 0;
+      border-radius: 15px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+      z-index: 9999;
+      transform: translateX(400px) scale(0.9);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border-left: 5px solid ${getNotificationColor(type)};
+      max-width: 380px;
+      overflow: hidden;
+    `;
+    
+    const content = notification.querySelector('.notification-content');
+    content.style.cssText = `
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 18px 20px;
+      position: relative;
+    `;
+    
+    const icon = content.querySelector('.notification-icon');
+    icon.style.cssText = `
+      width: 40px;
+      height: 40px;
+      background: ${getNotificationColor(type)};
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      flex-shrink: 0;
+    `;
+    
+    const text = content.querySelector('.notification-text');
+    text.style.cssText = `
+      flex: 1;
+      font-weight: 600;
+      color: #2d3748;
+      line-height: 1.4;
+    `;
+    
+    const closeBtn = content.querySelector('.notification-close');
+    closeBtn.style.cssText = `
+      background: #f8f9fa;
+      border: none;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6c757d;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    `;
+    
+    closeBtn.addEventListener('click', () => {
+      notification.style.transform = 'translateX(400px) scale(0.9)';
+      setTimeout(() => notification.remove(), 300);
+    });
+    
+    closeBtn.addEventListener('mouseenter', () => {
+      closeBtn.style.background = '#e9ecef';
+    });
+    
+    closeBtn.addEventListener('mouseleave', () => {
+      closeBtn.style.background = '#f8f9fa';
+    });
+    
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+      notification.style.transform = 'translateX(0) scale(1)';
+    }, 100);
+    
+    // Auto remove
+    setTimeout(() => {
+      notification.style.transform = 'translateX(400px) scale(0.9)';
+      setTimeout(() => {
+        if(notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 400);
+    }, 4000);
+  }
+
+  function getNotificationIcon(type) {
+    const icons = {
+      success: 'check',
+      error: 'exclamation-triangle',
+      info: 'info',
+      warning: 'exclamation'
+    };
+    return icons[type] || 'info';
+  }
+
+  function getNotificationColor(type) {
+    const colors = {
+      success: '#28a745',
+      error: '#dc3545',
+      info: '#007bff',
+      warning: '#ffc107'
+    };
+    return colors[type] || '#007bff';
+  }
+
+  // Enhanced product card interactions
+  document.addEventListener('click', function(e) {
+    // Handle quick add button
+    if (e.target.closest('.quick-add-btn')) {
+      const card = e.target.closest('.product-card');
+      if (!card) return;
+      
+      const form = card.querySelector('.add-to-cart-form');
+      if (form) {
+        // Add visual feedback
+        const btn = e.target.closest('.quick-add-btn');
+        const originalContent = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i>';
+        btn.style.background = '#4caf50';
+        
+        // Trigger form submission
+        form.dispatchEvent(new Event('submit', { bubbles: true }));
+        
+        // Reset button after delay
+        setTimeout(() => {
+          btn.innerHTML = originalContent;
+          btn.style.background = '';
+        }, 1000);
+      }
+    }
+
+    // Handle description toggle (updated selectors)
+    if (e.target.closest('.toggle-description')) {
+      const btn = e.target.closest('.toggle-description');
+      const card = btn.closest('.product-card');
+      if (!card) return;
+      
+      const desc = card.querySelector('.description-text');
+      const toggleText = btn.querySelector('.toggle-text');
+      const toggleIcon = btn.querySelector('.toggle-icon');
+      
+      if (desc && toggleText && toggleIcon) {
+        const isCollapsed = desc.classList.toggle('collapsed');
+        toggleText.textContent = isCollapsed ? 'نمایش کامل' : 'بستن';
+        btn.classList.toggle('expanded', !isCollapsed);
+      }
+    }
+
+    // Handle quantity buttons (updated selectors)
+    if (e.target.closest('.qty-increase')) {
+      const btn = e.target.closest('.qty-increase');
+      const input = btn.parentElement.querySelector('.qty-input');
+      if (input) {
+        const min = parseInt(input.getAttribute('min') || '1', 10);
+        let value = parseInt(input.value || '1', 10) + 1;
+        if (value < min) value = min;
+        input.value = value;
+        
+        // Add visual feedback
+        btn.style.transform = 'scale(0.9)';
+        setTimeout(() => btn.style.transform = '', 150);
+      }
+    }
+
+    if (e.target.closest('.qty-decrease')) {
+      const btn = e.target.closest('.qty-decrease');
+      const input = btn.parentElement.querySelector('.qty-input');
+      if (input) {
+        const min = parseInt(input.getAttribute('min') || '1', 10);
+        let value = parseInt(input.value || '1', 10) - 1;
+        if (value < min) value = min;
+        input.value = value;
+        
+        // Add visual feedback
+        btn.style.transform = 'scale(0.9)';
+        setTimeout(() => btn.style.transform = '', 150);
+      }
+    }
+  });
+
+  // Enhanced modal interactions (updated for new modal structure)
+  document.addEventListener('click', function (e) {
+    // Handle zoom button click
+    if (e.target.closest('.image-zoom-btn')) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const img = document.getElementById('modalImage');
+      if (!img) return;
+      
+      // Create full-screen image viewer
+      const viewer = document.createElement('div');
+      viewer.className = 'image-viewer-overlay';
+      viewer.innerHTML = `
+        <div class="image-viewer-container">
+          <img src="${img.src}" alt="${img.alt}" class="viewer-image">
+          <button class="viewer-close">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      `;
+      
+      // Add styles for full-screen viewer
+      viewer.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0,0,0,0.95);
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+      `;
+      
+      const container = viewer.querySelector('.image-viewer-container');
+      container.style.cssText = `
+        position: relative;
+        max-width: 90%;
+        max-height: 90%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      `;
+      
+      const viewerImg = viewer.querySelector('.viewer-image');
+      viewerImg.style.cssText = `
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        border-radius: 10px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        transform: scale(0.8);
+        transition: transform 0.3s ease;
+      `;
+      
+      const closeBtn = viewer.querySelector('.viewer-close');
+      closeBtn.style.cssText = `
+        position: absolute;
+        top: -15px;
+        right: -15px;
+        width: 40px;
+        height: 40px;
+        border: none;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.9);
+        color: #333;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        transition: all 0.3s ease;
+        z-index: 1;
+      `;
+      
+      // Add hover effects
+      closeBtn.addEventListener('mouseenter', () => {
+        closeBtn.style.background = 'white';
+        closeBtn.style.transform = 'scale(1.1)';
+      });
+      
+      closeBtn.addEventListener('mouseleave', () => {
+        closeBtn.style.background = 'rgba(255,255,255,0.9)';
+        closeBtn.style.transform = 'scale(1)';
+      });
+      
+      // Close functionality
+      function closeViewer() {
+        viewer.style.opacity = '0';
+        viewerImg.style.transform = 'scale(0.8)';
+        setTimeout(() => {
+          if (viewer.parentNode) {
+            viewer.parentNode.removeChild(viewer);
+          }
+          document.body.style.overflow = '';
+        }, 300);
+      }
+      
+      closeBtn.addEventListener('click', closeViewer);
+      viewer.addEventListener('click', function(e) {
+        if (e.target === viewer) {
+          closeViewer();
+        }
+      });
+      
+      // ESC key to close
+      const handleKeydown = function(e) {
+        if (e.key === 'Escape') {
+          closeViewer();
+          document.removeEventListener('keydown', handleKeydown);
+        }
+      };
+      document.addEventListener('keydown', handleKeydown);
+      
+      // Prevent body scroll
+      document.body.style.overflow = 'hidden';
+      document.body.appendChild(viewer);
+      
+      // Animate in
+      setTimeout(() => {
+        viewerImg.style.transform = 'scale(1)';
+      }, 100);
+      
+      return;
+    }
+
+    // Handle product detail modal
+    if (e.target && (e.target.matches('.detail-btn') || e.target.closest('.detail-btn') || 
+                    (e.target.matches('.product-image') && e.target.closest('.product-card')))) {
+      const card = e.target.closest('.product-card');
+      if (!card) return;
+      
+      lastOpenedCard = card;
+      const name = card.dataset.name || '';
+      const desc = card.dataset.desc || '';
+      const price = card.dataset.price || '';
+      const exp = card.dataset.exp || '';
+      const imgEl = card.querySelector('.product-image');
+      const imgSrc = imgEl ? imgEl.src : '';
+
+      // Update modal content
+      if (document.getElementById('modalTitle')) {
+        document.getElementById('modalTitle').innerText = name || 'محصول';
+      }
+      if (document.getElementById('modalDescription')) {
+        document.getElementById('modalDescription').innerText = desc || 'بدون توضیح';
+      }
+      if (document.getElementById('modalPrice')) {
+        document.getElementById('modalPrice').innerText = price ? `$${price}` : '';
+      }
+      if (document.getElementById('modalImage')) {
+        document.getElementById('modalImage').src = imgSrc || '{% static "images/default.svg" %}';
+      }
+      
+      // Update expiry date
+      const modalExpirySection = document.getElementById('modalExpirySection');
+      const modalExpiry = document.getElementById('modalExpiry');
+      if (exp && modalExpirySection && modalExpiry) {
+        modalExpiry.textContent = exp;
+        modalExpirySection.style.display = 'block';
+      } else if (modalExpirySection) {
+        modalExpirySection.style.display = 'none';
+      }
+
+      // Show modal with animation
+      if (typeof bootstrap !== 'undefined') {
+        const modalEl = document.getElementById('productDetailModal');
+        const bsModal = new bootstrap.Modal(modalEl);
+        bsModal.show();
+        
+        // Add entrance animation
+        modalEl.addEventListener('shown.bs.modal', function() {
+          modalEl.querySelector('.modal-content').style.animation = 'modalSlideIn 0.4s ease-out';
+        }, { once: true });
+
+        // بهبود مدیریت scroll lock/unlock
+        modalEl.addEventListener('show.bs.modal', function(){
+          console.log('Product modal opening');
+          document.body.style.overflow = 'hidden';
+          document.body.style.position = 'fixed';
+          document.body.style.width = '100%';
+          document.body.style.top = `-${window.scrollY}px`;
+        }, { once: true });
+        
+        modalEl.addEventListener('hidden.bs.modal', function(){
+          console.log('Product modal closed');
+          // بازگردانی کامل scroll
+          const scrollY = document.body.style.top;
+          document.body.style.position = '';
+          document.body.style.top = '';
+          document.body.style.width = '';
+          document.body.style.overflow = '';
+          
+          if (scrollY) {
+            window.scrollTo(0, parseInt(scrollY || '0') * -1);
+          }
+          
+          // پاک کردن backdrop اضافی
+          setTimeout(() => {
+            const extraBackdrops = document.querySelectorAll('.modal-backdrop');
+            extraBackdrops.forEach(backdrop => {
+              if (backdrop.style.display !== 'none') {
+                backdrop.remove();
+              }
+            });
+            
+            // اطمینان از پاک شدن کامل styles
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('position');
+            document.body.style.removeProperty('width');
+            document.body.style.removeProperty('top');
+            document.body.classList.remove('modal-open');
+          }, 100);
+        }, { once: true });
+      }
+    }
+  });
+
+  // Enhanced search functionality
+  const searchInput = document.getElementById('live-search');
+  const searchForm = document.getElementById('search-form');
+  
+  if (searchInput && searchForm) {
+    let searchTimeout;
+    
+    // Clear search input after form submission
+    searchForm.addEventListener('submit', function(e) {
+      // Get the current query to show what was searched
+      const currentQuery = searchInput.value.trim();
+      
+      if (!currentQuery) {
+        e.preventDefault();
+        searchInput.focus();
+        return;
+      }
+      
+      // Clear immediately after submission for better UX
+      setTimeout(() => {
+        searchInput.value = '';
+        searchInput.placeholder = `در حال جستجو برای: "${currentQuery}"...`;
+        
+        // After successful submission, update placeholder
+        setTimeout(() => {
+          searchInput.placeholder = 'جستجوی جدید...';
+        }, 2000);
+      }, 100);
+    });
+    
+    searchInput.addEventListener('input', function() {
+      clearTimeout(searchTimeout);
+      const query = this.value.trim();
+      
+      if (query.length > 2) {
+        searchTimeout = setTimeout(() => {
+          // Add loading state
+          const searchIcon = document.querySelector('.search-icon i');
+          if (searchIcon) {
+            searchIcon.className = 'fas fa-spinner fa-spin';
+          }
+          
+          // Simulate search suggestions
+          setTimeout(() => {
+            if (searchIcon) {
+              searchIcon.className = 'fas fa-search';
+            }
+          }, 1000);
+        }, 300);
+      }
+    });
+
+    // Enhanced focus effects
+    searchInput.addEventListener('focus', function() {
+      const container = this.closest('.search-input-group');
+      if (container) {
+        container.style.transform = 'translateY(-2px) scale(1.02)';
+      }
+    });
+
+    searchInput.addEventListener('blur', function() {
+      const container = this.closest('.search-input-group');
+      if (container) {
+        container.style.transform = '';
+      }
+    });
+
+    // Clear search input when page loads with search results
+    document.addEventListener('DOMContentLoaded', function() {
+      // Only clear if we have search results (URL contains ?q=)
+      const urlParams = new URLSearchParams(window.location.search);
+      const searchQuery = urlParams.get('q');
+      
+      if (searchQuery && searchQuery.trim()) {
+        // Clear the search input after a brief delay for better UX
+        setTimeout(() => {
+          searchInput.value = '';
+          searchInput.placeholder = 'جستجوی جدید...';
+          
+          // Add a subtle visual indication that search was performed
+          const searchContainer = searchInput.closest('.search-input-group');
+          if (searchContainer) {
+            searchContainer.style.borderColor = 'rgba(40, 167, 69, 0.5)';
+            searchContainer.setAttribute('title', `نتایج جستجو برای: "${searchQuery}"`);
+            
+            // Remove the border color after a few seconds
+            setTimeout(() => {
+              searchContainer.style.borderColor = '';
+              searchContainer.removeAttribute('title');
+            }, 3000);
+          }
+        }, 500);
+      } else {
+        // Reset placeholder for fresh page loads
+        searchInput.placeholder = 'نام دارو، گروه یا کد دارو...';
+      }
+    });
+  }
+
+  // Smooth scroll for mobile category navigation
+  function smoothScrollToProducts() {
+    const productsSection = document.querySelector('.products-section');
+    if (productsSection && window.innerWidth < 992) {
+      productsSection.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  }
+
+  // Add scroll to category clicks
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.mobile-category-chip') || e.target.closest('.category-item')) {
+      setTimeout(smoothScrollToProducts, 300);
+    }
+  });
+
+  // Enhanced form submission feedback
+  document.addEventListener('submit', function(e) {
+    if (e.target.classList.contains('add-to-cart-form')) {
+      const btn = e.target.querySelector('.add-to-cart-btn');
+      if (btn) {
+        const originalContent = btn.innerHTML;
+        // Persist original HTML for later restore by AJAX handler
+        btn.dataset.originalHtml = originalContent;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> در حال افزودن...';
+        btn.disabled = true;
+
+        // Let the AJAX handler (below) control reset on completion
+        e.target.dataset.waitAjax = '1';
+      }
+    }
+  });
+
+  // Progressive loading animation for product cards
+  document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.product-card-wrapper');
+    cards.forEach((card, index) => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(50px)';
+      
+      setTimeout(() => {
+        card.style.transition = 'all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+      }, index * 100);
+    });
+
+    // Auto-focus search on desktop
+    if (window.innerWidth > 768 && searchInput) {
+      setTimeout(() => searchInput.focus(), 1000);
+    }
+  });
+
+  // Add CSS animation for modal
+  const modalAnimationCSS = `
+    @keyframes modalSlideIn {
+      0% {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+  `;
+  
+  const style = document.createElement('style');
+  style.textContent = modalAnimationCSS;
+  document.head.appendChild(style);
+
+  // small enhancement: focus and subtle animation for search on mobile
+  document.addEventListener('DOMContentLoaded', function(){
+    try{
+      const s = document.getElementById('live-search');
+      if(!s) return;
+      if(window.innerWidth <= 768){ s.focus(); }
+      s.classList.add('animate-search');
+      setTimeout(()=> s.classList.remove('animate-search'), 800);
+    }catch(e){}
+  });
+
+  // ...existing JS continues ...
+
+})();
+</script>
+
+<style>
+/* ===== ROOT VARIABLES ===== */
+:root {
+  --vh: 1vh; /* برای حل مشکل viewport height در موبایل */
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+}
+
+/* ===== HERO SECTION ===== */
+/* Updated: added subtle top rounding + smoother decorative bottom curve */
+.hero-pharmacy {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: calc(var(--vh, 1vh) * 60); /* استفاده از CSS variable */
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  color: white;
+  /* New combined curvature: slight top radius + softer bottom bowl */
+  border-radius: 28px 28px 60px 60px / 18px 18px 12% 12%;
+  /* Fallback shadow */
+  box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+  /* Layered inner glow for depth */
+  --hero-overlay: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.15), transparent 60%),
+                   radial-gradient(circle at 80% 30%, rgba(255,255,255,0.12), transparent 55%);
+  /* Safe area support */
+  padding-top: max(30px, var(--safe-area-inset-top));
+}
+
+.hero-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="90" cy="30" r="1.5" fill="rgba(255,255,255,0.08)"/><circle cx="50" cy="70" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="30" cy="90" r="1.2" fill="rgba(255,255,255,0.06)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+}
+
+/* Subtle inner highlight for depth */
+.hero-background::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 20%, rgba(255,255,255,0.18), rgba(255,255,255,0) 55%);
+  pointer-events: none;
+}
+
+.floating-pills {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.pill {
+  position: absolute;
+  font-size: 2rem;
+  opacity: 0.3;
+  animation: float 6s ease-in-out infinite;
+}
+
+.pill-1 { top: 10%; left: 10%; animation-delay: 0s; }
+.pill-2 { top: 20%; right: 15%; animation-delay: 1s; }
+.pill-3 { bottom: 30%; left: 20%; animation-delay: 2s; }
+.pill-4 { top: 60%; right: 20%; animation-delay: 3s; }
+.pill-5 { bottom: 20%; right: 30%; animation-delay: 4s; }
+.pill-6 { top: 40%; left: 5%; animation-delay: 5s; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Wave transition at the bottom of hero for a modern curved finish */
+.hero-pharmacy::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 110px;
+  z-index: 1;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 120' preserveAspectRatio='none'><path fill='%23ffffff' d='M0,80 C240,120 480,0 720,40 C960,80 1200,120 1440,60 L1440,120 L0,120 Z'/></svg>") no-repeat center bottom / 100% 100%;
+}
+
+.hero-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { 
+    transform: scale(1);
+    text-shadow: 0 0 20px rgba(255,255,255,0.5);
+  }
+  50% { 
+    transform: scale(1.1);
+    text-shadow: 0 0 30px rgba(255,255,255,0.8);
+  }
+}
+
+.hero-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 15px;
+  text-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  animation: slideInDown 1s ease-out;
+}
+
+.hero-subtitle {
+  font-size: 1.3rem;
+  margin-bottom: 40px;
+  opacity: 0.95;
+  animation: slideInUp 1s ease-out 0.3s both;
+}
+
+@keyframes slideInDown {
+  0% { opacity: 0; transform: translateY(-50px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInUp {
+  0% { opacity: 0; transform: translateY(50px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== SEARCH SECTION ===== */
+.search-container {
+  max-width: 600px;
+  margin: 0 auto;
+  animation: fadeInScale 1s ease-out 0.6s both;
+}
+
+@keyframes fadeInScale {
+  0% { opacity: 0; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.search-wrapper {
+  position: relative;
+}
+
+.search-input-group {
+  position: relative;
+  display: flex;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(20px);
+  border-radius: 50px;
+  padding: 8px;
+  border: 2px solid rgba(255,255,255,0.2);
+  transition: all 0.3s ease;
+}
+
+.search-input-group:hover,
+.search-input-group:focus-within {
+  background: rgba(255,255,255,0.25);
+  border-color: rgba(255,255,255,0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+}
+
+.search-icon {
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  color: rgba(255,255,255,0.8);
+  font-size: 1.2rem;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: white;
+  font-size: 1.1rem;
+  padding: 15px 20px;
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: rgba(255,255,255,0.7);
+  font-style: italic;
+}
+
+.search-btn {
+  background: linear-gradient(135deg, #4caf50, #66bb6a);
+  color: white;
+  border: none;
+  border-radius: 40px;
+  padding: 15px 30px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.search-btn:hover {
+  background: linear-gradient(135deg, #45a049, #5cb85c);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+}
+
+.search-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 15px;
+  margin-top: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  z-index: 1000;
+  display: none;
+}
+
+/* ===== ENHANCED CATEGORIES SECTION ===== */
+.categories-section {
+  margin-top: -80px;
+  position: relative;
+  z-index: 10;
+  margin-bottom: 40px;
+}
+
+/* Desktop Categories */
+.categories-desktop {
+  background: white;
+  border-radius: 25px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  overflow: hidden;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.categories-header {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 25px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.categories-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toggle-btn {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.toggle-btn:hover {
+  background: rgba(255,255,255,0.3);
+  transform: scale(1.1);
+}
+
+.categories-grid {
+  padding: 30px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.category-tile {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9ff, #ffffff);
+  border: 2px solid #e3e8ff;
+  border-radius: 18px;
+  text-decoration: none;
+  color: #2d3748;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+}
+
+.category-tile::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+  transition: left 0.6s ease;
+}
+
+.category-tile:hover::before {
+  left: 100%;
+}
+
+.category-tile:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 15px 35px rgba(102, 126, 234, 0.2);
+  border-color: #667eea;
+  text-decoration: none;
+  color: #2d3748;
+}
+
+.category-tile.active {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-color: #667eea;
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 15px 35px rgba(102, 126, 234, 0.3);
+}
+
+.tile-icon {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.5rem;
+  color: #667eea;
+  transition: all 0.3s ease;
+}
+
+.category-tile.active .tile-icon {
+  background: rgba(255,255,255,0.2);
+  color: white;
+}
+
+.tile-content {
+  flex: 1;
+}
+
+.tile-title {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.tile-count {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* Mobile Categories */
+.categories-mobile {
+  background: white;
+  border-radius: 25px;
+  box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+  overflow: hidden;
+  margin-top: -60px;
+  position: relative;
+  z-index: 10;
+}
+
+.mobile-header {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 20px 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mobile-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mobile-filter-btn {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mobile-filter-btn:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+/* Horizontal Scroll Categories */
+.categories-scroll-container {
+  position: relative;
+  padding: 25px 0;
+}
+
+.categories-scroll {
+  display: flex;
+  gap: 15px;
+  padding: 0 25px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.categories-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-chip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #f8f9ff, #e8ecff);
+  border: 2px solid #e3e8ff;
+  border-radius: 20px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 140px;
+  max-width: 200px;
+  user-select: none;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.scroll-chip:hover,
+.scroll-chip.active {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-color: #667eea;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+.chip-icon {
+  width: 32px;
+  height: 32px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  color: #667eea;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.scroll-chip.active .chip-icon {
+  background: rgba(255,255,255,0.2);
+  color: white;
+}
+
+.chip-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.chip-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chip-count {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Scroll Indicators */
+.scroll-indicators {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.scroll-btn {
+  position: absolute;
+  background: white;
+  border: 2px solid #e3e8ff;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #667eea;
+  transition: all 0.3s ease;
+  pointer-events: auto;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.scroll-btn:hover {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-color: #667eea;
+  transform: scale(1.1);
+}
+
+.scroll-left {
+  right: 10px;
+}
+
+.scroll-right {
+  left: 10px;
+}
+
+/* Mobile Categories Modal - بهبود برای موبایل */
+.mobile-categories-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99999;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  flex-direction: column;
+  justify-content: flex-end;
+  /* جلوگیری از scroll در body */
+  overscroll-behavior: contain;
+}
+
+.mobile-categories-modal.active {
+  display: flex;
+  opacity: 1;
+}
+
+.mobile-categories-modal .modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  z-index: 1;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+  cursor: pointer;
+}
+
+.mobile-categories-modal:not(.active) .modal-backdrop {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mobile-categories-modal .modal-content {
+  position: relative;
+  background: white;
+  border-radius: 25px 25px 0 0;
+  max-height: calc(var(--vh, 1vh) * 75); /* استفاده از CSS variable */
+  min-height: calc(var(--vh, 1vh) * 50); /* حداقل ارتفاع */
+  overflow: hidden;
+  box-shadow: 0 -15px 40px rgba(0,0,0,0.25);
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 2;
+  width: 100%;
+  flex-shrink: 0;
+  /* پشتیبانی بهتر از touch */
+  touch-action: pan-y;
+  /* Safe area support */
+  padding-bottom: max(20px, var(--safe-area-inset-bottom));
+}
+
+.mobile-categories-modal.active .modal-content {
+  transform: translateY(0);
+}
+
+/* نشانگر برای کشیدن مودال */
+.mobile-categories-modal .modal-content::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  background: #cbd5e0;
+  border-radius: 2px;
+  z-index: 10;
+}
+
+.mobile-categories-modal .modal-header {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 20px 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mobile-categories-modal .modal-header h5 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.mobile-categories-modal .modal-close {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mobile-categories-modal .modal-close:hover {
+  background: rgba(255,255,255,0.3);
+  transform: scale(1.1);
+}
+
+.mobile-categories-modal .modal-body {
+  padding: 0;
+  max-height: calc(70vh - 80px);
+  overflow-y: auto;
+}
+
+.categories-list {
+  padding: 20px 0;
+}
+
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 18px 25px;
+  text-decoration: none;
+  color: #2d3748;
+  transition: all 0.3s ease;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.list-item:hover,
+.list-item.active {
+  background: linear-gradient(135deg, #f8f9ff, #e8ecff);
+  color: #667eea;
+  text-decoration: none;
+}
+
+.item-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #f8f9ff, #e8ecff);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: #667eea;
+  flex-shrink: 0;
+}
+
+.list-item.active .item-icon {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+}
+
+.item-content {
+  flex: 1;
+}
+
+.item-title {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.item-count {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.item-arrow {
+  color: #cbd5e0;
+  font-size: 0.9rem;
+}
+
+.list-item:hover .item-arrow,
+.list-item.active .item-arrow {
+  color: #667eea;
+}
+
+/* ===== ENHANCED PRODUCTS SECTION ===== */
+.products-section {
+  margin-top: 30px;
+}
+
+.products-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 0 10px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.products-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* View Toggle */
+.view-toggle {
+  display: flex;
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 4px;
+  border: 2px solid #e9ecef;
+}
+
+.view-btn {
+  background: transparent;
+  border: none;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: #6c757d;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.view-btn.active,
+.view-btn:hover {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+}
+
+/* Products Grid Enhanced */
+.products-grid {
+  display: grid;
+  gap: 25px;
+  padding: 0 10px;
+  /* Ensure proper overflow handling */
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.products-grid.view-grid {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.products-grid.view-list {
+  grid-template-columns: 1fr;
+}
+
+.products-grid.view-list .product-card {
+  display: flex;
+  flex-direction: row;
+  max-width: none;
+  height: auto;
+}
+
+.products-grid.view-list .product-image-container {
+  width: 200px;
+  flex-shrink: 0;
+}
+
+.products-grid.view-list .product-info {
+  flex: 1;
+  padding: 25px 30px;
+}
+
+/* Enhanced Product Cards */
+.wishlist-btn {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  width: 40px;
+  height: 40px;
+  background: rgba(255,255,255,0.9);
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #dc3545;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.wishlist-btn:hover,
+.wishlist-btn.active {
+  background: #dc3545;
+  color: white;
+  transform: scale(1.1);
+}
+
+.wishlist-btn.active i {
+  font-weight: 900;
+}
+
+/* Product Rating */
+.product-rating {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.stars {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.stars i {
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.stars i.fas {
+  color: #ffc107;
+  text-shadow: 0 1px 2px rgba(255, 193, 7, 0.3);
+}
+
+.stars i.far {
+  color: #ddd;
+}
+
+.stars i:hover {
+  transform: scale(1.1);
+}
+
+.rating-text {
+  font-size: 0.8rem;
+  color: #666;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.rating-text {
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+/* Enhanced Product Cards */
+.product-card-wrapper {
+  animation: fadeInUp 0.6s ease-out;
+  /* Prevent card overflow */
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.product-card {
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  border: 2px solid transparent;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  /* Ensure cards don't overflow */
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.product-card:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 25px 50px rgba(102, 126, 234, 0.15);
+  border-color: rgba(102, 126, 234, 0.2);
+}
+
+.product-image-container {
+  position: relative;
+  height: 220px;
+  background: linear-gradient(135deg, #f8f9ff, #e8ecff);
+  overflow: hidden;
+}
+
+.product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.4s ease;
+}
+
+.product-card:hover .product-image {
+  transform: scale(1.1);
+}
+
+.product-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.product-card:hover .product-overlay {
+  opacity: 1;
+}
+
+.overlay-btn {
+  width: 50px;
+  height: 50px;
+  background: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: #667eea;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  transform: translateY(20px);
+}
+
+.product-card:hover .overlay-btn {
+  transform: translateY(0);
+}
+
+.overlay-btn:hover {
+  background: #667eea;
+  color: white;
+  transform: scale(1.1);
+}
+
+.product-price-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: linear-gradient(135deg, #4caf50, #66bb6a);
+  color: white;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.65rem;
+  box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: pointer;
+  z-index: 3;
+  opacity: 1;
+  transform: scale(1);
+  line-height: 1.3;
+  min-width: 45px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: visible;
+  max-width: none;
+}
+
+.product-price-badge:hover {
+  transform: scale(1.03);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.5);
+  background: linear-gradient(135deg, #66bb6a, #4caf50);
+}
+
+.product-info {
+  padding: 25px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.product-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 15px;
+  line-height: 1.3;
+}
+
+/* Product Expiry Date */
+.product-expiry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+  border-radius: 10px;
+  border-left: 3px solid #0ea5e9;
+}
+
+.product-expiry i {
+  color: #0284c7;
+  font-size: 0.9rem;
+}
+
+.expiry-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0c4a6e;
+  direction: ltr;
+  text-align: left;
+}
+
+.expiry-badge {
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 12px;
+  margin-left: 6px;
+  font-weight: 500;
+}
+
+.badge-success {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.badge-warning {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.badge-danger {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.product-description {
+  flex: 1;
+  margin-bottom: 20px;
+}
+
+.description-text {
+  color: #718096;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 10px;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.description-text.collapsed {
+  max-height: 60px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.toggle-description {
+  background: none;
+  border: none;
+  color: #667eea;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.toggle-description:hover {
+  color: #764ba2;
+}
+
+.toggle-icon {
+  transition: transform 0.3s ease;
+}
+
+.toggle-description.expanded .toggle-icon {
+  transform: rotate(180deg);
+}
+
+.product-actions {
+  margin-top: auto;
+}
+
+.add-to-cart-form {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.quantity-selector {
+  display: flex;
+  background: #f7fafc;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #e2e8f0;
+}
+
+.qty-btn {
+  width: 40px;
+  height: 40px;
+  background: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #667eea;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.qty-btn:hover {
+  background: #667eea;
+  color: white;
+}
+
+.qty-input {
+  width: 50px;
+  height: 40px;
+  border: none;
+  text-align: center;
+  font-weight: 600;
+  color: #2d3748;
+  background: white;
+  outline: none;
+}
+
+.add-to-cart-btn {
+  flex: 1;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.add-to-cart-btn:hover {
+  background: linear-gradient(135deg, #5a67d8, #6b46c1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* ===== NO PRODUCTS MESSAGE ===== */
+.no-products-message {
+  text-align: center;
+  padding: 80px 20px;
+  color: #718096;
+}
+
+.no-products-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.no-products-message h5 {
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+  color: #4a5568;
+}
+
+.clear-filters-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 25px;
+  font-weight: 600;
+  margin-top: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.clear-filters-btn:hover {
+  background: linear-gradient(135deg, #5a67d8, #6b46c1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* ===== PAGINATION ===== */
+.pagination-section {
+  margin-top: 50px;
+  padding: 0 10px;
+}
+
+.pagination-nav {
+  display: flex;
+  justify-content: center;
+}
+
+.pagination-list {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 8px;
+}
+
+.pagination-item {
+  margin: 0;
+}
+
+.pagination-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 45px;
+  height: 45px;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  color: #4a5568;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.pagination-link:hover,
+.pagination-item.active .pagination-link {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-color: #667eea;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+  text-decoration: none;
+}
+
+.pagination-link.prev,
+.pagination-link.next {
+  width: auto;
+  padding: 0 20px;
+  gap: 8px;
+}
+
+/* ===== MODAL STYLES ===== */
+.product-modal {
+  border-radius: 25px;
+  border: none;
+  overflow: hidden;
+  box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+}
+
+/* Ensure Bootstrap product modal isn't affected by mobile modal styles */
+#productDetailModal {
+  z-index: 1055 !important; /* بالاتر از modal دسته‌بندی */
+}
+
+#productDetailModal .modal-dialog {
+  margin: 1.75rem auto;
+  max-width: 90vw;
+}
+
+#productDetailModal .modal-content {
+  transform: none !important;
+  will-change: transform, opacity;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+#productDetailModal .modal-backdrop {
+  z-index: 1050 !important;
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(5px);
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  padding: 25px 30px;
+  position: relative;
+}
+
+.modal-header-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.modal-icon {
+  width: 50px;
+  height: 50px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  background: rgba(255,255,255,0.2);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.modal-close-btn:hover {
+  background: rgba(255,255,255,0.3);
+  transform: scale(1.1);
+}
+
+.modal-body {
+  padding: 40px 30px;
+}
+
+.product-detail-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.product-detail-image {
+  position: relative;
+}
+
+.image-wrapper {
+  position: relative;
+  background: linear-gradient(135deg, #f8f9ff, #e8ecff);
+  border-radius: 20px;
+  padding: 30px;
+  text-align: center;
+}
+
+.detail-image {
+  max-width: 100%;
+  max-height: 350px;
+  object-fit: contain;
+  border-radius: 15px;
+}
+
+.image-zoom-btn {
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+  width: 40px;
+  height: 40px;
+  background: rgba(102, 126, 234, 0.9);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.image-zoom-btn:hover {
+  background: #667eea;
+  transform: scale(1.1);
+}
+
+.product-detail-info {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.product-price-section {
+  position: relative;
+}
+
+.price-label {
+  color: #718096;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+.price-value {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #2d3748;
+  margin-bottom: 15px;
+}
+
+.price-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #4caf50, #66bb6a);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.product-description-section {
+  background: #f7fafc;
+  padding: 25px;
+  border-radius: 15px;
+  border: 2px solid #e2e8f0;
+}
+
+.description-title {
+  color: #2d3748;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.description-content {
+  color: #4a5568;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.product-expiry-section {
+  margin-top: 20px;
+  padding: 15px;
+  background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+  border-radius: 12px;
+  border-left: 4px solid #0ea5e9;
+}
+
+.expiry-title {
+  color: #0c4a6e;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.expiry-title i {
+  color: #0284c7;
+}
+
+.modal-expiry-content {
+  color: #0c4a6e;
+  font-size: 1rem;
+  font-weight: 600;
+  direction: ltr;
+  text-align: left;
+}
+
+.product-features {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #4a5568;
+  font-weight: 600;
+}
+
+.feature-item i {
+  color: #667eea;
+  font-size: 1.1rem;
+}
+
+.modal-footer {
+  padding: 25px 30px;
+  border: none;
+  background: #f7fafc;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+}
+
+.action-btn {
+  padding: 15px 30px;
+  border: none;
+  border-radius: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.secondary-btn {
+  background: #e2e8f0;
+  color: #4a5568;
+}
+
+.secondary-btn:hover {
+  background: #cbd5e0;
+  transform: translateY(-2px);
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+}
+
+.primary-btn:hover {
+  background: linear-gradient(135deg, #5a67d8, #6b46c1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 1400px) {
+  .categories-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
+  
+  .products-grid.view-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}
+
+@media (max-width: 1200px) {
+  .categories-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+  }
+  
+  .products-grid.view-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+  
+  .products-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .products-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (min-width: 1200px) {
+  /* تنظیمات دسکتاپ بزرگ */
+  .product-price-badge {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+    border-radius: 10px;
+    min-width: 50px;
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+  /* تنظیمات دسکتاپ متوسط */
+  .product-price-badge {
+    font-size: 0.65rem;
+    padding: 3px 7px;
+    border-radius: 8px;
+    min-width: 42px;
+  }
+}
+
+@media (max-width: 992px) {
+  /* Hide desktop categories */
+  .categories-desktop {
+    display: none !important;
+  }
+  
+  /* Show mobile categories */
+  .categories-mobile {
+    display: block;
+  }
+  
+  .hero-pharmacy {
+    min-height: 50vh;
+  }
+  
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  
+  .search-container {
+    max-width: 500px;
+  }
+  
+  .categories-section {
+    margin-top: -50px;
+  }
+  
+  .products-grid.view-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+  }
+  
+  .products-grid.view-list .product-card {
+    flex-direction: column;
+  }
+  
+  .products-grid.view-list .product-image-container {
+    width: 100%;
+    height: 200px;
+  }
+  
+  /* تنظیمات قیمت برای تبلت */
+  .product-price-badge {
+    font-size: 0.6rem;
+    padding: 3px 6px;
+    top: 7px;
+    right: 7px;
+    border-radius: 7px;
+    min-width: 38px;
+  }
+}
+
+@media (max-width: 768px) {
+  /* بهینه‌سازی کامل برای موبایل */
+  .hero-pharmacy {
+    min-height: 50vh;
+    padding: 30px 0 25px;
+    /* بهبود انحنای موبایل */
+    border-radius: 18px 18px 35px 35px / 12px 12px 10% 10%;
+    margin: 0 8px;
+  }
+  
+  .hero-title {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+  }
+  
+  .hero-subtitle {
+    font-size: 0.9rem;
+    margin-bottom: 25px;
+  }
+  
+  .search-container {
+    max-width: 95%;
+    margin: 0 auto;
+  }
+  
+  .search-input-group {
+    flex-direction: row;
+    gap: 0;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 25px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  }
+  
+  .search-input {
+    text-align: right;
+    padding: 12px 15px;
+    border: none;
+    background: transparent;
+    flex: 1;
+    font-size: 0.9rem;
+  }
+  
+  .search-btn {
+    border-radius: 20px;
+    padding: 10px 15px;
+    min-width: 80px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+  }
+  
+  /* دسته‌بندی‌های موبایل */
+  .categories-section {
+    margin: 20px 0;
+    padding: 0 8px;
+  }
+  
+  .mobile-header {
+    background: linear-gradient(135deg, #f8f9ff, #e8ecff);
+    border-radius: 18px;
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.1);
+  }
+  
+  .mobile-filter-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 8px 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  }
+  
+  .mobile-filter-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  }
+  
+  .categories-scroll-container {
+    position: relative;
+    margin: 15px 0;
+  }
+  
+  .categories-scroll {
+    padding: 0 10px;
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .categories-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .scroll-chip {
+    min-width: 90px;
+    max-width: 120px;
+    padding: 12px 10px;
+    gap: 6px;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  
+  .scroll-chip.active {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-color: transparent;
+    transform: scale(1.05);
+  }
+  
+  .chip-icon {
+    width: 24px;
+    height: 24px;
+    font-size: 0.8rem;
+  }
+  
+  .chip-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  
+  .chip-count {
+    font-size: 0.65rem;
+    opacity: 0.8;
+  }
+  
+  /* محصولات */
+  .products-section {
+    padding: 0 8px;
+  }
+  
+  .products-header {
+    padding: 0 5px;
+    margin-bottom: 20px;
+  }
+  
+  .products-title {
+    font-size: 1.3rem;
+    color: #2d3748;
+  }
+  
+  .products-grid.view-grid {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 12px;
+    padding: 0 5px;
+  }
+  
+  .product-card {
+    border-radius: 16px;
+    max-width: 100%;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    overflow: hidden;
+    background: white;
+  }
+  
+  .product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+  }
+  
+  .product-image-container {
+    height: 130px;
+    position: relative;
+    background: linear-gradient(135deg, #f8f9ff, #e8ecff);
+  }
+  
+  .product-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 8px;
+  }
+  
+  .product-info {
+    padding: 12px;
+  }
+  
+  .product-title {
+    font-size: 0.85rem;
+    line-height: 1.3;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #2d3748;
+    height: 2.6em;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  
+  .product-expiry {
+    padding: 4px 6px;
+    margin-bottom: 6px;
+    gap: 4px;
+    font-size: 0.7rem;
+    border-radius: 8px;
+  }
+  
+  .product-rating {
+    margin-bottom: 8px;
+  }
+  
+  .stars i {
+    font-size: 0.7rem;
+  }
+  
+  .rating-text {
+    font-size: 0.65rem;
+  }
+  
+  /* دکمه‌های محصول */
+  .add-to-cart-form {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+  
+  .add-to-cart-btn {
+    padding: 10px 12px;
+    font-size: 0.8rem;
+    border-radius: 12px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #4caf50, #66bb6a);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  }
+  
+  .add-to-cart-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+  }
+  
+  .quantity-selector {
+    align-self: center;
+    background: #f8f9fa;
+    border-radius: 20px;
+    padding: 2px;
+  }
+  
+  .qty-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font-size: 0.8rem;
+    background: white;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  
+  .qty-input {
+    width: 35px;
+    height: 28px;
+    text-align: center;
+    border: none;
+    background: transparent;
+    font-weight: 600;
+  }
+  
+  /* نشان قیمت */
+  .product-price-badge {
+    font-size: 0.58rem;
+    padding: 2px 5px;
+    top: 6px;
+    right: 6px;
+    border-radius: 6px;
+    font-weight: 600;
+    min-width: 35px;
+    line-height: 1.2;
+  }
+  
+  /* دکمه علاقه‌مندی */
+  .wishlist-btn {
+    width: 30px;
+    height: 30px;
+    top: 8px;
+    left: 8px;
+    font-size: 0.8rem;
+  }
+  
+  /* حذف toggle در موبایل */
+  .view-toggle {
+    display: none;
+  }
+  
+  /* دکمه مرتب‌سازی */
+  .sort-btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #f8f9ff, #e8ecff);
+    color: #667eea;
+    border: 2px solid rgba(102, 126, 234, 0.2);
+  }
+  
+  /* مودال محصول */
+  .modal-dialog {
+    margin: 15px;
+    max-width: calc(100% - 30px);
+  }
+  
+  .modal-content {
+    border-radius: 20px;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+  
+  .modal-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f0f2f5;
+    background: linear-gradient(135deg, #f8f9ff, #e8ecff);
+  }
+  
+  .modal-body {
+    padding: 15px 20px;
+  }
+  
+  .modal-footer {
+    padding: 15px 20px;
+    position: sticky;
+    bottom: 0;
+    background: white;
+    border-top: 1px solid #f0f2f5;
+    z-index: 10;
+    box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .action-btn {
+    width: 100%;
+    padding: 12px 20px;
+    justify-content: center;
+    border-radius: 12px;
+    font-weight: 600;
+  }
+  
+  /* جزئیات محصول */
+  .product-detail-container {
+    flex-direction: column;
+  }
+  
+  .product-detail-image {
+    width: 100%;
+    margin-bottom: 15px;
+  }
+  
+  .image-wrapper {
+    height: 220px;
+    border-radius: 15px;
+    overflow: hidden;
+  }
+  
+  .product-detail-info {
+    width: 100%;
+  }
+  
+  /* لیست دسته‌بندی‌ها در مودال */
+  .categories-list {
+    padding: 10px 0;
+  }
+  
+  .list-item {
+    padding: 12px 15px;
+    margin: 2px 0;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+  }
+  
+  .list-item:hover,
+  .list-item.active {
+    background: linear-gradient(135deg, #f8f9ff, #e8ecff);
+    transform: scale(1.02);
+  }
+  
+  .item-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+  }
+  
+  .item-title {
+    font-size: 0.9rem;
+  }
+  
+  .item-count {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 576px) {
+  /* بهینه‌سازی کامل برای موبایل‌های کوچک */
+  .hero-pharmacy {
+    min-height: 45vh;
+    padding: 25px 0 20px;
+    margin: 0 5px;
+    border-radius: 15px 15px 30px 30px / 10px 10px 8% 8%;
+  }
+  
+  .hero-title {
+    font-size: 1.6rem;
+    margin-bottom: 8px;
+  }
+  
+  .hero-subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+  }
+  
+  .search-container {
+    max-width: 98%;
+  }
+  
+  .search-input-group {
+    padding: 6px;
+    border-radius: 20px;
+  }
+  
+  .search-input {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+  
+  .search-btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    min-width: 70px;
+  }
+  
+  .floating-pills .pill {
+    font-size: 1.2rem;
+  }
+  
+  /* دسته‌بندی‌ها */
+  .categories-section {
+    margin: 15px 0;
+    padding: 0 5px;
+  }
+  
+  .mobile-header {
+    padding: 12px 15px;
+    border-radius: 15px;
+    margin-bottom: 12px;
+  }
+  
+  .mobile-title {
+    font-size: 0.9rem;
+  }
+  
+  .mobile-filter-btn {
+    padding: 6px 10px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+  }
+  
+  .categories-scroll-container {
+    margin: 12px 0;
+  }
+  
+  .categories-scroll {
+    padding: 0 8px;
+    gap: 8px;
+  }
+  
+  .scroll-chip {
+    min-width: 75px;
+    max-width: 95px;
+    padding: 8px 6px;
+    gap: 4px;
+    border-radius: 12px;
+  }
+  
+  .chip-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 0.7rem;
+  }
+  
+  .chip-title {
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+  
+  .chip-count {
+    font-size: 0.6rem;
+  }
+  
+  .scroll-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 0.7rem;
+  }
+  
+  .scroll-left {
+    right: 4px;
+  }
+  
+  .scroll-right {
+    left: 4px;
+  }
+  
+  /* محصولات */
+  .products-section {
+    padding: 0 5px;
+  }
+  
+  .products-header {
+    margin-bottom: 15px;
+    padding: 0 5px;
+  }
+  
+  .products-title {
+    font-size: 1.1rem;
+  }
+  
+  .products-count {
+    font-size: 0.8rem;
+  }
+  
+  .sort-btn {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    border-radius: 15px;
+  }
+  
+  .products-grid.view-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 0 5px;
+  }
+  
+  .product-card {
+    border-radius: 14px;
+    max-width: 100%;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+  }
+  
+  .product-image-container {
+    height: 120px;
+  }
+  
+  .product-image {
+    padding: 6px;
+  }
+  
+  .product-info {
+    padding: 10px;
+  }
+  
+  .product-title {
+    font-size: 0.8rem;
+    line-height: 1.2;
+    margin-bottom: 6px;
+    height: 2.4em;
+  }
+  
+  .product-expiry {
+    padding: 3px 5px;
+    margin-bottom: 5px;
+    font-size: 0.6rem;
+    border-radius: 6px;
+  }
+  
+  .product-expiry i {
+    font-size: 0.6rem;
+  }
+  
+  .product-rating {
+    margin-bottom: 6px;
+  }
+  
+  .stars i {
+    font-size: 0.65rem;
+  }
+  
+  .rating-text {
+    font-size: 0.6rem;
+  }
+  
+  /* دکمه‌ها */
+  .add-to-cart-btn {
+    font-size: 0.75rem;
+    padding: 8px 10px;
+    border-radius: 10px;
+  }
+  
+  .quantity-selector {
+    padding: 1px;
+    border-radius: 15px;
+  }
+  
+  .qty-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 0.7rem;
+  }
+  
+  .qty-input {
+    width: 30px;
+    height: 24px;
+    font-size: 0.75rem;
+  }
+  
+  .product-price-badge {
+    font-size: 0.52rem;
+    padding: 2px 4px;
+    top: 4px;
+    right: 4px;
+    border-radius: 4px;
+    min-width: 30px;
+    line-height: 1.2;
+  }
+  
+  .wishlist-btn {
+    width: 26px;
+    height: 26px;
+    top: 5px;
+    left: 5px;
+    font-size: 0.7rem;
+  }
+  
+  .overlay-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+  
+  /* مودال محصول - بهبود برای موبایل */
+  #productDetailModal .modal-dialog {
+    margin: 5px;
+    max-width: calc(100% - 10px);
+    width: calc(100% - 10px);
+  }
+  
+  #productDetailModal .modal-content {
+    border-radius: 15px;
+    max-height: 95vh;
+    overflow-y: auto;
+  }
+  
+  #productDetailModal .modal-header {
+    padding: 15px 20px;
+    border-radius: 15px 15px 0 0;
+  }
+  
+  #productDetailModal .modal-body {
+    padding: 15px 20px;
+    max-height: calc(95vh - 120px);
+    overflow-y: auto;
+  }
+  
+  #productDetailModal .modal-footer {
+    padding: 15px 20px;
+    position: sticky;
+    bottom: 0;
+    background: white;
+    border-top: 1px solid #f0f2f5;
+    z-index: 10;
+    box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
+    border-radius: 0 0 15px 15px;
+  }
+  
+  .modal-close-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+  }
+  
+  .modal-close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+  }
+  
+  .product-detail-container {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .product-detail-image {
+    width: 100%;
+    margin-bottom: 0;
+  }
+  
+  .image-wrapper {
+    height: 200px;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f8f9ff, #e8ecff);
+  }
+  
+  .detail-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 10px;
+  }
+  
+  .product-detail-info {
+    width: 100%;
+  }
+  
+  .action-btn {
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    width: 100%;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  /* مودال دسته‌بندی */
+  .mobile-categories-modal .modal-content {
+    max-height: 80vh;
+    border-radius: 20px 20px 0 0;
+  }
+  
+  .mobile-categories-modal .modal-content::before {
+    width: 30px;
+    height: 3px;
+    top: 8px;
+  }
+  
+  .mobile-categories-modal .modal-header {
+    padding: 15px 20px;
+  }
+  
+  .mobile-categories-modal .modal-header h5 {
+    font-size: 1rem;
+  }
+  
+  .mobile-categories-modal .modal-close {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .categories-list {
+    padding: 8px 0;
+  }
+  
+  .list-item {
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+  
+  .item-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+  }
+  
+  .item-title {
+    font-size: 0.85rem;
+  }
+  
+  .item-count {
+    font-size: 0.7rem;
+  }
+  
+  /* صفحه‌بندی */
+  .pagination-section {
+    margin-top: 25px;
+    padding: 0 5px;
+  }
+  
+  .pagination-link {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+  
+  .pagination-link.prev,
+  .pagination-link.next {
+    padding: 0 10px;
+  }
+}
+
+/* بهینه‌سازی برای صفحات بسیار کوچک */
+@media (max-width: 360px) {
+  .hero-title {
+    font-size: 1.4rem;
+  }
+  
+  .search-input {
+    font-size: 0.8rem;
+    padding: 8px 10px;
+  }
+  
+  .search-btn {
+    font-size: 0.75rem;
+    min-width: 60px;
+  }
+  
+  .scroll-chip {
+    min-width: 65px;
+    max-width: 85px;
+    padding: 6px 4px;
+  }
+  
+  .chip-title {
+    font-size: 0.65rem;
+  }
+  
+  .chip-count {
+    font-size: 0.55rem;
+  }
+  
+  .products-grid.view-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .product-card {
+    max-width: calc(100vw - 15px);
+  }
+  
+  .product-title {
+    font-size: 0.85rem;
+    height: auto;
+    margin-bottom: 8px;
+  }
+  
+  .add-to-cart-btn {
+    font-size: 0.8rem;
+    padding: 10px 12px;
+  }
+  
+  /* قیمت برای موبایل‌های کوچک */
+  .product-price-badge {
+    font-size: 0.5rem;
+    padding: 2px 3px;
+    top: 3px;
+    right: 3px;
+    border-radius: 3px;
+    min-width: 28px;
+    line-height: 1.1;
+  }
+}
+
+@media (max-width: 400px) {
+  .hero-title {
+    font-size: 1.6rem;
+  }
+  
+  .search-input-group {
+    padding: 12px;
+  }
+  
+  .categories-scroll {
+    padding: 0 8px;
+  }
+  
+  .scroll-chip {
+    min-width: 70px;
+    max-width: 90px;
+    padding: 6px 8px;
+    gap: 4px;
+  }
+  
+  .chip-title {
+    font-size: 0.75rem;
+  }
+  
+  .chip-count {
+    font-size: 0.6rem;
+  }
+  
+  .chip-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 0.7rem;
+  }
+  
+  .products-grid.view-grid {
+    gap: 10px;
+    padding: 0 5px;
+  }
+  
+  .product-card {
+    max-width: calc(100vw - 15px);
+  }
+  
+  .product-info {
+    padding: 10px;
+  }
+  
+  .product-title {
+    font-size: 0.85rem;
+  }
+  
+  .product-expiry {
+    padding: 4px 6px;
+    margin-bottom: 6px;
+    gap: 4px;
+  }
+  
+  .product-expiry i {
+    font-size: 0.7rem;
+  }
+  
+  .expiry-text {
+    font-size: 0.7rem;
+  }
+  
+  .stars i {
+    font-size: 0.7rem;
+  }
+  
+  .rating-text {
+    font-size: 0.65rem;
+  }
+  
+  .add-to-cart-btn {
+    font-size: 0.8rem;
+    padding: 8px 12px;
+  }
+  
+  .qty-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 0.8rem;
+  }
+  
+  .qty-input {
+    width: 35px;
+    height: 28px;
+    font-size: 0.8rem;
+  }
+}
+
+/* ===== LANDSCAPE ORIENTATION ===== */
+@media (max-height: 500px) and (orientation: landscape) {
+  .hero-pharmacy {
+    min-height: 70vh;
+  }
+  
+  .categories-section {
+    margin-top: -40px;
+  }
+  
+  .mobile-categories-modal .modal-content {
+    max-height: 60vh;
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .hero-pharmacy,
+  .categories-section,
+  .products-controls,
+  .pagination-section {
+    display: none;
+  }
+  
+  .product-card {
+    border: 1px solid #000;
+    break-inside: avoid;
+    box-shadow: none;
+  }
+  
+  .product-overlay,
+  .wishlist-btn,
+  .add-to-cart-form {
+    display: none;
+  }
+}
+
+/* ===== HIGH CONTRAST MODE ===== */
+@media (prefers-contrast: high) {
+  .category-tile,
+  .scroll-chip,
+  .product-card {
+    border: 2px solid #000;
+  }
+  
+  .category-tile.active,
+  .scroll-chip.active {
+    background: #000;
+    color: #fff;
+  }
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .floating-pills {
+    display: none;
+  }
+}
+
+/* ===== DARK MODE SUPPORT ===== */
+@media (prefers-color-scheme: dark) {
+  /* We maintain light theme for better medicine visibility */
+  /* Users can override with manual dark mode toggle if needed */
+}
+
+/* ===== MOBILE OPTIMIZATIONS ===== */
+/* بهینه‌سازی‌های خاص موبایل */
+
+/* محدود کردن زوم در input ها */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="search"],
+  input[type="number"],
+  textarea,
+  select {
+    font-size: 16px !important; /* جلوگیری از زوم خودکار در iOS */
+    transform: translateZ(0); /* بهبود عملکرد */
+  }
+}
+
+/* بهبود touch targets */
+.mobile-touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation;
+}
+
+/* نمایش بهتر در landscape و تبلت */
+@media (max-height: 500px) and (orientation: landscape) {
+  .hero-pharmacy {
+    min-height: calc(var(--vh, 1vh) * 70);
+    padding: 20px 0 15px;
+  }
+  
+  .hero-title {
+    font-size: 1.4rem;
+    margin-bottom: 5px;
+  }
+  
+  .hero-subtitle {
+    font-size: 0.8rem;
+    margin-bottom: 15px;
+  }
+  
+  .search-container {
+    margin-top: 10px;
+  }
+  
+  .mobile-categories-modal .modal-content {
+    max-height: calc(var(--vh, 1vh) * 60);
+    min-height: calc(var(--vh, 1vh) * 40);
+  }
+  
+  .categories-section {
+    margin: 10px 0;
+  }
+  
+  .categories-scroll {
+    padding: 5px 8px;
+  }
+  
+  .scroll-chip {
+    padding: 6px 8px;
+    min-width: 70px;
+    max-width: 100px;
+  }
+  
+  .chip-title {
+    font-size: 0.7rem;
+  }
+  
+  .chip-count {
+    font-size: 0.6rem;
+  }
+  
+  .products-section {
+    margin-top: 15px;
+  }
+  
+  .products-grid.view-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+  
+  .product-card {
+    border-radius: 12px;
+  }
+  
+  .product-image-container {
+    height: 100px;
+  }
+  
+  .product-info {
+    padding: 8px;
+  }
+  
+  .product-title {
+    font-size: 0.75rem;
+    line-height: 1.2;
+    margin-bottom: 5px;
+  }
+}
+
+/* تبلت در حالت portrait */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+  .hero-pharmacy {
+    min-height: calc(var(--vh, 1vh) * 50);
+    margin: 0 15px;
+  }
+  
+  .products-grid.view-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 18px;
+  }
+  
+  .mobile-categories-modal .modal-content {
+    max-height: calc(var(--vh, 1vh) * 65);
+  }
+  
+  .categories-scroll {
+    padding: 0 20px;
+  }
+  
+  .scroll-chip {
+    min-width: 110px;
+    max-width: 140px;
+    padding: 12px 14px;
+  }
+}
+
+/* حالت تاریک - پشتیبانی اولیه */
+@media (prefers-color-scheme: dark) {
+  .mobile-categories-modal .modal-content {
+    background: #1a202c;
+    color: white;
+  }
+  
+  .mobile-categories-modal .modal-backdrop {
+    background: rgba(0,0,0,0.8);
+  }
+  
+  .list-item {
+    color: #f7fafc;
+    border-bottom-color: #2d3748;
+  }
+  
+  .list-item:hover,
+  .list-item.active {
+    background: linear-gradient(135deg, #2d3748, #4a5568);
+  }
+}
+
+/* بهبود accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .mobile-categories-modal .modal-content {
+    transition: none;
+  }
+  
+  .scroll-chip,
+  .product-card,
+  .add-to-cart-btn {
+    transition: none;
+  }
+  
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High contrast support */
+@media (prefers-contrast: high) {
+  .scroll-chip,
+  .product-card,
+  .mobile-filter-btn {
+    border: 2px solid #000;
+  }
+  
+  .scroll-chip.active,
+  .list-item.active {
+    background: #000 !important;
+    color: #fff !important;
+  }
+}
+
+/* بهبود loading states */
+.loading-state {
+  pointer-events: none;
+  opacity: 0.7;
+  position: relative;
+}
+
+.loading-state::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid #667eea;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* جلوگیری از تداخل modal ها */
+.modal.show {
+  z-index: 1055;
+}
+
+.modal.show ~ .mobile-categories-modal.active {
+  display: none !important;
+}
+
+.mobile-categories-modal.active ~ .modal.show {
+  z-index: 1060;
+}
+
+/* بهبود backdrop برای modal محصول */
+#productDetailModal.show + .modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.7) !important;
+  backdrop-filter: blur(8px);
+}
+
+/* جلوگیری از scroll در body هنگام باز بودن modal */
+body.modal-open {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+}
+
+/* Safe area support for iPhone X+ */
+@supports (padding: max(0px)) {
+  .mobile-categories-modal .modal-content {
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+  
+  .hero-pharmacy {
+    padding-top: max(30px, env(safe-area-inset-top));
+  }
+  
+  .categories-scroll {
+    padding-left: max(10px, env(safe-area-inset-left));
+    padding-right: max(10px, env(safe-area-inset-right));
+  }
+  
+  #productDetailModal .modal-content {
+    padding-bottom: max(15px, env(safe-area-inset-bottom));
+  }
+}
+
+/* ===== UTILITY CLASSES ===== */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.slide-up {
+  animation: slideUp 0.6s ease-out;
+}
+
+.bounce-in {
+  animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* کلاس‌های کمکی برای موبایل */
+.mobile-only {
+  display: none;
+}
+
+.desktop-only {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: block;
+  }
+  
+  .desktop-only {
+    display: none;
+  }
+}
+
+/* بهبود تعامل لمسی */
+.touch-friendly {
+  -webkit-tap-highlight-color: rgba(102, 126, 234, 0.2);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Haptic feedback simulation */
+@media (hover: none) and (pointer: coarse) {
+  .scroll-chip:active,
+  .add-to-cart-btn:active,
+  .mobile-filter-btn:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+  }
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes slideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+.loading-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200px 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ===== UTILITIES ===== */
+.fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.slide-up {
+  animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
+
+<script>
+(function() {
+    'use strict';
+    
+    // ===== MOBILE CATEGORIES MODAL - بهبود یافته =====
+    function initMobileModal() {
+        const modalBtn = document.querySelector('.mobile-filter-btn');
+        const modal = document.querySelector('.mobile-categories-modal');
+        const closeBtn = modal?.querySelector('.modal-close');
+        const backdrop = modal?.querySelector('.modal-backdrop');
+        const modalContent = modal?.querySelector('.modal-content');
+        
+        if (!modalBtn || !modal) {
+            console.log('Modal elements not found');
+            return;
+        }
+        
+        let startY = 0;
+        let currentY = 0;
+        let isDragging = false;
+        
+        function openModal() {
+            console.log('Opening modal');
+            
+            // تنظیم نمایش مودال
+            modal.style.display = 'flex';
+            modal.style.opacity = '1';
+            
+            // اطمینان از نمایش backdrop
+            const backdrop = modal.querySelector('.modal-backdrop');
+            if (backdrop) {
+                backdrop.style.display = 'block';
+                backdrop.style.opacity = '1';
+            }
+            
+            // ذخیره موقعیت فعلی scroll
+            const currentScrollY = window.scrollY;
+            
+            // قفل کردن scroll در body
+            document.body.style.overflow = 'hidden';
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+            document.body.style.top = `-${currentScrollY}px`;
+            
+            // Reset modal content transform
+            if (modalContent) {
+                modalContent.style.transform = 'translateY(100%)';
+                modalContent.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            }
+            
+            // انیمیشن نمایش
+            requestAnimationFrame(() => {
+                modal.classList.add('active');
+                if (modalContent) {
+                    modalContent.style.transform = 'translateY(0)';
+                }
+            });
+            
+            // فوکوس برای accessibility
+            setTimeout(() => {
+                const firstItem = modal.querySelector('.list-item');
+                if (firstItem) firstItem.focus();
+            }, 400);
+            
+            console.log('Modal opened successfully');
+        }
+        
+        function closeModal() {
+            console.log('Closing modal');
+            
+            // اول انیمیشن بسته شدن رو شروع کن
+            modal.classList.remove('active');
+            
+            // فوری بازگردانی scroll در body - بدون انتظار
+            const scrollY = document.body.style.top;
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.width = '';
+            document.body.style.overflow = '';
+            
+            // بازگردانی موقعیت scroll
+            if (scrollY) {
+                const scrollPosition = parseInt(scrollY.replace('px', '')) * -1;
+                window.scrollTo(0, scrollPosition);
+            }
+            
+            // پاک کردن backdrop و مخفی کردن مودال
+            setTimeout(() => {
+                modal.style.display = 'none';
+                modal.style.opacity = '0';
+                
+                // اطمینان از پاک شدن کامل backdrop
+                const backdrop = modal.querySelector('.modal-backdrop');
+                if (backdrop) {
+                    backdrop.style.display = 'none';
+                    backdrop.style.opacity = '0';
+                }
+                
+                // Reset modal content transform
+                if (modalContent) {
+                    modalContent.style.transform = 'translateY(100%)';
+                    modalContent.style.transition = '';
+                }
+                
+                // پاک کردن هر style اضافی که ممکنه باقی مونده باشه
+                document.body.style.removeProperty('overflow');
+                document.body.style.removeProperty('position');
+                document.body.style.removeProperty('width');
+                document.body.style.removeProperty('top');
+                
+                console.log('Modal fully closed and cleaned up');
+            }, 300); // کاهش زمان انتظار
+        }
+        
+        // Touch events برای کشیدن مودال
+        function initTouchEvents() {
+            if (!modalContent) return;
+            
+            modalContent.addEventListener('touchstart', (e) => {
+                startY = e.touches[0].clientY;
+                isDragging = true;
+                modalContent.style.transition = 'none';
+            }, { passive: true });
+            
+            modalContent.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                
+                currentY = e.touches[0].clientY;
+                const deltaY = currentY - startY;
+                
+                // فقط اجازه کشیدن به پایین
+                if (deltaY > 0) {
+                    const translateY = Math.min(deltaY, 200);
+                    modalContent.style.transform = `translateY(${translateY}px)`;
+                }
+            }, { passive: true });
+            
+            modalContent.addEventListener('touchend', () => {
+                if (!isDragging) return;
+                
+                isDragging = false;
+                modalContent.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                
+                const deltaY = currentY - startY;
+                
+                // اگر بیش از 100px کشیده شده، مودال را ببند
+                if (deltaY > 100) {
+                    closeModal();
+                } else {
+                    modalContent.style.transform = 'translateY(0)';
+                }
+            }, { passive: true });
+        }
+        
+        // Event listeners
+        modalBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Modal button clicked');
+            openModal();
+        });
+        
+        closeBtn?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Close button clicked');
+            closeModal();
+        });
+        
+        backdrop?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.target === backdrop) {
+                console.log('Backdrop clicked');
+                closeModal();
+            }
+        });
+        
+        // کلید Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('active')) {
+                e.preventDefault();
+                console.log('Escape key pressed');
+                closeModal();
+            }
+        });
+        
+        // انتخاب دسته‌بندی در مودال
+        const modalItems = modal.querySelectorAll('.list-item');
+        modalItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // حذف کلاس active از همه
+                modalItems.forEach(i => i.classList.remove('active'));
+                
+                // اضافه کردن کلاس active به آیتم انتخاب شده
+                item.classList.add('active');
+                
+                const titleElement = item.querySelector('.item-title');
+                const categoryTitle = titleElement ? titleElement.textContent : 'دسته‌بندی';
+                
+                showNotification(`${categoryTitle} انتخاب شد`, 'success');
+                
+                // تاخیر کوتاه برای نمایش انیمیشن
+                setTimeout(() => {
+                    closeModal();
+                    
+                    // اسکرول به بخش محصولات
+                    setTimeout(() => {
+                        const productsSection = document.querySelector('.products-section');
+                        if (productsSection) {
+                            productsSection.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start'
+                            });
+                        }
+                    }, 200);
+                }, 300);
+            });
+        });
+        
+        // راه‌اندازی touch events
+        initTouchEvents();
+        
+        // Fallback برای پاک کردن backdrop در صورت مشکل
+        window.addEventListener('scroll', () => {
+            if (modal.classList.contains('active') && document.body.style.overflow !== 'hidden') {
+                console.log('Scroll detected while modal active - forcing cleanup');
+                closeModal();
+            }
+        }, { passive: true });
+        
+        // اضافه کردن متد عمومی برای پاک کردن مودال
+        window.forceCloseModal = function() {
+            console.log('Force closing modal');
+            modal.style.display = 'none';
+            modal.style.opacity = '0';
+            modal.classList.remove('active');
+            
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('position');
+            document.body.style.removeProperty('width');
+            document.body.style.removeProperty('top');
+            
+            const backdrop = modal.querySelector('.modal-backdrop');
+            if (backdrop) {
+                backdrop.style.display = 'none';
+                backdrop.style.opacity = '0';
+            }
+        };
+    }
+
+    // ===== MOBILE CATEGORIES SCROLL - بهبود یافته =====
+    function initCategoriesScroll() {
+        const container = document.querySelector('.categories-scroll');
+        const leftBtn = document.querySelector('.scroll-left');
+        const rightBtn = document.querySelector('.scroll-right');
+        const chips = document.querySelectorAll('.scroll-chip');
+        
+        if (!container) return;
+        
+        // بروزرسانی دکمه‌های اسکرول
+        function updateScrollButtons() {
+            if (!leftBtn || !rightBtn) return;
+            
+            const isAtStart = container.scrollLeft <= 10;
+            const isAtEnd = container.scrollLeft >= (container.scrollWidth - container.clientWidth - 10);
+            
+            leftBtn.style.opacity = isAtStart ? '0.3' : '1';
+            leftBtn.style.pointerEvents = isAtStart ? 'none' : 'auto';
+            
+            rightBtn.style.opacity = isAtEnd ? '0.3' : '1';
+            rightBtn.style.pointerEvents = isAtEnd ? 'none' : 'auto';
+        }
+        
+        // اسکرول با دکمه‌ها
+        leftBtn?.addEventListener('click', () => {
+            const scrollAmount = container.clientWidth * 0.8;
+            container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        });
+        
+        rightBtn?.addEventListener('click', () => {
+            const scrollAmount = container.clientWidth * 0.8;
+            container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        });
+        
+        container.addEventListener('scroll', updateScrollButtons, { passive: true });
+        
+        // Touch/Drag support بهبود یافته
+        let isDown = false;
+        let startX = 0;
+        let scrollLeft = 0;
+        let momentum = 0;
+        let lastX = 0;
+        let lastTime = 0;
+        
+        function startDrag(clientX) {
+            isDown = true;
+            startX = clientX - container.offsetLeft;
+            scrollLeft = container.scrollLeft;
+            lastX = clientX;
+            lastTime = Date.now();
+            momentum = 0;
+            container.style.cursor = 'grabbing';
+            container.style.scrollBehavior = 'auto';
+        }
+        
+        function doDrag(clientX) {
+            if (!isDown) return;
+            
+            const x = clientX - container.offsetLeft;
+            const walk = (x - startX) * 1.5;
+            const newScrollLeft = scrollLeft - walk;
+            
+            // محاسبه momentum
+            const currentTime = Date.now();
+            const timeDiff = currentTime - lastTime;
+            if (timeDiff > 0) {
+                momentum = (clientX - lastX) / timeDiff;
+            }
+            
+            container.scrollLeft = newScrollLeft;
+            lastX = clientX;
+            lastTime = currentTime;
+        }
+        
+        function endDrag() {
+            if (!isDown) return;
+            
+            isDown = false;
+            container.style.cursor = 'grab';
+            container.style.scrollBehavior = 'smooth';
+            
+            // اعمال momentum scrolling
+            if (Math.abs(momentum) > 0.1) {
+                const finalScroll = container.scrollLeft - (momentum * 100);
+                const maxScroll = container.scrollWidth - container.clientWidth;
+                const targetScroll = Math.max(0, Math.min(finalScroll, maxScroll));
+                
+                container.scrollTo({
+                    left: targetScroll,
+                    behavior: 'smooth'
+                });
+            }
+        }
+        
+        // Mouse events
+        container.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            startDrag(e.pageX);
+        });
+        
+        container.addEventListener('mouseleave', endDrag);
+        container.addEventListener('mouseup', endDrag);
+        
+        container.addEventListener('mousemove', (e) => {
+            e.preventDefault();
+            doDrag(e.pageX);
+        });
+        
+        // Touch events
+        container.addEventListener('touchstart', (e) => {
+            startDrag(e.touches[0].clientX);
+        }, { passive: true });
+        
+        container.addEventListener('touchmove', (e) => {
+            doDrag(e.touches[0].clientX);
+        }, { passive: true });
+        
+        container.addEventListener('touchend', endDrag, { passive: true });
+        
+        // کلیک روی chip ها
+        chips.forEach(chip => {
+            chip.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // حذف کلاس active از همه
+                chips.forEach(c => c.classList.remove('active'));
+                
+                // اضافه کردن کلاس active به chip انتخاب شده
+                chip.classList.add('active');
+                
+                // انیمیشن کلیک
+                chip.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    chip.style.transform = '';
+                }, 150);
+                
+                // اسکرول تا chip انتخاب شده قابل مشاهده باشد
+                const chipRect = chip.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+                
+                if (chipRect.left < containerRect.left || chipRect.right > containerRect.right) {
+                    chip.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'nearest',
+                        inline: 'center'
+                    });
+                }
+                
+                // نمایش پیام
+                const titleElement = chip.querySelector('.chip-title');
+                const categoryTitle = titleElement ? titleElement.textContent : 'دسته';
+                showNotification(`${categoryTitle} انتخاب شد`, 'success');
+                
+                // اسکرول به بخش محصولات
+                setTimeout(() => {
+                    const productsSection = document.querySelector('.products-section');
+                    if (productsSection && window.innerWidth < 768) {
+                        productsSection.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                }, 300);
+                
+                // ناوبری (در صورت وجود href)
+                const href = chip.dataset.href;
+                if (href) {
+                    setTimeout(() => {
+                        window.location.href = href;
+                    }, 500);
+                }
+            });
+        });
+        
+        // تنظیمات اولیه
+        container.style.cursor = 'grab';
+        updateScrollButtons();
+        
+        // بروزرسانی دکمه‌ها با تغییر اندازه صفحه
+        window.addEventListener('resize', updateScrollButtons);
+    }
+    
+    // ===== PRODUCTS VIEW TOGGLE =====
+    function initViewToggle() {
+        const viewToggle = document.querySelector('.view-toggle');
+        const gridIcon = viewToggle?.querySelector('.grid-icon');
+        const listIcon = viewToggle?.querySelector('.list-icon');
+        const productsGrid = document.querySelector('.products-grid');
+        
+        if (!viewToggle || !productsGrid) return;
+        
+        let isGridView = true;
+        
+        viewToggle.addEventListener('click', () => {
+            isGridView = !isGridView;
+            
+            if (isGridView) {
+                productsGrid.classList.remove('view-list');
+                productsGrid.classList.add('view-grid');
+                gridIcon.style.opacity = '1';
+                listIcon.style.opacity = '0.5';
+            } else {
+                productsGrid.classList.remove('view-grid');
+                productsGrid.classList.add('view-list');
+                gridIcon.style.opacity = '0.5';
+                listIcon.style.opacity = '1';
+            }
+            
+            // Animate cards
+            const cards = document.querySelectorAll('.product-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.animation = 'none';
+                    card.offsetHeight; // trigger reflow
+                    card.style.animation = 'fadeIn 0.3s ease-out';
+                }, index * 50);
+            });
+        });
+    }
+    
+    // ===== WISHLIST FUNCTIONALITY =====
+    function initWishlist() {
+        const wishlistBtns = document.querySelectorAll('.wishlist-btn');
+        
+        wishlistBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const icon = btn.querySelector('i');
+                const isWishlisted = icon.classList.contains('fas');
+                
+                if (isWishlisted) {
+                    icon.classList.replace('fas', 'far');
+                    btn.style.background = 'rgba(255, 255, 255, 0.9)';
+                    btn.style.color = '#666';
+                    showNotification('محصول از لیست علاقه‌مندی‌ها حذف شد', 'info');
+                } else {
+                    icon.classList.replace('far', 'fas');
+                    btn.style.background = '#e91e63';
+                    btn.style.color = 'white';
+                    showNotification('محصول به لیست علاقه‌مندی‌ها اضافه شد', 'success');
+                    
+                    // Heart animation
+                    btn.style.animation = 'heartBeat 0.6s ease-out';
+                    setTimeout(() => {
+                        btn.style.animation = '';
+                    }, 600);
+                }
+            });
+        });
+    }
+    
+    // ===== SEARCH FUNCTIONALITY =====
+    function initSearch() {
+        const searchInput = document.querySelector('.search-input');
+        const searchBtn = document.querySelector('.search-btn');
+        
+        if (!searchInput || !searchBtn) return;
+        
+        function performSearch() {
+            const query = searchInput.value.trim();
+            if (query) {
+                showNotification(`جستجو برای: ${query}`, 'info');
+                // Add actual search functionality here
+            }
+        }
+        
+        searchBtn.addEventListener('click', performSearch);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+        
+        // Search suggestions (demo)
+        searchInput.addEventListener('input', (e) => {
+            const value = e.target.value;
+            if (value.length > 2) {
+                // Show search suggestions here
+            }
+        });
+    }
+    
+    // ===== QUANTITY CONTROLS =====
+    function initQuantityControls() {
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('.qty-btn.minus')) {
+                const input = e.target.nextElementSibling;
+                const currentValue = parseInt(input.value) || 1;
+                if (currentValue > 1) {
+                    input.value = currentValue - 1;
+                }
+            }
+            
+            if (e.target.matches('.qty-btn.plus')) {
+                const input = e.target.previousElementSibling;
+                const currentValue = parseInt(input.value) || 1;
+                input.value = currentValue + 1;
+            }
+        });
+    }
+    
+    // ===== ADD TO CART =====
+  function initAddToCart() {
+    document.addEventListener('submit', async (e) => {
+      if (!e.target.matches('.add-to-cart-form')) return;
+      e.preventDefault();
+
+      const form = e.target;
+      const btn = form.querySelector('.add-to-cart-btn');
+      const originalHTML = btn ? (btn.dataset.originalHtml || btn.innerHTML) : '';
+      const action = form.getAttribute('action');
+      const formData = new FormData(form);
+      const csrfInput = form.querySelector('input[name="csrfmiddlewaretoken"]');
+      const csrf = csrfInput ? csrfInput.value : '';
+
+      try {
+        const resp = await fetch(action, {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrf
+          },
+          body: formData,
+          credentials: 'same-origin'
+        });
+
+        if (resp.ok) {
+          if (btn) {
+            btn.innerHTML = '<i class="fas fa-check"></i> افزوده شد';
+            btn.style.background = '#4caf50';
+          }
+          showNotification('محصول با موفقیت به سبد خرید اضافه شد', 'success');
+
+          setTimeout(() => {
+            if (btn) {
+              btn.innerHTML = originalHTML;
+              btn.style.background = '';
+              btn.disabled = false;
+              delete btn.dataset.originalHtml;
+            }
+            delete form.dataset.waitAjax;
+          }, 1200);
+        } else {
+          if (resp.status === 401 || resp.status === 403) {
+            window.location.href = '{% url "login_view" %}?next=' + encodeURIComponent(window.location.pathname);
+            return;
+          }
+          const text = await resp.text();
+          showNotification('خطا در افزودن به سبد: ' + (text && text.length < 200 ? text : resp.status), 'error');
+          if (btn) {
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+            btn.style.background = '';
+            delete btn.dataset.originalHtml;
+          }
+          delete form.dataset.waitAjax;
+        }
+      } catch (err) {
+        console.error(err);
+        showNotification('اشکال در ارتباط با سرور', 'error');
+        if (btn) {
+          btn.innerHTML = originalHTML;
+          btn.disabled = false;
+          btn.style.background = '';
+          delete btn.dataset.originalHtml;
+        }
+        delete form.dataset.waitAjax;
+      }
+    });
+  }
+    
+    // ===== SORT FUNCTIONALITY =====
+    function initSort() {
+        const sortBtn = document.querySelector('.sort-btn');
+        if (!sortBtn) return;
+        
+        const sortOptions = [
+            { text: 'مرتب‌سازی بر اساس قیمت', value: 'price' },
+            { text: 'مرتب‌سازی بر اساس نام', value: 'name' },
+            { text: 'مرتب‌سازی بر اساس محبوبیت', value: 'popularity' },
+            { text: 'جدیدترین محصولات', value: 'newest' }
+        ];
+        
+        let currentSort = 0;
+        
+        sortBtn.addEventListener('click', () => {
+            currentSort = (currentSort + 1) % sortOptions.length;
+            sortBtn.textContent = sortOptions[currentSort].text;
+            showNotification(`مرتب‌سازی تغییر یافت: ${sortOptions[currentSort].text}`, 'info');
+        });
+    }
+    
+    // ===== INTERSECTION OBSERVER FOR ANIMATIONS =====
+    function initAnimations() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animation = 'fadeInUp 0.6s ease-out';
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+        
+        const animatedElements = document.querySelectorAll('.product-card, .category-tile, .scroll-chip');
+        animatedElements.forEach(el => observer.observe(el));
+    }
+
+    // ===== PRICE BADGE ANIMATIONS =====
+    function initPriceBadgeAnimations() {
+        const priceBadges = document.querySelectorAll('.product-price-badge');
+        
+        // Add gentle hover-like pulse animation to price badges
+        priceBadges.forEach((badge, index) => {
+            // Gentle continuous pulse
+            setTimeout(() => {
+                setInterval(() => {
+                    // Very subtle scale animation that doesn't remove the badge
+                    badge.style.transform = 'scale(1.05)';
+                    badge.style.transition = 'transform 0.3s ease';
+                    
+                    setTimeout(() => {
+                        badge.style.transform = 'scale(1)';
+                    }, 300);
+                }, Math.random() * 12000 + 10000); // Random between 10-22 seconds
+            }, index * 500);
+        });
+        
+        // Add click effect for price badges
+        priceBadges.forEach(badge => {
+            badge.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Gentle scale effect on click - no removal
+                const originalTransform = badge.style.transform;
+                badge.style.transform = 'scale(1.1)';
+                badge.style.transition = 'transform 0.2s ease';
+                
+                setTimeout(() => {
+                    badge.style.transform = originalTransform || 'scale(1)';
+                }, 200);
+                
+                showNotification('قیمت: ' + badge.textContent, 'info');
+            });
+        });
+    }
+
+    // ===== NOTIFICATION SYSTEM =====
+    function createNotificationContainer() {
+        if (document.querySelector('.notifications-container')) return;
+        
+        const container = document.createElement('div');
+        container.className = 'notifications-container';
+        container.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            pointer-events: none;
+        `;
+        document.body.appendChild(container);
+    }
+    
+    function showNotification(message, type = 'info') {
+        createNotificationContainer();
+        const container = document.querySelector('.notifications-container');
+        
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        
+        const colors = {
+            success: '#4caf50',
+            error: '#f44336',
+            warning: '#ff9800',
+            info: '#2196f3'
+        };
+        
+        const icons = {
+            success: 'check-circle',
+            error: 'times-circle',
+            warning: 'exclamation-triangle',
+            info: 'info-circle'
+        };
+        
+        notification.style.cssText = `
+            background: ${colors[type]};
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Vazir', sans-serif;
+            font-size: 14px;
+            max-width: 350px;
+            word-wrap: break-word;
+        `;
+        
+        notification.innerHTML = `
+            <i class="fas fa-${icons[type]}"></i>
+            <span>${message}</span>
+            <button onclick="this.parentElement.remove()" style="
+                background: none;
+                border: none;
+                color: white;
+                cursor: pointer;
+                margin-left: 10px;
+                font-size: 16px;
+                opacity: 0.7;
+                transition: opacity 0.2s;
+            " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        container.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+        }, 100);
+        
+        // Auto remove
+        setTimeout(() => {
+            notification.style.transform = 'translateX(400px)';
+            setTimeout(() => notification.remove(), 300);
+        }, 5000);
+    }
+
+    // ===== RANDOM RATINGS SYSTEM =====
+    function initRandomRatings() {
+        const ratingContainers = document.querySelectorAll('.product-rating');
+        
+        // Array of realistic medicine ratings (weighted towards higher ratings)
+        const ratingWeights = [
+            { min: 4.7, max: 5.0, weight: 30 },    // 30% chance of excellent (4.7-5.0)
+            { min: 4.3, max: 4.6, weight: 25 },    // 25% chance of very good (4.3-4.6)
+            { min: 4.0, max: 4.2, weight: 20 },    // 20% chance of good (4.0-4.2)
+            { min: 3.8, max: 3.9, weight: 15 },    // 15% chance of above average (3.8-3.9)
+            { min: 3.5, max: 3.7, weight: 10 }     // 10% chance of average (3.5-3.7)
+        ];
+        
+        function getWeightedRating() {
+            const totalWeight = ratingWeights.reduce((sum, item) => sum + item.weight, 0);
+            let random = Math.random() * totalWeight;
+            
+            for (const range of ratingWeights) {
+                if (random < range.weight) {
+                    return (Math.random() * (range.max - range.min) + range.min).toFixed(1);
+                }
+                random -= range.weight;
+            }
+            return 4.2; // fallback
+        }
+        
+        ratingContainers.forEach((container, index) => {
+            const rating = parseFloat(getWeightedRating());
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = (rating % 1) >= 0.5;
+            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+            
+            const starsContainer = container.querySelector('.stars');
+            const ratingText = container.querySelector('.rating-text');
+            
+            if (starsContainer && ratingText) {
+                // Clear existing stars
+                starsContainer.innerHTML = '';
+                
+                // Add full stars
+                for (let i = 0; i < fullStars; i++) {
+                    const star = document.createElement('i');
+                    star.className = 'fas fa-star';
+                    star.style.color = '#ffc107';
+                    star.dataset.rating = i + 1;
+                    starsContainer.appendChild(star);
+                }
+                
+                // Add half star if needed
+                if (hasHalfStar) {
+                    const halfStar = document.createElement('i');
+                    halfStar.className = 'fas fa-star-half-alt';
+                    halfStar.style.color = '#ffc107';
+                    starsContainer.appendChild(halfStar);
+                }
+                
+                // Add empty stars
+                for (let i = 0; i < emptyStars; i++) {
+                    const star = document.createElement('i');
+                    star.className = 'far fa-star';
+                    star.style.color = '#ddd';
+                    starsContainer.appendChild(star);
+                }
+                
+                // Generate weighted review count based on rating
+                let baseReviews;
+                if (rating >= 4.5) {
+                    baseReviews = Math.floor(Math.random() * 100) + 50; // Popular high-rated items
+                } else if (rating >= 4.0) {
+                    baseReviews = Math.floor(Math.random() * 80) + 30;  // Good items
+                } else {
+                    baseReviews = Math.floor(Math.random() * 50) + 15;  // Average items
+                }
+                
+                // Update rating text with Persian numbers
+                const persianNums = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+                const persianRating = rating.toString().replace(/\d/g, d => persianNums[d]);
+                const persianReviews = baseReviews.toString().replace(/\d/g, d => persianNums[d]);
+                
+                ratingText.textContent = `(${persianRating} از ۵ - ${persianReviews} نظر)`;
+                
+                // Add click functionality to stars
+                const stars = starsContainer.querySelectorAll('i');
+                stars.forEach((star, starIndex) => {
+                    star.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        // Sparkle effect
+                        star.style.animation = 'sparkle 0.6s ease-out';
+                        setTimeout(() => {
+                            star.style.animation = '';
+                        }, 600);
+                        
+                        showNotification(`امتیاز ${starIndex + 1} ستاره ثبت شد!`, 'success');
+                    });
+                    
+                    // Hover effect for individual stars
+                    star.addEventListener('mouseenter', () => {
+                        for (let i = 0; i <= starIndex; i++) {
+                            if (stars[i]) {
+                                stars[i].style.transform = 'scale(1.1)';
+                                stars[i].style.filter = 'brightness(1.2)';
+                            }
+                        }
+                    });
+                    
+                    star.addEventListener('mouseleave', () => {
+                        stars.forEach(s => {
+                            s.style.transform = '';
+                            s.style.filter = '';
+                        });
+                    });
+                });
+                
+                // Add animation delay based on index for staggered effect
+                setTimeout(() => {
+                    starsContainer.style.animation = 'fadeInStars 0.6s ease-out';
+                    ratingText.style.animation = 'fadeInStars 0.6s ease-out 0.2s both';
+                }, index * 150);
+            }
+        });
+    }
+
+    // ===== MODAL MANAGEMENT =====
+    function initModalManagement() {
+        // مدیریت bootstrap modal ها
+        document.addEventListener('show.bs.modal', function (e) {
+            console.log('Bootstrap modal opening:', e.target.id);
+            
+            // بستن modal دسته‌بندی اگر باز باشه
+            const categoryModal = document.querySelector('.mobile-categories-modal.active');
+            if (categoryModal && e.target.id === 'productDetailModal') {
+                categoryModal.classList.remove('active');
+                setTimeout(() => {
+                    categoryModal.style.display = 'none';
+                }, 300);
+            }
+        });
+        
+        document.addEventListener('hidden.bs.modal', function (e) {
+            console.log('Bootstrap modal closed:', e.target.id);
+            
+            // پاک کردن backdrop های اضافی
+            setTimeout(() => {
+                const orphanBackdrops = document.querySelectorAll('.modal-backdrop:not(.show)');
+                orphanBackdrops.forEach(backdrop => backdrop.remove());
+                
+                // پاک کردن modal-open class اگر هیچ modal باز نیست
+                const openModals = document.querySelectorAll('.modal.show, .mobile-categories-modal.active');
+                if (openModals.length === 0) {
+                    document.body.classList.remove('modal-open');
+                    document.body.style.removeProperty('overflow');
+                    document.body.style.removeProperty('position');
+                    document.body.style.removeProperty('width');
+                    document.body.style.removeProperty('top');
+                    document.body.style.removeProperty('padding-right');
+                }
+            }, 150);
+        });
+        
+        // اضافه کردن emergency cleanup برای modal محصول
+        window.forceCloseProductModal = function() {
+            console.log('Force closing product modal');
+            
+            const productModal = document.getElementById('productDetailModal');
+            if (productModal && typeof bootstrap !== 'undefined') {
+                try {
+                    const bsModal = bootstrap.Modal.getInstance(productModal);
+                    if (bsModal) {
+                        bsModal.hide();
+                    }
+                } catch(e) {
+                    console.log('Error closing modal:', e);
+                }
+            }
+            
+            // Manual cleanup
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(backdrop => backdrop.remove());
+            
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('position');
+            document.body.style.removeProperty('width');
+            document.body.style.removeProperty('top');
+            document.body.style.removeProperty('padding-right');
+            
+            if (productModal) {
+                productModal.classList.remove('show');
+                productModal.style.display = 'none';
+                productModal.setAttribute('aria-hidden', 'true');
+            }
+        };
+    }
+
+    // ===== MOBILE OPTIMIZATIONS =====
+    function initMobileOptimizations() {
+        // تشخیص نوع دستگاه
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        
+        if (isMobile || isTouch) {
+            document.body.classList.add('mobile-device');
+            
+            // بهبود touch targets
+            const touchTargets = document.querySelectorAll('.scroll-chip, .add-to-cart-btn, .mobile-filter-btn, .overlay-btn');
+            touchTargets.forEach(target => {
+                target.classList.add('mobile-touch-target', 'touch-friendly');
+            });
+        }
+        
+        // جلوگیری از زوم در input ها
+        const inputs = document.querySelectorAll('input[type="search"], input[type="text"], input[type="number"]');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                if (window.innerWidth < 768) {
+                    const viewport = document.querySelector('meta[name="viewport"]');
+                    if (viewport) {
+                        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+                    }
+                }
+            });
+            
+            input.addEventListener('blur', () => {
+                if (window.innerWidth < 768) {
+                    const viewport = document.querySelector('meta[name="viewport"]');
+                    if (viewport) {
+                        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0');
+                    }
+                }
+            });
+        });
+        
+        // بهبود scroll performance
+        let ticking = false;
+        function updateScrollIndicators() {
+            const container = document.querySelector('.categories-scroll');
+            if (container) {
+                requestAnimationFrame(() => {
+                    const leftBtn = document.querySelector('.scroll-left');
+                    const rightBtn = document.querySelector('.scroll-right');
+                    
+                    if (leftBtn && rightBtn) {
+                        const isAtStart = container.scrollLeft <= 10;
+                        const isAtEnd = container.scrollLeft >= (container.scrollWidth - container.clientWidth - 10);
+                        
+                        leftBtn.style.opacity = isAtStart ? '0.3' : '1';
+                        rightBtn.style.opacity = isAtEnd ? '0.3' : '1';
+                    }
+                    
+                    ticking = false;
+                });
+            }
+        }
+        
+        const scrollContainer = document.querySelector('.categories-scroll');
+        if (scrollContainer) {
+            scrollContainer.addEventListener('scroll', () => {
+                if (!ticking) {
+                    requestAnimationFrame(updateScrollIndicators);
+                    ticking = true;
+                }
+            }, { passive: true });
+        }
+        
+        // Intersection Observer برای انیمیشن‌های بهینه
+        if ('IntersectionObserver' in window) {
+            const animationObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate');
+                        animationObserver.unobserve(entry.target);
+                    }
+                });
+            }, {
+                threshold: 0.1,
+                rootMargin: '50px'
+            });
+            
+            // مشاهده کارت‌های محصول برای انیمیشن
+            const productCards = document.querySelectorAll('.product-card');
+            productCards.forEach(card => {
+                animationObserver.observe(card);
+            });
+        }
+        
+        // حافظه cache برای بهبود عملکرد
+        const categoryCache = new Map();
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+            const url = args[0];
+            if (typeof url === 'string' && url.includes('category')) {
+                if (categoryCache.has(url)) {
+                    return Promise.resolve(new Response(categoryCache.get(url)));
+                }
+            }
+            return originalFetch.apply(this, args);
+        };
+    }
+    
+    // ===== ENHANCED LOADING STATES =====
+    function initLoadingStates() {
+        // Loading state برای دکمه‌های add to cart
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.add-to-cart-btn')) {
+                const btn = e.target.closest('.add-to-cart-btn');
+                btn.classList.add('loading-state');
+                
+                // حذف loading state بعد از 2 ثانیه
+                setTimeout(() => {
+                    btn.classList.remove('loading-state');
+                }, 2000);
+            }
+        });
+        
+        // Loading برای تغییر دسته‌بندی
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.scroll-chip') || e.target.closest('.list-item')) {
+                const productsGrid = document.querySelector('.products-grid');
+                if (productsGrid) {
+                    productsGrid.style.opacity = '0.6';
+                    productsGrid.style.transition = 'opacity 0.3s ease';
+                    
+                    setTimeout(() => {
+                        productsGrid.style.opacity = '';
+                        productsGrid.style.transition = '';
+                    }, 800);
+                }
+            }
+        });
+    }
+    
+    // ===== VIEWPORT HEIGHT FIX FOR MOBILE =====
+    function initViewportFix() {
+        function setVH() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        
+        setVH();
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(setVH, 100);
+        });
+    }
+
+    // ===== INITIALIZE ALL =====
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOM loaded, initializing...');
+        
+        // Debug: Check if elements exist
+        const modalBtn = document.querySelector('.mobile-filter-btn');
+        const modal = document.querySelector('.mobile-categories-modal');
+        console.log('Modal button:', modalBtn);
+        console.log('Modal:', modal);
+        
+        // اضافه کردن بهینه‌سازی‌های جدید
+        initModalManagement();
+        initMobileOptimizations();
+        initLoadingStates();
+        initViewportFix();
+        
+        // فانکشن‌های موجود
+        initMobileModal();
+        initCategoriesScroll();
+        initViewToggle();
+        initWishlist();
+        initSearch();
+        initQuantityControls();
+        initAddToCart();
+        initSort();
+        initAnimations();
+        initPriceBadgeAnimations();
+        initRandomRatings();
+        
+        // Add loading animations
+        setTimeout(() => {
+            document.body.classList.add('loaded');
+        }, 500);
+        
+        // اعلان آماده بودن صفحه
+        if (window.innerWidth < 768) {
+            setTimeout(() => {
+                showNotification('بارگیری موفق', 'success');
+            }, 1500);
+            
+            // اضافه کردن دکمه emergency cleanup در console
+            console.log('🔧 Emergency modal cleanup available:');
+            console.log('   • Categories modal: window.forceCloseModal()');
+            console.log('   • Product modal: window.forceCloseProductModal()');
+        }
+        
+        // بررسی و پاک کردن backdrop های یتیم
+        setInterval(() => {
+            const modals = document.querySelectorAll('.mobile-categories-modal');
+            modals.forEach(modal => {
+                if (!modal.classList.contains('active') && modal.style.display === 'flex') {
+                    console.log('Found orphaned modal, cleaning up...');
+                    modal.style.display = 'none';
+                    modal.style.opacity = '0';
+                    
+                    // پاک کردن body styles
+                    if (document.body.style.overflow === 'hidden') {
+                        document.body.style.removeProperty('overflow');
+                        document.body.style.removeProperty('position');
+                        document.body.style.removeProperty('width');
+                        document.body.style.removeProperty('top');
+                    }
+                }
+            });
+        }, 5000); // بررسی هر 5 ثانیه
+    });
+    
+    // ===== CSS ANIMATIONS =====
+    const animationStyles = document.createElement('style');
+    animationStyles.textContent = `
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes heartBeat {
+            0% { transform: scale(1); }
+            14% { transform: scale(1.3); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.3); }
+            70% { transform: scale(1); }
+        }
+        
+        @keyframes fadeInStars {
+            0% {
+                opacity: 0;
+                transform: translateY(10px) scale(0.8);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        @keyframes sparkle {
+            0% {
+                transform: scale(1) rotate(0deg);
+                filter: brightness(1);
+            }
+            25% {
+                transform: scale(1.3) rotate(90deg);
+                filter: brightness(1.5) drop-shadow(0 0 8px #ffc107);
+            }
+            50% {
+                transform: scale(1.1) rotate(180deg);
+                filter: brightness(1.2) drop-shadow(0 0 12px #ffc107);
+            }
+            75% {
+                transform: scale(1.2) rotate(270deg);
+                filter: brightness(1.4) drop-shadow(0 0 6px #ffc107);
+            }
+            100% {
+                transform: scale(1) rotate(360deg);
+                filter: brightness(1);
+            }
+        }
+        
+        body:not(.loaded) .product-card,
+        body:not(.loaded) .category-tile,
+        body:not(.loaded) .scroll-chip {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        body.loaded .product-card,
+        body.loaded .category-tile,
+        body.loaded .scroll-chip {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+    `;
+    document.head.appendChild(animationStyles);
+    
+    // Make showNotification globally available
+    window.showNotification = showNotification;
+})();
+</script>
+
+{% endblock %}

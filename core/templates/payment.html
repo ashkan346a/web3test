@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container my-5" dir="rtl" lang="fa">
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card p-4 shadow-sm">
+        <h4 class="mb-3">پرداخت سفارش</h4>
+        <p class="text-muted">مجموع سفارش: <strong>{{ total_amount|floatformat:2 }}</strong> دلار </p>
+
+        <div class="mb-3">
+          <label class="form-label">روش پرداخت</label>
+          <div id="wallets" class="d-flex gap-2 flex-wrap">
+            {% for code, addr in wallets.items %}
+            <button class="btn btn-outline-primary wallet-btn" data-code="{{ code }}">{{ code }}</button>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div id="wallet-panel" class="border rounded p-3 mb-3" style="min-height:120px;">
+          <div id="wallet-info" class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="h6" id="selected-code">انتخاب نشده</div>
+              <div class="text-muted small" id="selected-amount">مقدار مورد نیاز: —</div>
+              <div class="mt-2" id="selected-address"></div>
+            </div>
+            <div id="selected-qr"></div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">جزئیات فاکتور</label>
+          <div class="list-group">
+            {% for it in cart_items %}
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+              <div class="text-truncate" style="max-width:400px;">{{ it.name }} <small class="text-muted">× {{ it.qty }}</small></div>
+              <div>{{ it.price|floatformat:2 }} دلار </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          <div class="fs-5 fw-bold">مبلغ کل</div>
+          <div class="fs-5 fw-bold">{{ total_amount|floatformat:2 }} دلار </div>
+        </div>
+
+        <div class="mt-4 d-flex gap-2">
+          <a href="{% url 'cart' %}" class="btn btn-outline-secondary">بازگشت به سبد</a>
+          <button id="check-payment" class="btn btn-primary">بررسی پرداخت</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card p-3 shadow-sm sticky-top" style="top:90px;">
+        <h6 class="mb-3">نرخ‌ها (USD)</h6>
+        <div id="rates-list">
+          {% for k,v in rates_snapshot.items %}
+          <div class="d-flex justify-content-between mb-2 rate-row"><div>{{ k }}</div><div>{{ v }}</div></div>
+          {% endfor %}
+        </div>
+        <hr>
+        <h6 class="mb-2">محاسبه معادل</h6>
+        <div id="equivalents">
+          {% for k,v in amounts.items %}
+          <div class="d-flex justify-content-between mb-2"><div>{{ k }}</div><div>{{ v|default:'—' }}</div></div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+<style>
+.card { border-radius:12px; }
+.wallet-btn.active{ background:#0d6efd; color:#fff; }
+</style>
+
+<script>
+(function(){
+  var wallets = {};
+  {% for k,v in wallets.items %}
+    wallets['{{ k }}'] = '{{ v|escapejs }}';
+  {% endfor %}
+
+  var qrData = {};
+  {% for k,v in qr_data.items %}
+    {% if v %}
+      qrData['{{ k }}'] = '{{ v|escapejs }}';
+    {% else %}
+      qrData['{{ k }}'] = null;
+    {% endif %}
+  {% endfor %}
+
+  var amounts = {};
+  {% for k,v in amounts.items %}
+    {% if v is not None %}
+      amounts['{{ k }}'] = {{ v }};
+    {% else %}
+      amounts['{{ k }}'] = null;
+    {% endif %}
+  {% endfor %}
+
+  var rateLimit = 60; // seconds between allowed checks
+  var lastCheck = 0;
+
+  function el(id){ return document.getElementById(id); }
+  function formatWithSep(v){
+    if(v === null || v === undefined) return '—';
+    try{ var parts = Number(v).toFixed(6).split('.'); parts[0]=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ','); return parts.join('.'); }catch(e){return v}
+  }
+
+  // wallet selection
+  Array.prototype.slice.call(document.querySelectorAll('.wallet-btn')).forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.wallet-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      var code = btn.getAttribute('data-code');
+      showWallet(code);
+    });
+  });
+
+  function showWallet(code){
+    var addr = wallets[code];
+    el('selected-code').textContent = code;
+    var amt = amounts[code];
+    if(amt === null || amt === undefined){
+      el('selected-amount').textContent = 'معادل: —';
+    } else {
+      el('selected-amount').textContent = 'معادل: ' + formatWithSep(amt) + ' ' + code;
+    }
+    el('selected-address').textContent = addr || '';
+    var q = qrData[code];
+    var qrDiv = el('selected-qr');
+    qrDiv.innerHTML = '';
+    if(q){
+      var img = document.createElement('img'); img.src = q; img.style.maxWidth='140px'; img.style.borderRadius='8px'; img.alt='qr'; qrDiv.appendChild(img);
+    } else {
+      // show short addr box
+      var pre = document.createElement('div'); pre.textContent = addr || ''; pre.className='small text-muted'; qrDiv.appendChild(pre);
+    }
+  }
+
+  // default select first wallet
+  var first = document.querySelector('.wallet-btn'); if(first) { first.click(); }
+
+  // check payment button with 60s cooldown
+  var checkBtn = el('check-payment');
+  if(checkBtn){
+    checkBtn.addEventListener('click', function(){
+      var now = Date.now()/1000;
+      if(now - lastCheck < rateLimit){
+        var left = Math.ceil(rateLimit - (now-lastCheck));
+        alert('لطفاً بعد از ' + left + ' ثانیه دوباره بررسی کنید');
+        return;
+      }
+      lastCheck = now;
+      checkBtn.textContent = 'در حال بررسی...'; checkBtn.disabled = true;
+      fetch('{% url "core:api_check_payment" %}', {method:'GET', headers:{'X-Requested-With':'XMLHttpRequest'}})
+        .then(function(r){ return r.json(); })
+        .then(function(j){
+          if(j && j.message){ alert(j.message); }
+          else { alert('پرداخت شما هنوز تایید نشده'); }
+        })
+        .catch(function(){ alert('خطا در بررسی پرداخت'); })
+        .finally(function(){ checkBtn.textContent='بررسی پرداخت'; checkBtn.disabled = false; });
+    });
+  }
+
+  // Periodically refresh rates list from API to keep UI dynamic
+  function refreshRates(){
+    fetch('{% url "core:api_live_rates" %}').then(function(r){return r.json();}).then(function(j){
+      if(!j || !j.rates) return;
+      var elRates = document.getElementById('rates-list');
+      var elEq = document.getElementById('equivalents');
+      elRates.innerHTML = ''; elEq.innerHTML = '';
+      Object.keys(j.rates).forEach(function(k){
+        var usd = j.rates[k].USD;
+        var row = document.createElement('div'); row.className='d-flex justify-content-between mb-2 rate-row'; row.innerHTML = '<div>'+k+'</div><div>'+usd+'</div>';
+        elRates.appendChild(row);
+        // update amounts if we can
+        var am = null;
+        try{ am = ({{ total_amount|floatformat:2 }} ) / usd; }catch(e){ am = null; }
+        var eqRow = document.createElement('div'); eqRow.className='d-flex justify-content-between mb-2'; eqRow.innerHTML = '<div>'+k+'</div><div>'+ (am? am.toFixed(6): '—') +'</div>';
+        elEq.appendChild(eqRow);
+        // update local amounts mapping
+        amounts[k] = am;
+      });
+      // if a wallet selected, refresh its shown amount
+      var active = document.querySelector('.wallet-btn.active'); if(active){ showWallet(active.getAttribute('data-code')); }
+    }).catch(function(){});
+  }
+  // initial and refresh every 30s
+  refreshRates(); setInterval(refreshRates, 30000);
+
+})();
+</script>

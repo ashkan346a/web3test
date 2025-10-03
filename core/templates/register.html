@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="card shadow-sm border-0 rounded-4">
+      <div class="card-body p-4">
+        <h5 class="card-title mb-4 text-center text-primary">ایجاد حساب کاربری جدید</h5>
+        <form method="post">{% csrf_token %}
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors.0 }}</div>
+          {% endif %}
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">شماره موبایل</label>
+              <input type="text" name="phone" class="form-control rounded-3" required 
+                     placeholder="مثال: 09123456789" value="{{ form.phone.value|default:'' }}">
+              {% if form.phone.errors %}
+                <div class="text-danger small mt-1">{{ form.phone.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">نام</label>
+              <input type="text" name="first_name" class="form-control rounded-3" required value="{{ form.first_name.value|default:'' }}">
+              {% if form.first_name.errors %}
+                <div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">نام خانوادگی</label>
+              <input type="text" name="last_name" class="form-control rounded-3" required value="{{ form.last_name.value|default:'' }}">
+              {% if form.last_name.errors %}
+                <div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">ایمیل (اختیاری)</label>
+              <input type="email" name="email" class="form-control rounded-3" value="{{ form.email.value|default:'' }}">
+              {% if form.email.errors %}
+                <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">رمز عبور</label>
+              <input type="password" name="password1" class="form-control rounded-3" required>
+              {% if form.password.errors %}
+                <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">تکرار رمز عبور</label>
+              <input type="password" name="password2" class="form-control rounded-3" required>
+              {% if form.password2.errors %}
+                <div class="text-danger small mt-1">{{ form.password2.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12">
+              <label class="form-label">آدرس</label>
+              <textarea name="address" class="form-control rounded-3" rows="2" 
+                        placeholder=" لطفا آدرس خود را به صورت صحیح و کامل وارد کنید ">{{ form.address.value|default:'' }}</textarea>
+              {% if form.address.errors %}
+                <div class="text-danger small mt-1">{{ form.address.errors.0 }}</div>
+              {% endif %}
+            </div>
+           
+          </div>
+          <button class="btn btn-success w-100 mt-4 py-2 rounded-3 fw-bold">ایجاد حساب</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

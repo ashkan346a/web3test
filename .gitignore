@@ -1,0 +1,33 @@
+# Django
+*.pyc
+__pycache__/
+db.sqlite3
+.env
+media/
+
+# Static files - این فقط برای production است
+staticfiles/
+
+# Virtual environment
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Cache
+*.cache
+rates_cache.json
+
+# Development files
+debug_exp.py
+test_*.py
+viewprj

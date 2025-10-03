@@ -1,0 +1,42 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1"/>
+      <stop offset="50%" style="stop-color:#4facfe;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#f093fb;stop-opacity:1"/>
+    </linearGradient>
+  </defs>
+  
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  
+  <!-- Background Pattern -->
+  <pattern id="dots" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+    <circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/>
+  </pattern>
+  <rect width="1200" height="630" fill="url(#dots)"/>
+  
+  <!-- Logo/Icon -->
+  <circle cx="300" cy="315" r="80" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+  <path d="M260 315 L300 275 L340 315 L300 355 Z" fill="white"/>
+  <circle cx="300" cy="315" r="15" fill="rgba(102,126,234,0.8)"/>
+  
+  <!-- Main Text -->
+  <text x="450" y="280" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="white">
+    PharmaWeb
+  </text>
+  
+  <!-- Subtitle -->
+  <text x="450" y="330" font-family="Arial, sans-serif" font-size="36" fill="rgba(255,255,255,0.9)" dir="rtl">
+    فروشگاه آنلاین دارو
+  </text>
+  
+  <!-- Features -->
+  <text x="450" y="380" font-family="Arial, sans-serif" font-size="24" fill="rgba(255,255,255,0.8)" dir="rtl">
+    ✓ ارسال سریع  ✓ پرداخت امن  ✓ مشاوره رایگان
+  </text>
+  
+  <!-- Website -->
+  <text x="450" y="420" font-family="Arial, sans-serif" font-size="28" fill="rgba(255,255,255,0.9)">
+    medpharmaweb.shop
+  </text>
+</svg>
