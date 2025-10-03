@@ -2975,57 +2975,121 @@
     document.body.removeChild(textarea);
   }
 
-  // IRR Copy Functions - Simple and Direct Approach
+  // IRR Copy Functions - Ultra Simple and Direct
   function copyIRRAmount() {
-    console.log('copyIRRAmount called'); // Debug log
-    const amountElement = document.querySelector('#irr-amount');
-    console.log('Amount element:', amountElement); // Debug log
-    
-    if (!amountElement) {
-      alert('عنصر مبلغ یافت نشد');
-      return;
-    }
-    
-    const originalText = amountElement.textContent || amountElement.innerText || '';
-    console.log('Original text:', originalText); // Debug log
-    
-    if (!originalText.trim()) {
-      alert('مبلغ موجود نیست');
-      return;
-    }
+    try {
+      console.log('=== copyIRRAmount START ===');
+      
+      // چندین روش برای پیدا کردن عنصر مبلغ
+      let amountElement = document.querySelector('#irr-amount');
+      if (!amountElement) {
+        amountElement = document.getElementById('irr-amount');
+      }
+      
+      console.log('Amount element found:', !!amountElement);
+      
+      if (!amountElement) {
+        alert('❌ عنصر مبلغ یافت نشد');
+        console.log('=== copyIRRAmount END (no element) ===');
+        return;
+      }
+      
+      // گرفتن متن به روش‌های مختلف
+      let text = amountElement.textContent || amountElement.innerText || amountElement.innerHTML || '';
+      console.log('Raw text:', text);
+      
+      if (!text || text.trim() === '') {
+        alert('❌ مبلغ خالی است');
+        console.log('=== copyIRRAmount END (empty text) ===');
+        return;
+      }
 
-    // Get clean amount (remove all commas, spaces, and non-numeric chars except digits)
-    const cleanAmount = originalText.replace(/[^0-9]/g, '').trim();
-    console.log('Clean amount:', cleanAmount); // Debug log
-    
-    if (!cleanAmount) {
-      alert('مبلغ معتبر نیست');
-      return;
+      // حذف همه چیز به جز اعداد
+      let cleanNumber = text.replace(/\D/g, '');
+      console.log('Clean number:', cleanNumber);
+      
+      if (!cleanNumber || cleanNumber === '0' || cleanNumber === '') {
+        alert('❌ مبلغ معتبر نیست');
+        console.log('=== copyIRRAmount END (invalid number) ===');
+        return;
+      }
+      
+      // کپی کردن - روش اول: Modern API
+      if (window.navigator && navigator.clipboard && navigator.clipboard.writeText) {
+        console.log('Using modern clipboard API');
+        navigator.clipboard.writeText(cleanNumber)
+          .then(() => {
+            console.log('✅ Clipboard success');
+            alert(`✅ مبلغ کپی شد: ${cleanNumber} تومان`);
+            showSuccessButton();
+          })
+          .catch((error) => {
+            console.log('❌ Clipboard failed, trying fallback:', error);
+            fallbackCopyAmount(cleanNumber);
+          });
+      } else {
+        console.log('Using fallback method');
+        fallbackCopyAmount(cleanNumber);
+      }
+      
+      console.log('=== copyIRRAmount END ===');
+      
+    } catch (error) {
+      console.error('Error in copyIRRAmount:', error);
+      alert('❌ خطا در کپی کردن: ' + error.message);
     }
-    
-    // Copy to clipboard
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(cleanAmount).then(() => {
-        alert(`مبلغ بدون کاما کپی شد: ${cleanAmount} ریال`);
-        // Visual feedback
-        const btn = document.querySelector('#copy-irr-amount');
-        if (btn) {
-          const originalBtnText = btn.innerHTML;
-          btn.innerHTML = '<i class="fas fa-check"></i> کپی شد';
-          btn.style.background = '#28a745';
-          btn.style.color = '#fff';
-          setTimeout(() => {
-            btn.innerHTML = originalBtnText;
-            btn.style.background = '';
-            btn.style.color = '';
-          }, 2000);
-        }
-      }).catch((err) => {
-        console.error('Clipboard error:', err);
-        copyFallbackIRR(cleanAmount);
-      });
-    } else {
-      copyFallbackIRR(cleanAmount);
+  }
+
+  // تابع fallback برای کپی مبلغ
+  function fallbackCopyAmount(text) {
+    try {
+      console.log('fallbackCopyAmount called with:', text);
+      
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'absolute';
+      textarea.style.left = '-9999px';
+      textarea.style.top = '-9999px';
+      
+      document.body.appendChild(textarea);
+      textarea.select();
+      textarea.setSelectionRange(0, 99999);
+      
+      const success = document.execCommand('copy');
+      document.body.removeChild(textarea);
+      
+      if (success) {
+        console.log('✅ Fallback copy success');
+        alert(`✅ مبلغ کپی شد: ${text} تومان`);
+        showSuccessButton();
+      } else {
+        console.log('❌ Fallback copy failed');
+        alert(`❌ خطا در کپی. مبلغ: ${text}`);
+      }
+    } catch (error) {
+      console.error('Fallback copy error:', error);
+      alert(`❌ خطا در کپی. مبلغ: ${text}`);
+    }
+  }
+
+  // نمایش موفقیت روی دکمه
+  function showSuccessButton() {
+    try {
+      const btn = document.querySelector('#copy-irr-amount') || document.getElementById('copy-irr-amount');
+      if (btn) {
+        const original = btn.innerHTML;
+        btn.innerHTML = '✅ کپی شد';
+        btn.style.backgroundColor = '#28a745';
+        btn.style.color = 'white';
+        
+        setTimeout(() => {
+          btn.innerHTML = original;
+          btn.style.backgroundColor = '';
+          btn.style.color = '';
+        }, 3000);
+      }
+    } catch (error) {
+      console.log('Button feedback error:', error);
     }
   }
 
@@ -3082,32 +3146,7 @@
     }
   }
 
-  // Fallback copy function for IRR amount
-  function copyFallbackIRR(text) {
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.style.position = 'fixed';
-    textarea.style.left = '-999999px';
-    textarea.style.top = '-999999px';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    
-    try {
-      textarea.focus();
-      textarea.select();
-      textarea.setSelectionRange(0, 99999);
-      const successful = document.execCommand('copy');
-      if (successful) {
-        alert(`مبلغ بدون کاما کپی شد: ${text} ریال`);
-      } else {
-        alert(`خطا در کپی کردن. مبلغ: ${text}`);
-      }
-    } catch (err) {
-      alert(`خطا در کپی کردن. مبلغ: ${text}`);
-    } finally {
-      document.body.removeChild(textarea);
-    }
-  }
+  // تابع قدیمی حذف شد - استفاده از fallbackCopyAmount
 
   // Fallback copy function for card number
   function copyFallbackCard(text) {
