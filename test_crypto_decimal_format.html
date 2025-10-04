@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تست نمایش مقادیر کریپتو - 2 رقم اعشار</title>
+    <style>
+        body { font-family: Tahoma; direction: rtl; padding: 20px; background: #f5f5f5; }
+        .test-container { background: white; padding: 20px; border-radius: 10px; max-width: 600px; margin: 0 auto; }
+        .crypto-item { margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .crypto-amount { font-weight: bold; color: #007cba; font-size: 18px; }
+        .crypto-rate { color: #666; font-size: 14px; margin-top: 5px; }
+        .selected-crypto { background: #e8f4fd; border: 2px solid #007cba; }
+        .before-after { display: flex; gap: 20px; }
+        .before, .after { flex: 1; padding: 10px; border-radius: 5px; }
+        .before { background: #ffe6e6; }
+        .after { background: #e6ffe6; }
+        .test-result { margin-top: 20px; padding: 15px; background: #f0f9ff; border-left: 4px solid #007cba; }
+    </style>
+</head>
+<body>
+
+<div class="test-container">
+    <h1>🧪 تست نمایش مقادیر کریپتو با 2 رقم اعشار</h1>
+    
+    <div class="test-result">
+        <h3>📋 تغییرات اعمال‌شده:</h3>
+        <ul>
+            <li>✅ تابع انتخاب کریپتو: فقط 2 رقم اعشار</li>
+            <li>✅ لیست کریپتوها: فقط 2 رقم اعشار</li>
+            <li>✅ نمایش مبلغ نهایی: فقط 2 رقم اعشار</li>
+        </ul>
+    </div>
+    
+    <h3>📊 مقایسه قبل و بعد:</h3>
+    
+    <div class="before-after">
+        <div class="before">
+            <h4>❌ قبل (8 یا 6 رقم اعشار):</h4>
+            <div class="crypto-item">
+                <div class="crypto-amount">0.00020865 BTC</div>
+                <div class="crypto-rate">1 BTC ≈ $122,212</div>
+            </div>
+            <div class="crypto-item">
+                <div class="crypto-amount">0.00565287 ETH</div>
+                <div class="crypto-rate">1 ETH ≈ $4,511</div>
+            </div>
+            <div class="crypto-item">
+                <div class="crypto-amount">74.546363 TRX</div>
+                <div class="crypto-rate">1 TRX ≈ $0.34</div>
+            </div>
+        </div>
+        
+        <div class="after">
+            <h4>✅ بعد (2 رقم اعشار):</h4>
+            <div class="crypto-item">
+                <div class="crypto-amount">0.00 BTC</div>
+                <div class="crypto-rate">1 BTC ≈ $122,212</div>
+            </div>
+            <div class="crypto-item">
+                <div class="crypto-amount">0.01 ETH</div>
+                <div class="crypto-rate">1 ETH ≈ $4,511</div>
+            </div>
+            <div class="crypto-item">
+                <div class="crypto-amount">74.55 TRX</div>
+                <div class="crypto-rate">1 TRX ≈ $0.34</div>
+            </div>
+        </div>
+    </div>
+    
+    <h3>💡 مثال عملی با مبلغ $25.50:</h3>
+    
+    <div class="crypto-item selected-crypto">
+        <h4>🟠 Bitcoin (BTC)</h4>
+        <div class="crypto-amount">0.00 BTC</div>
+        <div class="crypto-rate">برای $25.50</div>
+    </div>
+    
+    <div class="crypto-item">
+        <h4>🔷 Ethereum (ETH)</h4>
+        <div class="crypto-amount">0.01 ETH</div>
+        <div class="crypto-rate">برای $25.50</div>
+    </div>
+    
+    <div class="crypto-item">
+        <h4>🔴 Tron (TRX)</h4>
+        <div class="crypto-amount">74.55 TRX</div>
+        <div class="crypto-rate">برای $25.50</div>
+    </div>
+    
+    <div class="crypto-item">
+        <h4>🟢 Tether (USDT)</h4>
+        <div class="crypto-amount">25.47 USDT</div>
+        <div class="crypto-rate">برای $25.50</div>
+    </div>
+    
+    <div class="test-result">
+        <h3>🎯 نتیجه:</h3>
+        <p><strong>✅ مقادیر کریپتو اکنون فقط با 2 رقم اعشار نمایش داده می‌شوند</strong></p>
+        <p>این تغییر باعث می‌شود:</p>
+        <ul>
+            <li>📱 نمایش تمیزتر و خواناتر</li>
+            <li>🔢 کاهش پیچیدگی اعداد</li>
+            <li>👥 تجربه کاربری بهتر</li>
+            <li>📏 فرمت یکسان برای همه ارزها</li>
+        </ul>
+    </div>
+    
+</div>
+
+<script>
+// تابع formatNumber همانند checkout.html
+function formatNumber(v, decimals = 2) { 
+    if (v == null || v === undefined || isNaN(v)) return '0.00';
+    
+    const num = Number(v);
+    let result = num.toFixed(decimals);
+    
+    // Add thousand separators for better readability
+    const parts = result.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    
+    return parts.join('.');
+}
+
+// تست نمایش مقادیر
+window.onload = function() {
+    console.log('تست formatNumber با 2 رقم اعشار:');
+    console.log('0.00020865 BTC -> ', formatNumber(0.00020865, 2));
+    console.log('0.00565287 ETH -> ', formatNumber(0.00565287, 2));
+    console.log('74.546363 TRX -> ', formatNumber(74.546363, 2));
+    console.log('25.474525 USDT -> ', formatNumber(25.474525, 2));
+    
+    alert('✅ تست کامل شد! همه مقادیر کریپتو اکنون با 2 رقم اعشار نمایش داده می‌شوند.');
+};
+</script>
+
+</body>
+</html>

@@ -2571,7 +2571,8 @@
     }
     
     const rate = rateData.USD || 0;
-    const amount = rate > 0 ? (TOTAL / rate).toFixed(code === 'BTC' ? 8 : 6) : '0';
+    // نمایش فقط 2 رقم اعشار برای تمام ارزها
+    const amount = rate > 0 ? (TOTAL / rate).toFixed(2) : '0.00';
     
     qs('#selectedCurrencyName').textContent = config.name;
     qs('#selectedCryptoAmount').textContent = `${amount}`;
@@ -2621,7 +2622,7 @@
         <div class="crypto-info">
           <span class="crypto-name">${config.name}</span>
           ${amount ? 
-            `<span class="crypto-amount">${formatNumber(amount, code === 'BTC' ? 8 : 6)} ${code}</span>
+            `<span class="crypto-amount">${formatNumber(amount, 2)} ${code}</span>
              <span class="crypto-rate">1 ${code} ≈ $${formatNumber(price, 2)}</span>` :
             '<span class="crypto-amount">نرخ در دسترس نیست</span>'
           }
@@ -2836,8 +2837,8 @@
     // Update wallet address
     qs('#wallet-address').textContent = addr;
     
-    // Update amounts
-    qs('#crypto-amount').textContent = formatNumber(cryptoAmt);
+    // Update amounts - نمایش فقط 2 رقم اعشار
+    qs('#crypto-amount').textContent = formatNumber(cryptoAmt, 2);
     qs('#crypto-code').textContent = code;
     qs('#fiat-amount').textContent = formatNumber(TOTAL, 2);
 
