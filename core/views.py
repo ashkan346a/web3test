@@ -2038,18 +2038,33 @@ def checkout(request):
 
     total_amount = float(total_amount_dec.quantize(Decimal("0.01")))
 
-    # --- use crypto.py helpers ---
-    rates = get_exchange_rates()
-
+    # --- use unified exchange system ---
+    from .exchange import convert_fiat_to_cryptos
+    
+    # Get crypto conversions using the unified system
+    crypto_conversions_raw = convert_fiat_to_cryptos(total_amount, 'usd')
+    
+    # Transform to match expected format for templates
     crypto_conversions = {}
-    for coin in ["BTC", "ETH", "TRX", "USDT", "BNB", "TON"]:
-        amount, _ = convert_usd_to_crypto(total_amount, coin, rates)
-        price = float(rates.get(coin, {}).get("USD", 0))
-        crypto_conversions[coin] = {
-            "amount": amount,
-            "price": price,
-            "currency": "USD",
-        }
+    crypto_mapping = {
+        'bitcoin': 'BTC',
+        'ethereum': 'ETH', 
+        'tron': 'TRX',
+        'tether': 'USDT',
+        'binancecoin': 'BNB',
+        'the-open-network': 'TON',
+        'solana': 'SOL',
+        'dogecoin': 'DOGE'
+    }
+    
+    for coin_id, short_name in crypto_mapping.items():
+        if coin_id in crypto_conversions_raw:
+            data = crypto_conversions_raw[coin_id]
+            crypto_conversions[short_name] = {
+                "amount": data.get('amount', 0),
+                "price": data.get('price', 0),
+                "currency": "USD",
+            }
 
     # canonical wallets
     WALLETS = {
@@ -2105,29 +2120,39 @@ from django.views.decorators.http import require_GET
 
 @require_GET
 def api_live_rates(request):
-
-    rates = get_exchange_rates()
+    """Live crypto rates API using unified exchange system"""
+    from .exchange import convert_fiat_to_cryptos
 
     # optional client-provided total to compute per-token amounts
     total_q = request.GET.get('total_usd') or request.GET.get('total')
     try:
-        total_dec = Decimal(str(total_q)) if total_q not in (None, '') else None
+        total_amount = float(total_q) if total_q not in (None, '') else 25.0  # Default amount
     except Exception:
-        total_dec = None
+        total_amount = 25.0
 
+    # Get conversions using unified system
+    conversions = convert_fiat_to_cryptos(total_amount, 'usd')
+    
+    # Transform to API format
     out = {}
-    for code, info in rates.items():
-        usd_val = info.get("USD") if isinstance(info, dict) else info
-        try:
-            usd_dec = Decimal(str(usd_val))
-        except Exception:
-            usd_dec = Decimal("0")
-
-        item = {"USD": float(usd_dec)}
-        if total_dec is not None and usd_dec > 0:
-            item["amount"] = float((total_dec / usd_dec).quantize(Decimal("0.00000001")))
-
-        out[code] = item
+    crypto_mapping = {
+        'bitcoin': 'BTC',
+        'ethereum': 'ETH', 
+        'tron': 'TRX',
+        'tether': 'USDT',
+        'binancecoin': 'BNB',
+        'the-open-network': 'TON',
+        'solana': 'SOL',
+        'dogecoin': 'DOGE'
+    }
+    
+    for coin_id, short_name in crypto_mapping.items():
+        if coin_id in conversions:
+            data = conversions[coin_id]
+            out[short_name] = {
+                "USD": data.get('price', 0),
+                "amount": data.get('amount', 0)
+            }
 
     return JsonResponse({"rates": out})
 

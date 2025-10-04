@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نمایش کنترل پنل ادمین - تنظیمات سایت</title>
+    <style>
+        body { font-family: Tahoma; direction: rtl; padding: 20px; background: #f5f5f5; }
+        .admin-panel { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto; }
+        .header { background: #417690; color: white; padding: 15px; margin: -20px -20px 20px -20px; border-radius: 10px 10px 0 0; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .checkbox-field { display: flex; align-items: center; gap: 10px; }
+        .checkbox-field input[type="checkbox"] { transform: scale(1.5); }
+        .save-btn { background: #417690; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .save-btn:hover { background: #2c5282; }
+        .description { color: #666; font-size: 14px; margin-top: 5px; }
+        .status-enabled { color: #155724; background: #d4edda; padding: 5px 10px; border-radius: 3px; }
+        .status-disabled { color: #721c24; background: #f8d7da; padding: 5px 10px; border-radius: 3px; }
+        .demo-result { margin-top: 20px; padding: 15px; background: #e8f4fd; border-radius: 5px; border-left: 4px solid #007cba; }
+    </style>
+</head>
+<body>
+
+<div class="admin-panel">
+    <div class="header">
+        <h2>🔧 پنل مدیریت Django Admin - تنظیمات سایت</h2>
+    </div>
+    
+    <h3>📋 Site Settings</h3>
+    
+    <div class="section">
+        <h4>اطلاعات کلی</h4>
+        <div>
+            <label>نام:</label>
+            <input type="text" value="تنظیمات اصلی سایت" style="width: 300px; padding: 5px;" readonly>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h4>تنظیمات پرداخت</h4>
+        <div class="checkbox-field">
+            <input type="checkbox" id="card-to-card-checkbox" checked>
+            <label for="card-to-card-checkbox">فعال‌سازی پرداخت کارت به کارت</label>
+        </div>
+        <div class="description">
+            آیا پرداخت کارت به کارت در صفحه checkout نمایش داده شود؟
+        </div>
+    </div>
+    
+    <div class="section">
+        <h4>تنظیمات سیستم</h4>
+        <div class="checkbox-field">
+            <input type="checkbox" id="maintenance-checkbox">
+            <label for="maintenance-checkbox">حالت نگهداری</label>
+        </div>
+        <div class="description">
+            فعال‌سازی حالت نگهداری سایت
+        </div>
+    </div>
+    
+    <button class="save-btn" onclick="updateStatus()">💾 ذخیره</button>
+    
+    <div class="demo-result">
+        <h4>📊 نتیجه در سایت:</h4>
+        <div id="result-status" class="status-enabled">
+            ✅ بخش "پرداخت کارت به کارت" در صفحه checkout نمایش داده می‌شود
+        </div>
+    </div>
+</div>
+
+<script>
+function updateStatus() {
+    const cardToCardEnabled = document.getElementById('card-to-card-checkbox').checked;
+    const resultDiv = document.getElementById('result-status');
+    
+    if (cardToCardEnabled) {
+        resultDiv.className = 'status-enabled';
+        resultDiv.innerHTML = '✅ بخش "پرداخت کارت به کارت" در صفحه checkout نمایش داده می‌شود';
+        alert('✅ تنظیمات ذخیره شد! پرداخت کارت به کارت فعال است.');
+    } else {
+        resultDiv.className = 'status-disabled';
+        resultDiv.innerHTML = '❌ بخش "پرداخت کارت به کارت" در صفحه checkout مخفی است';
+        alert('✅ تنظیمات ذخیره شد! پرداخت کارت به کارت غیرفعال است.');
+    }
+}
+
+// Event listener for real-time update
+document.getElementById('card-to-card-checkbox').addEventListener('change', function() {
+    const resultDiv = document.getElementById('result-status');
+    
+    if (this.checked) {
+        resultDiv.className = 'status-enabled';
+        resultDiv.innerHTML = '✅ بخش "پرداخت کارت به کارت" در صفحه checkout نمایش داده می‌شود';
+    } else {
+        resultDiv.className = 'status-disabled';
+        resultDiv.innerHTML = '❌ بخش "پرداخت کارت به کارت" در صفحه checkout مخفی است';
+    }
+});
+</script>
+
+</body>
+</html>
