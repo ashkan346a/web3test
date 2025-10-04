@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تست نمایش مبلغ کریپتو</title>
+    <style>
+        body { font-family: Tahoma; direction: rtl; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .crypto-amount { font-weight: bold; color: #007cba; }
+        .old-format { color: #999; text-decoration: line-through; }
+        .new-format { color: #28a745; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<h1>🪙 تست نمایش مبلغ کریپتو - فرمت جدید</h1>
+
+<div class="test-section">
+    <h3>📊 مقایسه فرمت قدیم و جدید:</h3>
+    
+    <h4>🟠 Bitcoin (BTC):</h4>
+    <p><span class="old-format">قدیم: 0.00020865 BTC (8 رقم)</span></p>
+    <p><span class="new-format">جدید: 0.000209 BTC (6 رقم)</span></p>
+    
+    <h4>🔷 Ethereum (ETH):</h4>
+    <p><span class="old-format">قدیم: 0.00565287 ETH (6 رقم)</span></p>
+    <p><span class="new-format">جدید: 0.0057 ETH (4 رقم)</span></p>
+    
+    <h4>🔴 Tron (TRX):</h4>
+    <p><span class="old-format">قدیم: 74.546363 TRX (6 رقم)</span></p>
+    <p><span class="new-format">جدید: 74.5464 TRX (4 رقم)</span></p>
+    
+    <h4>🟢 USDT:</h4>
+    <p><span class="old-format">قدیم: 25.474525 USDT (6 رقم)</span></p>
+    <p><span class="new-format">جدید: 25.4745 USDT (4 رقم)</span></p>
+</div>
+
+<div class="test-section">
+    <h3>🔧 تست تابع JavaScript:</h3>
+    <div id="test-results"></div>
+</div>
+
+<script>
+// کپی تابع از checkout.html
+function formatNumber(v, decimals = 4) { 
+  if (v == null || v === undefined || isNaN(v)) return '0';
+  
+  const num = Number(v);
+  let result = num.toFixed(decimals).replace(/\.0+$/, '');
+  
+  // Add thousand separators for better readability
+  const parts = result.split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  
+  return parts.join('.');
+}
+
+function formatCryptoAmount(amount, cryptoCode) {
+  // بیتکوین: 6 رقم اعشار، سایر ارزها: 4 رقم اعشار
+  const decimals = cryptoCode === 'BTC' ? 6 : 4;
+  return formatNumber(amount, decimals);
+}
+
+// تست داده‌های نمونه
+const testData = [
+    { code: 'BTC', amount: 0.00020865, expected: '0.000209' },
+    { code: 'ETH', amount: 0.00565287, expected: '0.0057' },
+    { code: 'TRX', amount: 74.546363, expected: '74.5464' },
+    { code: 'USDT', amount: 25.474525, expected: '25.4745' },
+    { code: 'BNB', amount: 0.02142191, expected: '0.0214' },
+    { code: 'SOL', amount: 0.10941388, expected: '0.1094' }
+];
+
+// اجرای تست
+let results = '<h4>نتایج تست:</h4>';
+let allPassed = true;
+
+testData.forEach(test => {
+    const result = formatCryptoAmount(test.amount, test.code);
+    const passed = result === test.expected;
+    const status = passed ? '✅' : '❌';
+    
+    if (!passed) allPassed = false;
+    
+    results += `<p>${status} ${test.code}: ${result} ${passed ? '(صحیح)' : `(انتظار: ${test.expected})`}</p>`;
+});
+
+results += `<hr><p><strong>${allPassed ? '🎉 همه تست‌ها موفق!' : '⚠️ برخی تست‌ها ناموفق'}</strong></p>`;
+
+document.getElementById('test-results').innerHTML = results;
+
+// نمایش نمونه‌های عملی
+console.log('🧪 تست formatCryptoAmount:');
+testData.forEach(test => {
+    const result = formatCryptoAmount(test.amount, test.code);
+    console.log(`${test.code}: ${test.amount} → ${result}`);
+});
+</script>
+
+</body>
+</html>

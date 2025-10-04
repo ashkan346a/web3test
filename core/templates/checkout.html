@@ -2472,7 +2472,7 @@
     
     // Calculate current amount
     const rate = rateData && rateData.USD ? rateData.USD : 0;
-    const amount = rate > 0 ? (TOTAL / rate).toFixed(code === 'BTC' ? 8 : 6) : '0';
+    const amount = rate > 0 ? (TOTAL / rate).toFixed(code === 'BTC' ? 6 : 4) : '0';
     
     // Update modal content
     qs('#qrModalTitle').textContent = `QR Code ${config.name}`;
@@ -2571,8 +2571,7 @@
     }
     
     const rate = rateData.USD || 0;
-    // نمایش تا 4 رقم اعشار برای تمام ارزها
-    const amount = rate > 0 ? (TOTAL / rate).toFixed(4) : '0.0000';
+    const amount = rate > 0 ? (TOTAL / rate).toFixed(code === 'BTC' ? 6 : 4) : '0';
     
     qs('#selectedCurrencyName').textContent = config.name;
     qs('#selectedCryptoAmount').textContent = `${amount}`;
@@ -2622,7 +2621,7 @@
         <div class="crypto-info">
           <span class="crypto-name">${config.name}</span>
           ${amount ? 
-            `<span class="crypto-amount">${formatNumber(amount, 2)} ${code}</span>
+            `<span class="crypto-amount">${formatCryptoAmount(amount, code)} ${code}</span>
              <span class="crypto-rate">1 ${code} ≈ $${formatNumber(price, 2)}</span>` :
             '<span class="crypto-amount">نرخ در دسترس نیست</span>'
           }
@@ -2639,7 +2638,7 @@
     });
   }
 
-  function formatNumber(v, decimals = 6) { 
+  function formatNumber(v, decimals = 4) { 
     if (v == null || v === undefined || isNaN(v)) return '0';
     
     const num = Number(v);
@@ -2650,6 +2649,12 @@
     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     
     return parts.join('.');
+  }
+
+  function formatCryptoAmount(amount, cryptoCode) {
+    // بیتکوین: 6 رقم اعشار، سایر ارزها: 4 رقم اعشار
+    const decimals = cryptoCode === 'BTC' ? 6 : 4;
+    return formatNumber(amount, decimals);
   }
 
   function showNotification(message, type = 'info') {
@@ -2837,8 +2842,8 @@
     // Update wallet address
     qs('#wallet-address').textContent = addr;
     
-    // Update amounts - نمایش فقط 2 رقم اعشار
-    qs('#crypto-amount').textContent = formatNumber(cryptoAmt, 2);
+    // Update amounts
+    qs('#crypto-amount').textContent = formatNumber(cryptoAmt);
     qs('#crypto-code').textContent = code;
     qs('#fiat-amount').textContent = formatNumber(TOTAL, 2);
 
