@@ -3,6 +3,34 @@
 from django.db import migrations, models
 
 
+def safe_add_fields(apps, schema_editor):
+    """Safely add fields if they don't exist"""
+    db_alias = schema_editor.connection.alias
+    
+    with schema_editor.connection.cursor() as cursor:
+        # Check if fields exist and add them if they don't
+        try:
+            # Check tracking_code
+            cursor.execute("SELECT tracking_code FROM core_order LIMIT 1;")
+        except:
+            # Field doesn't exist, add it
+            cursor.execute("ALTER TABLE core_order ADD COLUMN tracking_code VARCHAR(100) NULL;")
+        
+        try:
+            # Check note
+            cursor.execute("SELECT note FROM core_order LIMIT 1;")
+        except:
+            # Field doesn't exist, add it
+            cursor.execute("ALTER TABLE core_order ADD COLUMN note TEXT NULL;")
+        
+        try:
+            # Check updated_at
+            cursor.execute("SELECT updated_at FROM core_order LIMIT 1;")
+        except:
+            # Field doesn't exist, add it
+            cursor.execute("ALTER TABLE core_order ADD COLUMN updated_at TIMESTAMPTZ DEFAULT NOW();")
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -14,19 +42,5 @@ class Migration(migrations.Migration):
             name='order',
             options={'ordering': ['-created_at'], 'verbose_name': 'سفارش', 'verbose_name_plural': 'سفارشات'},
         ),
-        migrations.AddField(
-            model_name='order',
-            name='note',
-            field=models.TextField(blank=True, null=True, verbose_name='یادداشت'),
-        ),
-        migrations.AddField(
-            model_name='order',
-            name='tracking_code',
-            field=models.CharField(blank=True, max_length=100, null=True, verbose_name='کد پیگیری'),
-        ),
-        migrations.AddField(
-            model_name='order',
-            name='updated_at',
-            field=models.DateTimeField(auto_now=True, verbose_name='آخرین بروزرسانی'),
-        ),
+        migrations.RunPython(safe_add_fields, migrations.RunPython.noop),
     ]
