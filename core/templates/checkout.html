@@ -2571,8 +2571,8 @@
     }
     
     const rate = rateData.USD || 0;
-    // نمایش فقط 2 رقم اعشار برای تمام ارزها
-    const amount = rate > 0 ? (TOTAL / rate).toFixed(2) : '0.00';
+    // نمایش تا 4 رقم اعشار برای تمام ارزها
+    const amount = rate > 0 ? (TOTAL / rate).toFixed(4) : '0.0000';
     
     qs('#selectedCurrencyName').textContent = config.name;
     qs('#selectedCryptoAmount').textContent = `${amount}`;
