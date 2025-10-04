@@ -38,6 +38,37 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'pharma_web.urls'
 WSGI_APPLICATION = 'pharma_web.wsgi.application'
 
+# 🔑 Wallet configurations for local development
+WALLETS = {
+    'BTC': 'bc1qwc2lqwjxwc29tnxn6p2kstsrqcc0ems5957r5m',
+    'ETH': '0xaF99374Dd015dA244cdA1F1Fc2183b423a17A10D',
+    'TRX': 'TW88rRvvvoo3dRpippmQJUNmowdmgaCjhE',
+    'USDT': 'TW88rRvvvoo3dRpippmQJUNmowdmgaCjhE',
+    'BNB': '0xaF99374Dd015dA244cdA1F1Fc2183b423a17A10D',
+    'TON': 'UQATaVtLxM93Sms6jNJwrMjQ_UOKTOvR2niXyS6ONIkx2HNc',
+    'SOL': '9nt397D5ruuTaJVf1WcY6HoQtcthSHEHXek6UFxZUzhQ',
+    'DOGE': 'DPbSdTVxAh2KpzDScG1qtJGwkfGAkBSG1A',
+}
+
+# Static files configuration
+STATIC_URL = '/static/'
+STATICFILES_DIRS = []
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Media files configuration  
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Additional configurations needed
+LANGUAGE_CODE = 'fa'
+TIME_ZONE = 'Asia/Tehran'
+USE_I18N = True
+USE_TZ = True
+
+# Security settings for development
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

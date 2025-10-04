@@ -1651,8 +1651,53 @@ def profile(request):
 class OrderHistoryView(View):
     def get(self, request):
         lang = request.session.get('language', 'fa')
-        orders = Order.objects.filter(user=request.user)
-        return render(request, 'order_history.html', {'orders': orders, 'lang': lang})
+        
+        # Check if user is authenticated
+        if not request.user.is_authenticated:
+            # Redirect to login page
+            from django.shortcuts import redirect
+            return redirect(f"/login/?next={request.path}")
+        
+        # Get user's orders with their items
+        orders = Order.objects.filter(user=request.user).prefetch_related('items').order_by('-created_at')
+        
+        # Calculate summary statistics
+        shipped_count = orders.filter(status='SHIPPED').count()
+        cancelled_count = orders.filter(status='CANCELLED').count()
+        
+        context = {
+            'orders': orders,
+            'lang': lang,
+            'shipped_count': shipped_count,
+            'cancelled_count': cancelled_count,
+        }
+        
+        return render(request, 'order_history.html', context)
+
+
+class OrderDetailView(View):
+    def get(self, request, order_id):
+        # Check if user is authenticated
+        if not request.user.is_authenticated:
+            from django.shortcuts import redirect
+            return redirect(f"/login/?next={request.path}")
+        
+        # Get the order or 404
+        from django.shortcuts import get_object_or_404
+        order = get_object_or_404(Order, id=order_id, user=request.user)
+        
+        # Get order items
+        order_items = order.items.all()
+        
+        lang = request.session.get('language', 'fa')
+        
+        context = {
+            'order': order,
+            'order_items': order_items,
+            'lang': lang,
+        }
+        
+        return render(request, 'order_detail.html', context)
 
 
 class GuideView(View):

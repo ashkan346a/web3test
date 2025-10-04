@@ -1,141 +1,413 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}تاریخچه سفارشات — PharmaWeb{% endblock %}
-{% block content %}
-<div class="container my-5" dir="rtl">
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-4">
-    <div>
-      <h1 class="h4 fw-bold mb-1">تاریخچه سفارشات</h1>
-      <p class="text-muted small mb-0">اینجا همه سفارش‌های شما به‌همراه وضعیت، مبلغ و جزئیات نمایش داده می‌شود.</p>
-    </div>
 
-    <form method="get" class="d-flex gap-2 align-items-center">
-      <input type="search" name="q" value="{{ request.GET.q|default:'' }}" class="form-control form-control-sm rounded-pill shadow-sm" placeholder="جستجو بر اساس شماره سفارش یا کد پیگیری">
-      <select name="status" class="form-select form-select-sm">
-        <option value="">همه وضعیت‌ها</option>
-        <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>در حال پردازش</option>
-        <option value="processing" {% if request.GET.status == 'processing' %}selected{% endif %}>در حال آماده‌سازی</option>
-        <option value="shipped" {% if request.GET.status == 'shipped' %}selected{% endif %}>ارسال‌شده</option>
-        <option value="delivered" {% if request.GET.status == 'delivered' %}selected{% endif %}>تحویل‌شده</option>
-        <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>لغو شده</option>
-      </select>
-      <button class="btn btn-primary btn-sm" type="submit">اعمال</button>
+{% block head %}
+<style>
+  .order-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: none;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  
+  .order-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12) !important;
+  }
+  
+  .status-badge {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 0.875rem;
+  }
+  
+  .status-pending { background: #fff3cd; color: #856404; }
+  .status-processing { background: #d1ecf1; color: #0c5460; }
+  .status-shipped { background: #d4edda; color: #155724; }
+  .status-delivered { background: #d1ecf1; color: #0c5460; }
+  .status-cancelled { background: #f8d7da; color: #721c24; }
+  
+  .order-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+  }
+  
+  .search-container {
+    background: white;
+    border-radius: 16px;
+    padding: 1rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    margin-bottom: 2rem;
+  }
+  
+  .summary-card {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+  }
+  
+  .empty-state img {
+    width: 200px;
+    opacity: 0.7;
+    margin-bottom: 1.5rem;
+  }
+  
+  @media (max-width: 768px) {
+    .order-card .d-flex {
+      flex-direction: column;
+      align-items: flex-start !important;
+    }
+    
+    .order-icon {
+      width: 50px;
+      height: 50px;
+      font-size: 1.25rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" dir="rtl">
+  <!-- Header Section -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
+        <div>
+          <h1 class="h3 fw-bold mb-2 text-primary">
+            <i class="fa-solid fa-clock-rotate-left me-2"></i>
+            تاریخچه سفارشات
+          </h1>
+          <p class="text-muted mb-0">مدیریت و پیگیری تمامی سفارش‌های شما در یک نگاه</p>
+        </div>
+        
+        <a href="{% url 'buy_medicine' %}" class="btn btn-primary btn-lg rounded-pill">
+          <i class="fa-solid fa-plus me-2"></i>
+          سفارش جدید
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filter Section -->
+  <div class="search-container">
+    <form method="get" class="row g-3 align-items-end">
+      <div class="col-md-6">
+        <label for="search" class="form-label small text-muted fw-semibold">جستجو</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-0">
+            <i class="fa-solid fa-magnifying-glass text-muted"></i>
+          </span>
+          <input type="search" name="q" id="search" value="{{ request.GET.q|default:'' }}" 
+                 class="form-control border-0 bg-light" 
+                 placeholder="جستجو بر اساس شماره سفارش، کد پیگیری یا نام محصول">
+        </div>
+      </div>
+      
+      <div class="col-md-4">
+        <label for="status" class="form-label small text-muted fw-semibold">وضعیت سفارش</label>
+        <select name="status" id="status" class="form-select border-0 bg-light">
+          <option value="">🔍 همه وضعیت‌ها</option>
+          <option value="PENDING" {% if request.GET.status == 'PENDING' %}selected{% endif %}>⏳ در حال پردازش</option>
+          <option value="PROCESSING" {% if request.GET.status == 'PROCESSING' %}selected{% endif %}>📦 در حال آماده‌سازی</option>
+          <option value="SHIPPED" {% if request.GET.status == 'SHIPPED' %}selected{% endif %}>🚚 ارسال‌شده</option>
+          <option value="DELIVERED" {% if request.GET.status == 'DELIVERED' %}selected{% endif %}>✅ تحویل‌شده</option>
+          <option value="CANCELLED" {% if request.GET.status == 'CANCELLED' %}selected{% endif %}>❌ لغو شده</option>
+        </select>
+      </div>
+      
+      <div class="col-md-2">
+        <button class="btn btn-primary w-100 rounded-pill" type="submit">
+          <i class="fa-solid fa-filter me-2"></i>اعمال فیلتر
+        </button>
+      </div>
     </form>
   </div>
 
   {% if orders %}
     <div class="row g-4">
       <div class="col-lg-8">
-        <div class="list-group">
-          {% for o in orders %}
-            <div class="list-group-item shadow-sm rounded-3 mb-3 p-3">
-              <div class="d-flex flex-column flex-md-row justify-content-between gap-3 align-items-start">
-                <div class="d-flex gap-3 align-items-start">
-                  <div class="bg-light rounded-3 p-2 d-flex align-items-center justify-content-center" style="width:72px; height:72px;">
-                    <i class="fa-solid fa-box fa-2x text-primary"></i>
+        <!-- Orders List -->
+        {% for o in orders %}
+          <div class="card order-card shadow-sm mb-4">
+            <div class="card-body p-4">
+              <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-4">
+                <!-- Order Info -->
+                <div class="d-flex gap-3 align-items-start flex-grow-1">
+                  <div class="order-icon">
+                    {% if o.status == 'DELIVERED' %}
+                      <i class="fa-solid fa-check"></i>
+                    {% elif o.status == 'SHIPPED' %}
+                      <i class="fa-solid fa-truck"></i>
+                    {% elif o.status == 'PROCESSING' %}
+                      <i class="fa-solid fa-box"></i>
+                    {% elif o.status == 'CANCELLED' %}
+                      <i class="fa-solid fa-times"></i>
+                    {% else %}
+                      <i class="fa-solid fa-clock"></i>
+                    {% endif %}
                   </div>
-                  <div>
-                    <div class="fw-semibold">سفارش #{{ o.id }}</div>
-                    <div class="small text-muted">
-                      {{ o.created_at|date:"Y/m/d H:i" }} • {{ o.items_count|default:0 }} آیتم
-                      {% if o.tracking_code %} • کد پیگیری: <span class="fw-semibold">{{ o.tracking_code }}</span>{% endif %}
+                  
+                  <div class="flex-grow-1">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                      <h5 class="mb-0 fw-bold">سفارش #{{ o.id }}</h5>
+                      {% if o.status == 'DELIVERED' %}
+                        <span class="status-badge status-delivered">✅ تحویل شده</span>
+                      {% elif o.status == 'SHIPPED' %}
+                        <span class="status-badge status-shipped">🚚 ارسال شده</span>
+                      {% elif o.status == 'PROCESSING' %}
+                        <span class="status-badge status-processing">📦 در حال آماده‌سازی</span>
+                      {% elif o.status == 'CANCELLED' %}
+                        <span class="status-badge status-cancelled">❌ لغو شده</span>
+                      {% else %}
+                        <span class="status-badge status-pending">⏳ در حال پردازش</span>
+                      {% endif %}
                     </div>
+                    
+                    <div class="text-muted small mb-2">
+                      <i class="fa-regular fa-calendar me-1"></i>
+                      {{ o.created_at|date:"j F Y، H:i" }}
+                      <span class="mx-2">•</span>
+                      <i class="fa-solid fa-box me-1"></i>
+                      {{ o.items_count }} آیتم
+                      {% if o.tracking_code %}
+                        <span class="mx-2">•</span>
+                        <i class="fa-solid fa-barcode me-1"></i>
+                        کد پیگیری: <strong>{{ o.tracking_code }}</strong>
+                      {% endif %}
+                    </div>
+                    
                     {% if o.note %}
-                      <div class="mt-2 text-muted small text-truncate" style="max-width:420px;">یادداشت: {{ o.note }}</div>
+                      <div class="alert alert-info py-2 px-3 mb-2">
+                        <i class="fa-solid fa-note-sticky me-2"></i>
+                        <small>{{ o.note }}</small>
+                      </div>
                     {% endif %}
                   </div>
                 </div>
 
+                <!-- Order Actions -->
                 <div class="text-md-end">
-                  <div class="d-flex align-items-center gap-3">
-                    <div class="text-muted small">مبلغ</div>
-                    <div class="fs-5 fw-bold">${{ o.total|floatformat:2 }}</div>
+                  <div class="mb-3">
+                    <div class="text-muted small">مبلغ کل</div>
+                    <div class="h4 fw-bold text-primary mb-0">${{ o.total|floatformat:2 }}</div>
+                    <div class="text-muted small">{{ o.currency }}</div>
                   </div>
 
-                  <div class="mt-2 d-flex gap-2 justify-content-end">
-                    {% if o.status == 'delivered' %}
-                      <span class="badge bg-success">تحویل‌شده</span>
-                    {% elif o.status == 'shipped' %}
-                      <span class="badge bg-info text-dark">ارسال‌شده</span>
-                    {% elif o.status == 'processing' %}
-                      <span class="badge bg-warning text-dark">در حال آماده‌سازی</span>
-                    {% elif o.status == 'cancelled' %}
-                      <span class="badge bg-danger">لغو شده</span>
-                    {% else %}
-                      <span class="badge bg-secondary">در حال پردازش</span>
-                    {% endif %}
-
-                    <a href="{% url 'order_detail' o.id %}" class="btn btn-outline-primary btn-sm">مشاهده جزئیات</a>
-                    <a href="{% url 'buy_medicine' %}" class="btn btn-outline-secondary btn-sm">خرید دوباره</a>
+                  <div class="d-flex flex-column flex-md-row gap-2">
+                    <a href="{% url 'order_detail' o.id %}" class="btn btn-primary btn-sm rounded-pill">
+                      <i class="fa-solid fa-eye me-1"></i>مشاهده جزئیات
+                    </a>
+                    <a href="{% url 'buy_medicine' %}" class="btn btn-outline-secondary btn-sm rounded-pill">
+                      <i class="fa-solid fa-repeat me-1"></i>خرید مجدد
+                    </a>
                   </div>
                 </div>
               </div>
             </div>
-          {% endfor %}
-        </div>
+          </div>
+        {% endfor %}
 
+        <!-- Pagination -->
         {% if is_paginated %}
-          <nav aria-label="پیمایش سفارشات" class="mt-3">
-            <ul class="pagination pagination-sm justify-content-center">
+          <nav aria-label="پیمایش سفارشات" class="mt-4">
+            <ul class="pagination justify-content-center">
               {% if page_obj.has_previous %}
-                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">قبلی</a></li>
-              {% else %}
-                <li class="page-item disabled"><span class="page-link">قبلی</span></li>
+                <li class="page-item">
+                  <a class="page-link rounded-pill me-2" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                    <i class="fa-solid fa-chevron-right"></i> صفحه قبل
+                  </a>
+                </li>
               {% endif %}
 
-              <li class="page-item disabled"><span class="page-link">صفحه {{ page_obj.number }} از {{ page_obj.paginator.num_pages }}</span></li>
+              <li class="page-item active">
+                <span class="page-link rounded-pill mx-2">صفحه {{ page_obj.number }} از {{ page_obj.paginator.num_pages }}</span>
+              </li>
 
               {% if page_obj.has_next %}
-                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">بعدی</a></li>
-              {% else %}
-                <li class="page-item disabled"><span class="page-link">بعدی</span></li>
+                <li class="page-item">
+                  <a class="page-link rounded-pill ms-2" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                    صفحه بعد <i class="fa-solid fa-chevron-left"></i>
+                  </a>
+                </li>
               {% endif %}
             </ul>
           </nav>
         {% endif %}
       </div>
 
+      <!-- Sidebar Summary -->
       <div class="col-lg-4">
-        <div class="card shadow-sm rounded-3 sticky-top" style="top:90px;">
-          <div class="card-body">
-            <h6 class="fw-bold">خلاصه</h6>
-            <div class="small text-muted mb-3">نگاهی سریع به وضعیت سفارش‌ها و پشتیبانی</div>
-
-            <div class="d-flex justify-content-between mb-2">
-              <div class="text-muted small">کل سفارش‌ها</div>
-              <div class="fw-semibold">{{ orders|length }}</div>
+        <div class="sticky-top" style="top: 100px;">
+          <!-- Quick Stats -->
+          <div class="summary-card mb-4">
+            <h5 class="fw-bold mb-3">
+              <i class="fa-solid fa-chart-simple me-2"></i>
+              خلاصه آماری
+            </h5>
+            
+            <div class="row g-3 text-center">
+              <div class="col-6">
+                <div class="h3 fw-bold mb-1">{{ orders|length }}</div>
+                <div class="small opacity-75">کل سفارش‌ها</div>
+              </div>
+              <div class="col-6">
+                <div class="h3 fw-bold mb-1">{{ shipped_count|default:0 }}</div>
+                <div class="small opacity-75">ارسال شده</div>
+              </div>
             </div>
-
-            <div class="d-flex justify-content-between mb-2">
-              <div class="text-muted small">سفارش‌های در حال ارسال</div>
-              <div class="fw-semibold">{{ shipped_count|default:0 }}</div>
+            
+            <hr class="my-3 opacity-50">
+            
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="small opacity-75">آخرین بروزرسانی:</span>
+              <span class="small">همین الان</span>
             </div>
+          </div>
 
-            <div class="d-flex justify-content-between mb-3">
-              <div class="text-muted small">سفارش‌های لغوشده</div>
-              <div class="fw-semibold text-danger">{{ cancelled_count|default:0 }}</div>
+          <!-- Quick Actions -->
+          <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-body p-4">
+              <h6 class="fw-bold mb-3">
+                <i class="fa-solid fa-bolt me-2 text-warning"></i>
+                عملیات سریع
+              </h6>
+              
+              <div class="d-grid gap-2">
+                <a href="{% url 'buy_medicine' %}" class="btn btn-primary rounded-pill">
+                  <i class="fa-solid fa-plus me-2"></i>سفارش جدید
+                </a>
+                
+                <a href="{% url 'support' %}" class="btn btn-outline-primary rounded-pill">
+                  <i class="fa-solid fa-headset me-2"></i>پشتیبانی آنلاین
+                </a>
+                
+                <button class="btn btn-outline-secondary rounded-pill" onclick="window.print()">
+                  <i class="fa-solid fa-download me-2"></i>دریافت گزارش
+                </button>
+              </div>
+
+              <!-- Help Section -->
+              <div class="mt-4 p-3 bg-light rounded-3">
+                <div class="text-center">
+                  <i class="fa-solid fa-info-circle text-primary mb-2"></i>
+                  <div class="small text-muted">
+                    سوالی دارید؟ تیم پشتیبانی ما 24/7 در خدمت شماست.
+                  </div>
+                  <a href="{% url 'support' %}" class="btn btn-sm btn-outline-primary mt-2 rounded-pill">
+                    تماس بگیرید
+                  </a>
+                </div>
+              </div>
             </div>
-
-            <a href="{% url 'support' %}" class="btn btn-outline-primary w-100 btn-sm mb-2">تماس با پشتیبانی</a>
-            <a href="{% url 'buy_medicine' %}" class="btn btn-primary w-100 btn-sm">بازگشت به فروشگاه</a>
           </div>
         </div>
       </div>
     </div>
 
   {% else %}
-    <div class="text-center py-5">
-      <img src="{% static 'images/empty_orders.png' %}" alt="سفارشی وجود ندارد" style="width:160px; opacity:.9" class="mb-3">
-      <h4 class="mb-2">هنوز سفارشی ثبت نکرده‌اید</h4>
-      <p class="text-muted mb-4">محصولات محبوب را ببینید و اولین سفارش خود را ثبت کنید.</p>
-      <a href="{% url 'buy_medicine' %}" class="btn btn-primary btn-lg">مشاهده محصولات</a>
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6">
+        <div class="empty-state">
+          <div class="mb-4">
+            <div class="d-inline-block p-4 bg-primary bg-opacity-10 rounded-circle mb-3">
+              <i class="fa-solid fa-shopping-bag fa-3x text-primary"></i>
+            </div>
+          </div>
+          
+          <h3 class="fw-bold mb-3">هنوز سفارشی ثبت نکرده‌اید!</h3>
+          <p class="text-muted mb-4 lead">
+            با بیش از 2000 محصول دارویی و بهداشتی، اولین سفارش خود را ثبت کنید و از خدمات ما بهره‌مند شوید.
+          </p>
+          
+          <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
+            <a href="{% url 'buy_medicine' %}" class="btn btn-primary btn-lg rounded-pill px-4">
+              <i class="fa-solid fa-rocket me-2"></i>
+              شروع خرید
+            </a>
+            <a href="{% url 'guide' %}" class="btn btn-outline-secondary btn-lg rounded-pill px-4">
+              <i class="fa-solid fa-book me-2"></i>
+              راهنمای خرید
+            </a>
+          </div>
+          
+          <!-- Features Preview -->
+          <div class="row g-4 mt-5 text-start">
+            <div class="col-md-4">
+              <div class="text-center">
+                <div class="bg-success bg-opacity-10 rounded-circle p-3 d-inline-block mb-3">
+                  <i class="fa-solid fa-shipping-fast fa-2x text-success"></i>
+                </div>
+                <h6 class="fw-bold">ارسال سریع</h6>
+                <small class="text-muted">ارسال در کمتر از 24 ساعت</small>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="text-center">
+                <div class="bg-warning bg-opacity-10 rounded-circle p-3 d-inline-block mb-3">
+                  <i class="fa-solid fa-shield-check fa-2x text-warning"></i>
+                </div>
+                <h6 class="fw-bold">تضمین کیفیت</h6>
+                <small class="text-muted">محصولات اصل و استاندارد</small>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="text-center">
+                <div class="bg-info bg-opacity-10 rounded-circle p-3 d-inline-block mb-3">
+                  <i class="fa-solid fa-headset fa-2x text-info"></i>
+                </div>
+                <h6 class="fw-bold">پشتیبانی 24/7</h6>
+                <small class="text-muted">همیشه در کنار شما هستیم</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   {% endif %}
 </div>
 
-<style>
-  .list-group-item { background: #fff; border-radius: 12px; }
-  .sticky-top { position: sticky; }
-  @media (max-width: 991px) { .sticky-top { position: static; top: auto; } }
-</style>
+<!-- JavaScript for enhanced interactions -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Add smooth animations
+  const orderCards = document.querySelectorAll('.order-card');
+  orderCards.forEach((card, index) => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    setTimeout(() => {
+      card.style.transition = 'all 0.4s ease';
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+    }, index * 100);
+  });
+  
+  // Add search functionality
+  const searchInput = document.querySelector('input[name="q"]');
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      if (this.value.length > 2) {
+        // Add loading state
+        this.style.borderColor = '#007bff';
+      }
+    });
+  }
+});
+</script>
+
 {% endblock %}

@@ -4,6 +4,8 @@ from . import auth_views
 
 import importlib, sys
 
+# app_name = 'core'  # Disable namespace for now
+
 urlpatterns = [
     path("", views.HomeView.as_view(), name="home"),
     path("guide/", views.GuideView.as_view(), name="guide"),
@@ -26,6 +28,7 @@ urlpatterns = [
     path("payment/<uuid:order_id>/", views.payment, name="payment"),
 
     path("orders/", views.OrderHistoryView.as_view(), name="order_history"),
+    path("orders/<int:order_id>/", views.OrderDetailView.as_view(), name="order_detail"),
 
     path("login/", views.login_view, name="login"),
     path("login/", views.login_view, name="login_view"),

@@ -197,9 +197,40 @@ class Order(models.Model):
     status = models.CharField(max_length=16, choices=ORDER_STATUS, default='PENDING')
     created_at = models.DateTimeField(default=timezone.now)
     metadata = models.JSONField(default=dict, blank=True)  # ذخیره سبد یا فیلدهای اضافی
+    
+    # New fields for better order management
+    tracking_code = models.CharField(max_length=100, blank=True, null=True, verbose_name="کد پیگیری")
+    note = models.TextField(blank=True, null=True, verbose_name="یادداشت")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="آخرین بروزرسانی")
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "سفارش"
+        verbose_name_plural = "سفارشات"
 
     def __str__(self):
         return f"Order {self.order_id} ({self.user.username})"
+    
+    @property
+    def total(self):
+        """Calculate total amount of the order"""
+        return self.amount_usd
+    
+    @property
+    def items_count(self):
+        """Get the total number of items in this order"""
+        return self.items.count()
+    
+    def get_status_display_persian(self):
+        """Get Persian display for order status"""
+        status_map = {
+            'PENDING': 'در حال پردازش',
+            'PROCESSING': 'در حال آماده‌سازی', 
+            'SHIPPED': 'ارسال‌شده',
+            'DELIVERED': 'تحویل‌شده',
+            'CANCELLED': 'لغو شده',
+        }
+        return status_map.get(self.status, self.status)
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')

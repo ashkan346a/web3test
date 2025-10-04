@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}جزئیات سفارش #{{ order.id }} — PharmaWeb{% endblock %}
+
+{% block head %}
+<style>
+  .order-detail-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .status-badge-large {
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  
+  .info-card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease;
+  }
+  
+  .info-card:hover {
+    transform: translateY(-2px);
+  }
+  
+  .timeline-item {
+    position: relative;
+    padding-left: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    width: 12px;
+    height: 12px;
+    background: #007bff;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 0 0 3px #007bff20;
+  }
+  
+  .timeline-item.completed::before {
+    background: #28a745;
+    box-shadow: 0 0 0 3px #28a74520;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" dir="rtl">
+  <!-- Header Section -->
+  <div class="order-detail-header">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <a href="{% url 'order_history' %}" class="btn btn-light btn-sm rounded-pill">
+            <i class="fa-solid fa-arrow-right me-2"></i>بازگشت
+          </a>
+          
+          {% if order.status == 'DELIVERED' %}
+            <span class="status-badge-large bg-success text-white">✅ تحویل شده</span>
+          {% elif order.status == 'SHIPPED' %}
+            <span class="status-badge-large bg-info text-white">🚚 ارسال شده</span>
+          {% elif order.status == 'PROCESSING' %}
+            <span class="status-badge-large bg-warning text-dark">📦 در حال آماده‌سازی</span>
+          {% elif order.status == 'CANCELLED' %}
+            <span class="status-badge-large bg-danger text-white">❌ لغو شده</span>
+          {% else %}
+            <span class="status-badge-large bg-secondary text-white">⏳ در حال پردازش</span>
+          {% endif %}
+        </div>
+        
+        <h1 class="h2 fw-bold mb-2">سفارش #{{ order.id }}</h1>
+        <p class="mb-0 opacity-75">
+          <i class="fa-regular fa-calendar me-2"></i>
+          ثبت شده در {{ order.created_at|date:"j F Y، ساعت H:i" }}
+        </p>
+      </div>
+      
+      <div class="text-md-end">
+        <div class="h1 fw-bold mb-1">${{ order.total|floatformat:2 }}</div>
+        <div class="opacity-75">{{ order.currency }} • {{ order.items_count }} آیتم</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Order Details -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm rounded-3">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">اطلاعات سفارش</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label text-muted small">شماره سفارش</label>
+                <div class="fw-semibold">#{{ order.id }}</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label text-muted small">تاریخ ثبت</label>
+                <div>{{ order.created_at|date:"Y/m/d H:i" }}</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label text-muted small">وضعیت</label>
+                <div>
+                  {% if order.status == 'DELIVERED' %}
+                    <span class="badge bg-success">تحویل‌شده</span>
+                  {% elif order.status == 'SHIPPED' %}
+                    <span class="badge bg-info text-dark">ارسال‌شده</span>
+                  {% elif order.status == 'PROCESSING' %}
+                    <span class="badge bg-warning text-dark">در حال آماده‌سازی</span>
+                  {% elif order.status == 'CANCELLED' %}
+                    <span class="badge bg-danger">لغو شده</span>
+                  {% else %}
+                    <span class="badge bg-secondary">در حال پردازش</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label text-muted small">مبلغ کل</label>
+                <div class="fs-5 fw-bold text-primary">${{ order.total|floatformat:2 }}</div>
+              </div>
+            </div>
+            {% if order.tracking_code %}
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label text-muted small">کد پیگیری</label>
+                <div class="fw-semibold">{{ order.tracking_code }}</div>
+              </div>
+            </div>
+            {% endif %}
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label text-muted small">روش پرداخت</label>
+                <div>{{ order.currency|upper }}</div>
+              </div>
+            </div>
+            {% if order.note %}
+            <div class="col-12">
+              <div class="mb-3">
+                <label class="form-label text-muted small">یادداشت</label>
+                <div class="p-3 bg-light rounded">{{ order.note }}</div>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Items -->
+      {% if order_items %}
+      <div class="card shadow-sm rounded-3 mt-4">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">آیتم‌های سفارش ({{ order.items_count }} آیتم)</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>نام محصول</th>
+                  <th class="text-center">تعداد</th>
+                  <th class="text-end">قیمت واحد</th>
+                  <th class="text-end">مجموع</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in order_items %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold">{{ item.name }}</div>
+                  </td>
+                  <td class="text-center">{{ item.quantity }}</td>
+                  <td class="text-end">${{ item.unit_price|floatformat:2 }}</td>
+                  <td class="text-end fw-semibold">${{ item.subtotal|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Order Actions -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm rounded-3 sticky-top" style="top:90px;">
+        <div class="card-body">
+          <h6 class="fw-bold mb-3">عملیات</h6>
+          
+          <div class="d-grid gap-2">
+            <a href="{% url 'buy_medicine' %}" class="btn btn-primary">
+              <i class="fa-solid fa-shopping-cart me-2"></i>خرید دوباره
+            </a>
+            
+            {% if order.status != 'CANCELLED' %}
+            <a href="{% url 'support' %}" class="btn btn-outline-secondary">
+              <i class="fa-solid fa-headset me-2"></i>پشتیبانی
+            </a>
+            {% endif %}
+            
+            <button class="btn btn-outline-info" onclick="window.print()">
+              <i class="fa-solid fa-print me-2"></i>چاپ سفارش
+            </button>
+          </div>
+
+          <!-- Order Summary -->
+          <hr class="my-4">
+          <h6 class="fw-bold mb-3">خلاصه مالی</h6>
+          
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted small">مبلغ کل:</span>
+            <span class="fw-semibold">${{ order.total|floatformat:2 }}</span>
+          </div>
+          
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted small">ارز پرداخت:</span>
+            <span>{{ order.currency|upper }}</span>
+          </div>
+          
+          <div class="d-flex justify-content-between">
+            <span class="text-muted small">تعداد آیتم‌ها:</span>
+            <span>{{ order.items_count }} عدد</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .sticky-top { 
+    position: sticky; 
+  }
+  @media (max-width: 991px) { 
+    .sticky-top { 
+      position: static; 
+      top: auto; 
+    } 
+  }
+  @media print {
+    .btn, .card .sticky-top { 
+      display: none !important; 
+    }
+  }
+</style>
+{% endblock %}
