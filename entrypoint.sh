@@ -1,22 +1,32 @@
 #!/bin/sh
 set -e
 
-echo "Waiting for database and running migrations (with retries)..."
-max_retries=12
-retry_delay=5
-for i in $(seq 1 $max_retries); do
-    if python manage.py migrate --noinput; then
-        echo "Migrations applied"
-        break
-    else
-        if [ "$i" -eq "$max_retries" ]; then
-            echo "Migration failed after $max_retries attempts. Continuing to start app..."
+echo "🚨 Emergency migration fix - handling duplicate column issue..."
+
+# Try emergency migration fix first
+if python emergency_migration_fix.py; then
+    echo "✅ Emergency migration fix completed successfully"
+else
+    echo "⚠️ Emergency fix had warnings, trying standard migration..."
+    
+    # Fallback to standard migration with retries
+    max_retries=12
+    retry_delay=5
+    for i in $(seq 1 $max_retries); do
+        if python manage.py migrate --noinput; then
+            echo "✅ Standard migrations completed"
+            break
         else
-            echo "Migration attempt $i failed. Retrying in ${retry_delay}s..."
-            sleep $retry_delay
+            if [ "$i" -eq "$max_retries" ]; then
+                echo "⚠️ Migration failed after $max_retries attempts. Continuing anyway..."
+                break
+            else
+                echo "Migration attempt $i failed. Retrying in ${retry_delay}s..."
+                sleep $retry_delay
+            fi
         fi
-    fi
-done
+    done
+fi
 
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
